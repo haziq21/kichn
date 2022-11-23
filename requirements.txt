@@ -6,6 +6,8 @@ opencv-python~=4.6.0.66
 # Converts image data formats
 Pillow~=9.3.0
 
+# Enables asynchronous HTTP communication
+aiohttp~=3.8.3
 # Enables WebSocket communication
 websockets~=10.4
 
