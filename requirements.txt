@@ -1,0 +1,20 @@
+# Draws GUI
+pyglet~=2.0.0
+# Captures barcode images
+# TODO: Switch to opencv-python-headless?
+opencv-python~=4.6.0.66
+# Converts image data formats
+Pillow~=9.3.0
+
+# Enables WebSocket communication
+websockets~=10.4
+
+# Web server framework
+fastapi~=0.87.0
+# Runs webserver
+uvicorn~=0.20.0
+
+# Interfaces with Redis database
+redis~=4.3.5
+# Hashes passwords
+argon2-cffi~=21.3.0
