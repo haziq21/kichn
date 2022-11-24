@@ -10,7 +10,7 @@ from asyncio import sleep
 from utils.networker import Networker
 
 
-async def main(net: Networker):
+async def run(net: Networker):
     """
     Entry point of the GUI application.
     """
