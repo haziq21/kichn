@@ -11,7 +11,13 @@ $ brew tap redis-stack/redis-stack
 $ brew install redis-stack
 ```
 
-Then install all the Python dependencies from `requirements.txt`.
+Then install ZBar.
+
+```
+$ brew install zbar
+```
+
+And finally, install all the Python dependencies from `requirements.txt`.
 
 ```
 $ pip install -r requirements.txt
