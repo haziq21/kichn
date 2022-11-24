@@ -1,5 +1,5 @@
 # Draws GUI
-pyglet~=2.0.0
+pygame~=2.1.2
 # Captures barcode images
 # TODO: Switch to opencv-python-headless?
 opencv-python~=4.6.0.66

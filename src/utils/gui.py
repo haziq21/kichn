@@ -2,7 +2,7 @@
 This module contains the GUI that runs on the client.
 """
 
-import pyglet
+import pygame as pg
 import cv2
 from PIL import Image
 from asyncio import sleep
