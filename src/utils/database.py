@@ -61,7 +61,10 @@ def begin_session(session_id: str) -> str:
     Removes the session ID from the database to prevent the same session from
     being accessed again. Returns the email of the user whose session it is.
     """
-    email = str(r.hget("pending-sessions", session_id))
+    email_bytes = r.hget("pending-sessions", session_id)
+    assert email_bytes is not None
+
+    email = str(email_bytes)
     r.hdel("pending-sessions", session_id)
 
     return email
