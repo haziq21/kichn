@@ -1,6 +1,6 @@
 # Kichn
 
-Kichn is a kitchen inventory tracker and grocery list app.
+Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project.
 
 ## Setting up
 
@@ -54,4 +54,3 @@ To run the FairPrice API scraper:
 ```
 $ python3 src/scraper.py
 ```
-
