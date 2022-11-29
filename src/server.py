@@ -14,7 +14,7 @@ class LoginDetails(BaseModel):
     pass
 
 
-class SignupDetails(LoginDetails):
+class SignupDetails(BaseModel):
     pass
 
 
