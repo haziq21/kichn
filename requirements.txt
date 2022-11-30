@@ -13,11 +13,6 @@ aiohttp~=3.8.3
 # Enables WebSocket communication
 websockets~=10.4
 
-# Web server framework
-fastapi~=0.87.0
-# Runs webserver
-uvicorn~=0.20.0
-
 # Interfaces with Redis database
 redis~=4.3.5
 # Hashes passwords
