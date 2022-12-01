@@ -11,6 +11,9 @@ from typing import Callable
 from collections.abc import Coroutine
 from dataclasses import dataclass
 
+# TODO: Upgrade to Python 3.10
+from typing import Optional
+
 
 @dataclass
 class AuthenticationEvent:
@@ -42,6 +45,7 @@ class Networker:
     def __init__(self, server_url: str):
         self._server_url = server_url
         self._queued_reqs: list[Callable[[aiohttp.ClientSession], Coroutine]] = []
+        self._ws_session_token: Optional[str] = None
 
         #### NETWORK EVENT HANDLERS ####
 
@@ -58,32 +62,49 @@ class Networker:
         Continuously sends scheduled requests and messages, as
         well as receives responses and messages from the server.
         """
-        # Run the HTTP and WebSocket tasks concurrently
-        await asyncio.gather(
-            self._run_http(), self._run_ws_sender(), self._run_ws_receiver()
-        )
+        async with aiohttp.ClientSession(self._server_url) as session:
+            # Run the HTTP and WebSocket tasks concurrently
+            await asyncio.gather(self._run_http(session), self._run_ws(session))
 
-    async def _run_http(self):
+    async def _run_http(self, session: aiohttp.ClientSession):
         """
         Continuously sends scheduled HTTP requests and receives responses.
         """
-        async with aiohttp.ClientSession(self._server_url) as session:
-            # Continuously send the queued requests
-            while True:
-                if len(self._queued_reqs) == 0:
-                    # Allow other asyncio tasks to run if there are no queued requests
-                    await asyncio.sleep(0)
-                    continue
+        # Continuously send the queued requests
+        while True:
+            if len(self._queued_reqs) == 0:
+                # Allow other asyncio tasks to run if there are no queued requests
+                await asyncio.sleep(0)
+                continue
 
-                # Run the least recently queued request
-                await self._queued_reqs.pop(0)(session)
+            # Run the least recently queued request
+            await self._queued_reqs.pop(0)(session)
 
-    async def _run_ws_sender(self):
+    async def _run_ws(self, session: aiohttp.ClientSession):
+        """
+        Continuously sends and receives WebSocket messages once 
+        `self._ws_session_token` is set (which happens on a 
+        successful login or signup).
+        """
+        while True:
+            if self._ws_session_token is None:
+                # Allow other asyncio tasks to run if a WebSocket 
+                # connection hasn't already been established
+                await asyncio.sleep(0)
+                continue
+
+            # Connect to the WebSocket
+            async with session.ws_connect('/ws/' + self._ws_session_token) as ws:
+                # Run the sender and receiver tasks concurrently
+                await asyncio.gather(self._run_ws_sender(ws), self._run_ws_receiver(ws))
+                break  # This should never run, but just in case...
+
+    async def _run_ws_sender(self, ws: aiohttp.ClientWebSocketResponse):
         """
         Continuously sends scheduled WebSocket messages.
         """
 
-    async def _run_ws_receiver(self):
+    async def _run_ws_receiver(self, ws: aiohttp.ClientWebSocketResponse):
         """
         Continuously receives WebSocket messages.
         """
@@ -100,13 +121,14 @@ class Networker:
             async with session.post("/login", json=req_body) as res:
                 if res.status == 200:
                     # 200 OK - the login was successful
-                    session_token = (await res.json())["sessionToken"]
-                    self.on_login(AuthenticationEvent(True, session_token))
+                    self._ws_session_token = (await res.json())["sessionToken"]
+                    self.on_login(AuthenticationEvent(True, self._ws_session_token))
                 elif res.status == 401:
                     # 401 Unauthorized - the login was unsuccessful
                     self.on_login(AuthenticationEvent(False, ""))
                 else:
                     # Something went wrong...
+                    # TODO: Handle more cases
                     raise Exception(f"Unexpected {res.status} response code")
 
         self._queued_reqs.append(req)
@@ -123,13 +145,14 @@ class Networker:
             async with session.post("/signup", json=req_body) as res:
                 if res.status == 200:
                     # 200 OK - the signup was successful
-                    session_token = (await res.json())["sessionToken"]
-                    self.on_login(AuthenticationEvent(True, session_token))
+                    self._ws_session_token = (await res.json())["sessionToken"]
+                    self.on_login(AuthenticationEvent(True, self._ws_session_token))
                 elif res.status == 401:
                     # 401 Unauthorized - the signup was unsuccessful
                     self.on_login(AuthenticationEvent(False, ""))
                 else:
                     # Something went wrong...
+                    # TODO: Handle more cases
                     raise Exception(f"Unexpected {res.status} response code")
 
         self._queued_reqs.append(req)
