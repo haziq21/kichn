@@ -13,6 +13,15 @@ import random
 _r = redis.Redis()
 _ph = argon2.PasswordHasher()
 
+
+def _gen_random_id(k=20) -> str:
+    """
+    Returns a randomly-generated string of k letters and digits.
+    """
+    sample_chars = string.ascii_letters + string.digits
+    return "".join(random.choices(sample_chars, k=k))
+
+
 #### ACCESSING THE APPLICATION ####
 
 
@@ -56,8 +65,7 @@ def create_session(email: str) -> str:
     """
     Creates and returns a session token for the specified user.
     """
-    sample_chars = string.ascii_letters + string.digits
-    session_token = "".join(random.choices(sample_chars, k=20))
+    session_token = _gen_random_id()
     _r.hset("pending-sessions", session_token, email)
 
     return session_token
@@ -76,3 +84,35 @@ def begin_session(session_token: str) -> str:
     _r.hdel("pending-sessions", session_token)
 
     return str(email_bytes)
+
+
+#### MODIFYING KITCHENS ####
+
+
+def create_kitchen(email: str, kitchen_name: str) -> str:
+    """
+    Creates a new kitchen and assign the indicated
+    user as the owner. Returns the kitchen's ID.
+    """
+    kitchen_id = _gen_random_id()
+
+    # Create the kitchen
+    _r.set(f"kitchen:{kitchen_id}:name", kitchen_name)
+    _r.sadd(f"user:{email}:owned-kitchens", kitchen_id)
+
+    return kitchen_id
+
+
+def rename_kitchen(kitchen_id: str, new_name: str):
+    """
+    Sets the name of the kitchen to `new_name`.
+    """
+    _r.set(f"kitchen:{kitchen_id}:name", new_name)
+
+
+def delete_kitchen(kitchen_id: str):
+    """
+    Deletes the kitchen from the database.
+    """
+    # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
+    _r.delete(f"kitchen:{kitchen_id}:*")
