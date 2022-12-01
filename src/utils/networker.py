@@ -1,16 +1,115 @@
 """
 This module handles communication with the web server from the client.
+
+Authored by Haziq Hairil.
 """
 
 import asyncio
+import aiohttp
 import websockets
+from typing import Callable
+from collections.abc import Coroutine
+from dataclasses import dataclass
+
+
+@dataclass
+class AuthenticationEvent:
+    successful: bool
+    session_token: str
 
 
 class Networker:
-    def __init__(self):
-        pass
+    def __init__(self, server_url: str):
+        self._server_url = server_url
+        self._queued_reqs: list[Callable[[aiohttp.ClientSession], Coroutine]] = []
+
+        #### NETWORK EVENT HANDLERS ####
+
+        empty_fn = lambda _: None
+
+        self.on_login: Callable[[AuthenticationEvent], None] = empty_fn
+        """Runs when a login request receives a response."""
+
+        self.on_signup: Callable[[AuthenticationEvent], None] = empty_fn
+        """Runs when a signup request receives a response."""
 
     async def run(self):
         """
-        Sends and receives WebSocket messages from the server.
+        Continuously sends scheduled requests and messages, as
+        well as receives responses and messages from the server.
         """
+        # Run the HTTP and WebSocket tasks concurrently
+        await asyncio.gather(
+            self._run_http(), self._run_ws_sender(), self._run_ws_receiver()
+        )
+
+    async def _run_http(self):
+        """
+        Continuously sends scheduled HTTP requests and receives responses.
+        """
+        async with aiohttp.ClientSession(self._server_url) as session:
+            # Continuously send the queued requests
+            while True:
+                if len(self._queued_reqs) == 0:
+                    # Allow other asyncio tasks to run if there are no queued requests
+                    await asyncio.sleep(0)
+                    continue
+
+                # Run the least recently queued request
+                await self._queued_reqs.pop(0)(session)
+
+    async def _run_ws_sender(self):
+        """
+        Continuously sends scheduled WebSocket messages.
+        """
+
+    async def _run_ws_receiver(self):
+        """
+        Continuously receives WebSocket messages.
+        """
+
+    def request_login(self, email: str, password: str):
+        """
+        Schedules a login request to be sent. `self.on_login()`
+        will be called once the response is received.
+        """
+        req_body = {"email": email, "password": password}
+
+        async def req(session: aiohttp.ClientSession):
+            # Make the POST request to /login
+            async with session.post("/login", json=req_body) as res:
+                if res.status == 200:
+                    res_body = await res.json()
+                    # The login was successful
+                    self.on_login(AuthenticationEvent(True, res_body["sessionToken"]))
+                elif res.status == 401:
+                    # The login was unsuccessful
+                    self.on_login(AuthenticationEvent(False, ""))
+                else:
+                    # Something went wrong...
+                    raise Exception(f"Unexpected {res.status} response code")
+
+        self._queued_reqs.append(req)
+
+    def request_signup(self, name: str, email: str, password: str):
+        """
+        Schedules a signup request to be sent. `self.on_signup()`
+        will be called once the response is received.
+        """
+        req_body = {"name": name, "email": email, "password": password}
+
+        async def req(session: aiohttp.ClientSession):
+            # Make the POST request to /signup
+            async with session.post("/signup", json=req_body) as res:
+                if res.status == 200:
+                    res_body = await res.json()
+                    # The signup was successful
+                    self.on_login(AuthenticationEvent(True, res_body["sessionToken"]))
+                elif res.status == 401:
+                    # The signup was unsuccessful
+                    self.on_login(AuthenticationEvent(False, ""))
+                else:
+                    # Something went wrong...
+                    raise Exception(f"Unexpected {res.status} response code")
+
+        self._queued_reqs.append(req)

@@ -8,9 +8,9 @@ from utils.networker import Networker
 
 
 async def main():
-    net = Networker()
+    net = Networker("http://0.0.0.0:8080")
 
-    # Run the GUI and manage the network operations asynchronously
+    # Run the GUI and manage the network operations concurrently
     await asyncio.gather(gui.run(net), net.run())
 
 
