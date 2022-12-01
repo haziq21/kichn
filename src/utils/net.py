@@ -14,6 +14,11 @@ from dataclasses import dataclass
 
 @dataclass
 class AuthenticationEvent:
+    """
+    Represents a login or signup event. `session_token`
+    will be an empty string if `successful` is `False`.
+    """
+
     successful: bool
     session_token: str
 
