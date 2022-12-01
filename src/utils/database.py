@@ -47,7 +47,7 @@ def create_user(name: str, email: str, password: str) -> bool:
 
     # Write the user's account data to the database
     _r.set(f"user:{email}:name", name)
-    _r.set(f"user:{email}:auth", password)
+    _r.set(f"user:{email}:auth", _ph.hash(password))
 
     return True
 
