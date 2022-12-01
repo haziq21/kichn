@@ -3,15 +3,15 @@ This module simulates a headless (no GUI) client, for testing purposes.
 """
 
 import asyncio
-from utils import networker
+from utils import net
 
 
-def handle_login(event: networker.AuthenticationEvent):
+def handle_login(event: net.AuthenticationEvent):
     print(event)
 
 
-net = networker.Networker("http://0.0.0.0:8080")
-net.on_login = handle_login
-net.request_login("john@gmail.com", "correct horse battery staple")
+networker = net.Networker("http://0.0.0.0:8080")
+networker.on_login = handle_login
+networker.request_login("john@gmail.com", "correct horse battery staple")
 
-asyncio.run(net.run())
+asyncio.run(networker.run())

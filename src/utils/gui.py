@@ -7,10 +7,11 @@ import cv2
 from PIL import Image
 from pyzbar.pyzbar import decode, ZBarSymbol
 from asyncio import sleep
-from utils.networker import Networker
+from time import time
+from utils import net
 
 
-async def run(net: Networker):
+async def run(networker: net.Networker):
     """
     Entry point of the GUI application.
     """
