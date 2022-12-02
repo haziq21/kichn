@@ -7,12 +7,21 @@ Authored by Haziq Hairil.
 import asyncio
 import aiohttp
 import websockets
-from typing import Callable
 from collections.abc import Coroutine
 from dataclasses import dataclass
 
 # TODO: Upgrade to Python 3.10
-from typing import Optional
+from typing import Callable, Optional, TypeVar
+
+
+#### TYPE ALIASES ####
+
+T = TypeVar("T")
+EventHandler = Callable[[T], None]
+RequestorFn = Callable[[aiohttp.ClientSession], Coroutine]
+
+
+#### EVENT CLASSES ####
 
 
 @dataclass
@@ -24,6 +33,9 @@ class AuthenticationEvent:
 
     successful: bool
     session_token: str
+
+
+#### NETWORKER ####
 
 
 class Networker:
@@ -44,7 +56,7 @@ class Networker:
 
     def __init__(self, server_url: str):
         self._server_url = server_url
-        self._queued_reqs: list[Callable[[aiohttp.ClientSession], Coroutine]] = []
+        self._queued_reqs: list[RequestorFn] = []
         self._ws_session_token: Optional[str] = None
 
         #### NETWORK EVENT HANDLERS ####
@@ -52,10 +64,10 @@ class Networker:
         # Set the default event handlers to empty placeholder functions
         f = lambda _: None
 
-        self.on_login: Callable[[AuthenticationEvent], None] = f
+        self.on_login: EventHandler[AuthenticationEvent] = f
         """Runs when a login request receives a response."""
 
-        self.on_signup: Callable[[AuthenticationEvent], None] = f
+        self.on_signup: EventHandler[AuthenticationEvent] = f
         """Runs when a signup request receives a response."""
 
     async def run(self):
