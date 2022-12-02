@@ -49,12 +49,13 @@ class Networker:
 
         #### NETWORK EVENT HANDLERS ####
 
-        empty_fn = lambda _: None
+        # Set the default event handlers to empty placeholder functions
+        f = lambda _: None
 
-        self.on_login: Callable[[AuthenticationEvent], None] = empty_fn
+        self.on_login: Callable[[AuthenticationEvent], None] = f
         """Runs when a login request receives a response."""
 
-        self.on_signup: Callable[[AuthenticationEvent], None] = empty_fn
+        self.on_signup: Callable[[AuthenticationEvent], None] = f
         """Runs when a signup request receives a response."""
 
     async def run(self):
@@ -82,19 +83,19 @@ class Networker:
 
     async def _run_ws(self, session: aiohttp.ClientSession):
         """
-        Continuously sends and receives WebSocket messages once 
-        `self._ws_session_token` is set (which happens on a 
+        Continuously sends and receives WebSocket messages once
+        `self._ws_session_token` is set (which happens on a
         successful login or signup).
         """
         while True:
             if self._ws_session_token is None:
-                # Allow other asyncio tasks to run if a WebSocket 
+                # Allow other asyncio tasks to run if a WebSocket
                 # connection hasn't already been established
                 await asyncio.sleep(0)
                 continue
 
             # Connect to the WebSocket
-            async with session.ws_connect('/ws/' + self._ws_session_token) as ws:
+            async with session.ws_connect("/ws/" + self._ws_session_token) as ws:
                 # Run the sender and receiver tasks concurrently
                 await asyncio.gather(self._run_ws_sender(ws), self._run_ws_receiver(ws))
                 break  # This should never run, but just in case...
@@ -124,7 +125,7 @@ class Networker:
                     self._ws_session_token = (await res.json())["sessionToken"]
                     self.on_login(AuthenticationEvent(True, self._ws_session_token))
                 elif res.status == 401:
-                    # 401 Unauthorized - the login was unsuccessful
+                    # 401 Unauthorized - incorrect login credentials
                     self.on_login(AuthenticationEvent(False, ""))
                 else:
                     # Something went wrong...
@@ -147,8 +148,8 @@ class Networker:
                     # 200 OK - the signup was successful
                     self._ws_session_token = (await res.json())["sessionToken"]
                     self.on_login(AuthenticationEvent(True, self._ws_session_token))
-                elif res.status == 401:
-                    # 401 Unauthorized - the signup was unsuccessful
+                elif res.status == 409:
+                    # 409 Conflict - an account with the email address already exists
                     self.on_login(AuthenticationEvent(False, ""))
                 else:
                     # Something went wrong...
