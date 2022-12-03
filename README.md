@@ -1,6 +1,6 @@
 # Kichn
 
-Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project.
+Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project. Documentation about the HTTP and WebSocket APIs provided by the server is included in the `docs` folder.
 
 ## Setting up
 
