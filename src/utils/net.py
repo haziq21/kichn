@@ -35,6 +35,19 @@ class AuthenticationEvent:
     session_token: str
 
 
+@dataclass
+class ProductInfoEvent:
+    """
+    Represents the receiving of information about a default or custom product.
+    """
+
+    product_id: str
+    name: str
+    category: str
+    image_url: str
+    barcodes: list[int]
+
+
 #### NETWORKER ####
 
 
@@ -70,6 +83,12 @@ class Networker:
 
         self.on_signup: EventHandler[AuthenticationEvent] = f
         """Runs when a signup request receives a response."""
+
+        self.on_default_product_info: EventHandler[ProductInfoEvent] = f
+        """
+        Runs when a request for default product 
+        information receives a response.
+        """
 
     async def run(self):
         """
@@ -179,5 +198,30 @@ class Networker:
                     # Something went wrong...
                     # TODO: Handle more cases
                     raise Exception(f"Unexpected {res.status} response code")
+
+        self._queued_reqs.append(req)
+
+    def req_default_product_info(self, product_id: str):
+        """
+        Schedules a product information request to be sent. This only works
+        for default products. `self.on_default_product_info()` will be called
+        once the response is received.
+        """
+
+        async def req(session: aiohttp.ClientSession):
+            # Make the GET request to /product/{product_id}
+            async with session.get(f"/product/{product_id}") as res:
+                # TODO: Handle this better
+                assert res.status == 200
+
+                # Fire the default_product_info event with
+                # the data from the JSON response body
+                res_body = await res.json()
+                self.on_default_product_info(
+                    ProductInfoEvent(
+                        product_id,
+                        **res_body,
+                    )
+                )
 
         self._queued_reqs.append(req)
