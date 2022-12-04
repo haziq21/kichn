@@ -48,6 +48,14 @@ class ProductInfoEvent:
     barcodes: list[int]
 
 
+@dataclass
+class ProductImageEvent:
+    """Represents the receiving of a product image."""
+
+    image_url: str
+    image: bytes
+
+
 #### NETWORKER ####
 
 
@@ -89,6 +97,9 @@ class Networker:
         Runs when a request for default product 
         information receives a response.
         """
+
+        self.on_product_image: EventHandler[ProductImageEvent] = f
+        """Runs when a product image request receives a response."""
 
     async def run(self):
         """
@@ -223,5 +234,24 @@ class Networker:
                         **res_body,
                     )
                 )
+
+        self._queued_reqs.append(req)
+
+    def req_product_image(self, image_url: str):
+        """
+        Schedules a product image request to be sent.
+        `self.on_product_image()` will be called once the response is received.
+        """
+
+        async def req(session: aiohttp.ClientSession):
+            # Make the GET request to the supplied URL
+            async with session.get(image_url) as res:
+                # TODO: Handle this better
+                assert res.status == 200
+
+                # Fire the on_product_image event with
+                # the image data from the response body
+                res_body = await res.read()
+                self.on_product_image(ProductImageEvent(image_url, res_body))
 
         self._queued_reqs.append(req)
