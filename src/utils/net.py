@@ -57,6 +57,7 @@ class Networker:
     def __init__(self, server_url: str):
         self._server_url = server_url
         self._queued_reqs: list[RequestorFn] = []
+        self._queued_msgs: list[dict] = []
         self._ws_session_token: Optional[str] = None
 
         #### NETWORK EVENT HANDLERS ####
@@ -116,6 +117,15 @@ class Networker:
         """
         Continuously sends scheduled WebSocket messages.
         """
+        # Continuously send the queued messages
+        while True:
+            if len(self._queued_msgs) == 0:
+                # Allow other asyncio tasks to run if there are no queued messages
+                await asyncio.sleep(0)
+                continue
+
+            # Send the least recently queued message
+            await ws.send_json(self._queued_msgs.pop(0))
 
     async def _run_ws_receiver(self, ws: aiohttp.ClientWebSocketResponse):
         """
@@ -124,8 +134,9 @@ class Networker:
 
     def request_login(self, email: str, password: str):
         """
-        Schedules a login request to be sent. `self.on_login()`
-        will be called once the response is received.
+        Schedules a login request to be sent. `self.on_login()` will be called
+        once the response is received. A WebSocket connection to the server
+        will be established automatically if the login is successful.
         """
         req_body = {"email": email, "password": password}
 
@@ -148,8 +159,9 @@ class Networker:
 
     def request_signup(self, name: str, email: str, password: str):
         """
-        Schedules a signup request to be sent. `self.on_signup()`
-        will be called once the response is received.
+        Schedules a signup request to be sent. `self.on_signup()` will be
+        called once the response is received. A WebSocket connection to the
+        server will be established automatically if the signup is successful.
         """
         req_body = {"name": name, "email": email, "password": password}
 
