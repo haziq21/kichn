@@ -132,7 +132,7 @@ class Networker:
         Continuously receives WebSocket messages.
         """
 
-    def request_login(self, email: str, password: str):
+    def req_login(self, email: str, password: str):
         """
         Schedules a login request to be sent. `self.on_login()` will be called
         once the response is received. A WebSocket connection to the server
@@ -157,7 +157,7 @@ class Networker:
 
         self._queued_reqs.append(req)
 
-    def request_signup(self, name: str, email: str, password: str):
+    def req_signup(self, name: str, email: str, password: str):
         """
         Schedules a signup request to be sent. `self.on_signup()` will be
         called once the response is received. A WebSocket connection to the

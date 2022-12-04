@@ -12,6 +12,6 @@ def handle_login(event: net.AuthenticationEvent):
 
 networker = net.Networker("http://0.0.0.0:8080")
 networker.on_login = handle_login
-networker.request_login("john@gmail.com", "correct horse battery staple")
+networker.req_login("john@gmail.com", "correct horse battery staple")
 
 asyncio.run(networker.run())
