@@ -6,6 +6,7 @@ Authored by Haziq Hairil.
 
 import asyncio
 import aiohttp
+from yarl import URL
 import websockets
 from collections.abc import Coroutine
 from dataclasses import dataclass
@@ -75,7 +76,6 @@ class Networker:
         self._server_url = server_url
         self._queued_reqs: list[RequestorFn] = []
         self._queued_msgs: list[dict] = []
-        self._ws_session_token: Optional[str] = None
 
         #### NETWORK EVENT HANDLERS ####
 
@@ -127,14 +127,14 @@ class Networker:
         successful login or signup).
         """
         while True:
-            if self._ws_session_token is None:
-                # Allow other asyncio tasks to run if a WebSocket
-                # connection hasn't already been established
+            if not self._session_token_present(session):
+                # Don't start the WebSocket connection if we haven't had a successful
+                # login or signup. `sleep(0)` allows other asyncio tasks to run.
                 await asyncio.sleep(0)
                 continue
 
             # Connect to the WebSocket
-            async with session.ws_connect("/ws/" + self._ws_session_token) as ws:
+            async with session.ws_connect("/ws") as ws:
                 # Run the sender and receiver tasks concurrently
                 await asyncio.gather(self._run_ws_sender(ws), self._run_ws_receiver(ws))
                 break  # This should never run, but just in case...
@@ -157,6 +157,15 @@ class Networker:
         """
         Continuously receives WebSocket messages.
         """
+
+    def _session_token_present(self, session: aiohttp.ClientSession) -> bool:
+        """
+        Returns whether a `session_token` cookie has been set on the session.
+        """
+        url = URL(self._server_url)
+        cookies_from_server = session.cookie_jar.filter_cookies(url)
+
+        return "session_token" in cookies_from_server
 
     def req_login(self, email: str, password: str):
         """
