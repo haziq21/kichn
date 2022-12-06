@@ -4,13 +4,13 @@ This file contains specifications about the HTTP API that the web server provide
 
 **Table of contents**
 
-- [POST /login](#POST-/login)
-- [POST /signup](#POST-/signup)
-- [GET /product/{pid}](#GET-/product/{pid})
-- [GET /image/{pid}](#GET-/image/{pid})
-- [GET /x-image/{kid}/{pid}](#GET-/x-image/{kid}/{pid})
-- [POST /x-image/{kid}/{pid}](#POST-/x-image/{kid}/{pid})
-- [PUT /x-image/{kid}/{pid}](#PUT-/x-image/{kid}/{pid})
+- [POST /login](#post-login)
+- [POST /signup](#post-signup)
+- [GET /product/{pid}](#get-productpid)
+- [GET /image/{pid}](#get-imagepid)
+- [GET /x-image/{kid}/{pid}](#get-x-imagekidpid)
+- [POST /x-image/{kid}/{pid}](#post-x-imagekidpid)
+- [PUT /x-image/{kid}/{pid}](#put-x-imagekidpid)
 
 ## POST /login
 
