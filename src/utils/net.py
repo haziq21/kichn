@@ -26,13 +26,9 @@ RequestorFn = Callable[[aiohttp.ClientSession], Coroutine]
 
 @dataclass
 class AuthenticationEvent:
-    """
-    Represents a login or signup event. `session_token`
-    will be an empty string if `successful` is `False`.
-    """
+    """Represents a login or signup event."""
 
     successful: bool
-    session_token: str
 
 
 @dataclass
@@ -175,11 +171,10 @@ class Networker:
             async with session.post("/login", json=req_body) as res:
                 if res.status == 200:
                     # 200 OK - the login was successful
-                    self._ws_session_token = (await res.json())["sessionToken"]
-                    self.on_login(AuthenticationEvent(True, self._ws_session_token))
+                    self.on_login(AuthenticationEvent(True))
                 elif res.status == 401:
                     # 401 Unauthorized - incorrect login credentials
-                    self.on_login(AuthenticationEvent(False, ""))
+                    self.on_login(AuthenticationEvent(False))
                 else:
                     # Something went wrong...
                     # TODO: Handle more cases
@@ -200,11 +195,10 @@ class Networker:
             async with session.post("/signup", json=req_body) as res:
                 if res.status == 200:
                     # 200 OK - the signup was successful
-                    self._ws_session_token = (await res.json())["sessionToken"]
-                    self.on_login(AuthenticationEvent(True, self._ws_session_token))
+                    self.on_login(AuthenticationEvent(True))
                 elif res.status == 409:
                     # 409 Conflict - an account with the email address already exists
-                    self.on_login(AuthenticationEvent(False, ""))
+                    self.on_login(AuthenticationEvent(False))
                 else:
                     # Something went wrong...
                     # TODO: Handle more cases
