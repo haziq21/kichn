@@ -24,6 +24,8 @@ async def login(request: web.Request):
     - 401 Unauthorized is returned if the login credentials are invalid.
     - 200 OK is returned otherwise, along with a session token.
 
+    The following is an example body of a 200 OK response.
+
     ```json
     {
         "sessionToken": "R7qnHymktvYDnpfb7ExB"
@@ -50,6 +52,8 @@ async def signup(request: web.Request):
     - 400 Bad Request is returned if the request body does not include these fields.
     - 409 Conflict is returned if the email already exists in the user database.
     - 200 OK is returned otherwise, along with a session token.
+
+    The following is an example body of a 200 OK response.
 
     ```json
     {
