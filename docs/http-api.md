@@ -10,7 +10,6 @@ This file contains specifications about the HTTP API that the web server provide
 - [GET /image/{pid}](#get-imagepid)
 - [GET /x-image/{kid}/{pid}](#get-x-imagekidpid)
 - [POST /x-image/{kid}/{pid}](#post-x-imagekidpid)
-- [PUT /x-image/{kid}/{pid}](#put-x-imagekidpid)
 
 ## POST /login
 
@@ -143,20 +142,4 @@ The request body should contain binary image data.
 | Status code   | Explanation                                                  |
 | ------------- | ------------------------------------------------------------ |
 | 200 OK        | The image was successfully set.                              |
-| 403 Forbidden | The user does not have access to the kitchen that the custom product is from. The user's identity is determined from the `session_token` cookie sent with the request. |
-| 409 Conflict  | The specified product already has an image.                  |
-
-## PUT /x-image/{kid}/{pid}
-
-Updates the image of a custom product, where `{kid}` is the ID of the kitchen that the custom product is from, and `{pid}` is the ID of the product.
-
-### Request body format
-
-The request body should contain binary image data.
-
-### Possible response codes
-
-| Status code   | Explanation                                                  |
-| ------------- | ------------------------------------------------------------ |
-| 200 OK        | The image was successfully updated.                          |
 | 403 Forbidden | The user does not have access to the kitchen that the custom product is from. The user's identity is determined from the `session_token` cookie sent with the request. |
