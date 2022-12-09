@@ -22,6 +22,24 @@ def _gen_random_id(k=20) -> str:
     return "".join(random.choices(sample_chars, k=k))
 
 
+#### BUILDING THE DEFAULT DATABASE ####
+
+
+def create_default_product(name: str, category: str, barcodes: list[int]) -> str:
+    """
+    Creates a new default product in the database.
+    Returns the generated ID of the product.
+    """
+    product_id = _gen_random_id()
+
+    # Write the product data to the database
+    _r.set(f"product:{product_id}:name", name)
+    _r.set(f"product:{product_id}:category", category)
+    _r.hset("barcodes", mapping={str(b): product_id for b in barcodes})
+
+    return product_id
+
+
 #### ACCESSING THE APPLICATION ####
 
 
@@ -91,12 +109,12 @@ def begin_session(session_token: str) -> str:
 
 def create_kitchen(email: str, kitchen_name: str) -> str:
     """
-    Creates a new kitchen and assign the indicated
+    Creates a new kitchen and assigns the indicated
     user as the owner. Returns the kitchen's ID.
     """
     kitchen_id = _gen_random_id()
 
-    # Create the kitchen
+    # Write the kitchen data to the database
     _r.set(f"kitchen:{kitchen_id}:name", kitchen_name)
     _r.sadd(f"user:{email}:owned-kitchens", kitchen_id)
 
