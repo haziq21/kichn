@@ -18,10 +18,10 @@ Allows a user to access their account.
 
 ### Request body format
 
-| Field    | Value                        |
-| -------- | ---------------------------- |
-| email    | The user's email address.    |
-| password | The user's account password. |
+| Field    | Value                                            |
+| -------- | ------------------------------------------------ |
+| email    | A string containing the user's email address.    |
+| password | A string containing the user's account password. |
 
 ### Request body example
 
@@ -46,11 +46,11 @@ Allows a user to create an account.
 
 ### Request body format
 
-| Field    | Value                        |
-| -------- | ---------------------------- |
-| name     | The user's name.             |
-| email    | The user's email address.    |
-| password | The user's account password. |
+| Field    | Value                                            |
+| -------- | ------------------------------------------------ |
+| name     | A string containing the user's name.             |
+| email    | A string containing the user's email address.    |
+| password | A string containing the user's account password. |
 
 ### Request body example
 
@@ -85,9 +85,9 @@ Returns information about a default product, where `{pid}` is the ID of the prod
 
 | Field    | Value                                                        |
 | -------- | ------------------------------------------------------------ |
-| name     | The name of the product.                                     |
-| category | The product category that the product is in.                 |
-| barcodes | An array of barcodes that the product has (one product can have multiple barcodes). |
+| name     | A string containing the name of the product.                 |
+| category | A string containing the product category that the product is in. |
+| barcodes | An array of integers containing barcodes that the product has (one product can have multiple barcodes). |
 
 ### Response body example
 
