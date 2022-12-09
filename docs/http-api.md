@@ -113,6 +113,63 @@ Returns the image of a default product, where `{pid}` is the ID of the product.
 
 The response body will contain binary image data.
 
+## POST /kitchen
+
+Creates a new kitchen.
+
+### Request body format
+
+| Field | Value                                            |
+| ----- | ------------------------------------------------ |
+| name  | A string containing the name of the new kitchen. |
+
+### Request body example
+
+```json
+{
+    "name": "Home kitchen"
+}
+```
+
+### Possible response codes
+
+| Status code      | Explanation                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| 200 OK           | The kitchen was created successfully.                        |
+| 400 Bad Request  | The request body did not include the expected fields.        |
+| 401 Unauthorized | The request had a missing or invalid `session_token` cookie. This indicates that the user has not logged into their account. |
+
+## POST /x-product/{kid}
+
+Creates a new custom product, where `{kid}` is the kitchen that the custom product belongs to.
+
+### Request body format
+
+| Field    | Value                                                        |
+| -------- | ------------------------------------------------------------ |
+| name     | A string containing the name of the new custom product.      |
+| barcodes | An array of integers specifying the barcodes that the custom product has (one product can have multiple barcodes). |
+
+### Request body example
+
+```json
+{
+    "name": "Ripe Red Tomatoes",
+    "barcodes": [
+        8887419109224
+    ]
+}
+```
+
+### Possible response codes
+
+| Status code      | Explanation                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| 200 OK           | The custom product was created successfully.                 |
+| 400 Bad Request  | The request body did not include the expected fields.        |
+| 401 Unauthorized | The request had a missing or invalid `session_token` cookie. This indicates that the user has not logged into their account. |
+| 403 Forbidden    | The user does not have access to the specified kitchen. The user's identity is determined from the `session_token` cookie sent with the request. |
+
 ## GET /x-image/{kid}/{pid}
 
 Returns the image of a custom product, where `{kid}` is the ID of the kitchen that the custom product is from, and  `{pid}` is the ID of the product.

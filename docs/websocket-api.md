@@ -2,9 +2,9 @@
 
 This file contains details about the WebSocket API that the web server provides.
 
-Clients should connect to the `/ws` endpoint of the web server after a successful login or signup. The connection request should carry a `session_token` cookie. A missing or invalid `session_token` cookie will result in a 401 Unauthorized response code (the initial HTTP connection will not be upgraded to a WebSocket connection).
+After a successful login or signup, clients should connect to the `/ws` endpoint of the web server. The connection request should carry a `session_token` cookie. A missing or invalid `session_token` cookie will result in a 401 Unauthorized response code (the initial HTTP connection will not be upgraded to a WebSocket connection).
 
-Every WebSocket message (sent either by the client or the server) represents a data update operation. For example, a client could send the server a message informing the server that the client has removed a certain product from the inventory list.
+Every WebSocket message (sent either by the client or the server) represents a data update operation. For example, a client could send the server a message informing the server that the client has removed a certain product from the inventory list. Upon receiving this message, the server would apply the corresponding changes to the database, then it would send the same message to other clients in the kitchen to inform them of the change. Once the other clients receive the message, they would update their UI to reflect the change.
 
 All WebSocket messages will have the following fields in JSON.
 
@@ -61,7 +61,9 @@ The `kitchen` update target indicates a modification of data about the kitchen i
 
 ### Create
 
-The `create` action creates a new kitchen. If this message is sent from a client, the client is expected to generate the new kitchen's ID.
+The `create` action creates a new kitchen.
+
+> This message is only sent by the server, not the client.
 
 #### Data object format
 
@@ -270,11 +272,13 @@ The `custom` update target indicates a modification of data about a custom produ
 
 The `create` action creates a custom product.
 
+> This message is only sent by the server, not the client.
+
 #### Data object format
 
 | Field      | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
-| product_id | A string containing the ID of the new product. If this message is sent from a client, the client is expected to generate the new product's ID. |
+| product_id | A string containing the ID of the new product.               |
 | name       | A string containing the name of the new product.             |
 | barcodes   | An array of integers specifying the barcodes that the new product has (a product can have more than one barcode). |
 
@@ -322,7 +326,9 @@ The `rename` action changes the name of a custom product.
 
 ### Update image
 
-The `update_image` action notifies clients that the image of a custom product has been updated. This message doesn't modify the actual image data itself; that is instead done via a HTTP POST request to `/x-image/{kid}/{pid}`. In fact, the server sends this message to the relevant clients when it receives that POST request. This message is the only message not sent by a client.
+The `update_image` action notifies clients that the image of a custom product has been updated. This message doesn't modify the actual image data itself; that is instead done via a HTTP POST request to `/x-image/{kid}/{pid}`. The API is designed this way to limit WebSocket messages to JSON, for standardisation purposes. All binary (image) data is hence transferred through HTTP.
+
+> This message is only sent by the server, not the client.
 
 #### Data object format
 
