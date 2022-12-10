@@ -10,6 +10,7 @@ import argon2
 import string
 import random
 
+# TODO: Move these into a DB class
 _r = redis.Redis()
 _ph = argon2.PasswordHasher()
 
@@ -133,4 +134,7 @@ def delete_kitchen(kitchen_id: str):
     Deletes the kitchen from the database.
     """
     # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
-    _r.delete(f"kitchen:{kitchen_id}:*")
+    # Get all the Redis keys belonging to the specified kitchen
+    kitchen_keys = _r.keys(f"kitchen:{kitchen_id}:*")
+    # Delete the keys
+    _r.delete(*kitchen_keys)
