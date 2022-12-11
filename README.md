@@ -1,23 +1,17 @@
 # Kichn
 
-Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project. Documentation about the HTTP and WebSocket APIs provided by the server is included in the `docs` folder.
+Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project. Documentation about the APIs provided by the web server is included in the `docs` folder.
 
 ## Setting up
 
-On a Mac, install Redis Stack using [Homebrew](https://brew.sh/) (or follow any other method listed on the [Redis Stack installation page](https://redis.io/docs/stack/get-started/install/)).
+On a Mac, install Redis and ZBar with [Homebrew](https://brew.sh/).
 
 ```
-$ brew tap redis-stack/redis-stack
-$ brew install redis-stack
-```
-
-Then install ZBar.
-
-```
+$ brew install redis
 $ brew install zbar
 ```
 
-And finally, install all the Python dependencies from `requirements.txt`.
+And install all the Python dependencies from `requirements.txt`.
 
 ```
 $ pip install -r requirements.txt
@@ -37,10 +31,10 @@ $ python3 src/client.py
 
 ### Server
 
-Start up the Redis database first (this assumes `redis-stack-server` is on your PATH).
+Start up the Redis database first.
 
 ```
-$ redis-stack-server
+$ redis-server
 ```
 
 To run the web server:
