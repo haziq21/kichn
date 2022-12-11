@@ -34,7 +34,7 @@ $ python3 src/client.py
 Start up the Redis database first.
 
 ```
-$ redis-server
+$ redis-server redis.conf
 ```
 
 To run the web server:
