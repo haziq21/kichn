@@ -1,6 +1,6 @@
 # Kichn
 
-Kichn is a kitchen inventory tracker and grocery list app written in Python for a school project. Documentation about the APIs provided by the web server is included in the `docs` folder.
+Kichn is a kitchen inventory tracker and grocery list webapp. Documentation about the APIs provided by the web server is included in the `docs` folder. This is a school project.
 
 ## Setting up
 
@@ -20,16 +20,6 @@ $ pip install -r requirements.txt
 ## Running
 
 Run all commands from the project root folder (`cd` into the project root folder first).
-
-### Client
-
-Multiple clients can connect to the same server.
-
-```
-$ python3 src/client.py
-```
-
-### Server
 
 Start up the Redis database first.
 
