@@ -1,17 +1,10 @@
-# Draws GUI
-pygame~=2.1.2
-# Captures barcode images
-# TODO: Switch to opencv-python-headless?
-opencv-python~=4.6.0.66
+# HTTP & WebSocket client / server
+aiohttp~=3.8.3
+
 # Converts image data formats
 Pillow~=9.3.0
 # Reads barcodes
 pyzbar~=0.1.9
-
-# Enables asynchronous HTTP communication
-aiohttp~=3.8.3
-# Enables WebSocket communication
-websockets~=10.4
 
 # Interfaces with Redis database
 redis~=4.3.5
