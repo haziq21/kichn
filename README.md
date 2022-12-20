@@ -4,11 +4,10 @@ Kichn is a kitchen inventory tracker and grocery list webapp. Documentation abou
 
 ## Setting up
 
-On a Mac, install Redis and ZBar with [Homebrew](https://brew.sh/).
+On a Mac, install all software dependencies with [Homebrew](https://brew.sh/).
 
 ```
-$ brew install redis
-$ brew install zbar
+$ brew install redis meilisearch zbar
 ```
 
 And install all the Python dependencies from `requirements.txt`.
