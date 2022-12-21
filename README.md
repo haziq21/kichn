@@ -29,11 +29,11 @@ $ redis-server redis.conf
 To run the web server:
 
 ```
-$ python3 src/server.py
+$ python3 src/server/server.py
 ```
 
 To run the FairPrice API scraper:
 
 ```
-$ python3 src/scraper.py
+$ python3 src/server/scraper.py
 ```
