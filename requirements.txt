@@ -1,3 +1,6 @@
+# Provides HTML template rendering
+Jinja2~=3.1.2
+
 # HTTP & WebSocket server
 aiohttp~=3.8.3
 
@@ -6,9 +9,8 @@ Pillow~=9.3.0
 # Reads barcodes
 pyzbar~=0.1.9
 
-# Full-text search engine
+# Interfaces with Meilisearch search engine
 meilisearch~=0.23.0
-
 # Interfaces with Redis database
 redis~=4.3.5
 # Hashes passwords
