@@ -9,6 +9,7 @@ import redis
 import argon2
 import string
 import random
+from search import SearchClient
 
 
 def _gen_random_id(k=20) -> str:
@@ -23,6 +24,7 @@ class DatabaseClient:
     def __init__(self):
         self._r = redis.Redis()
         self._ph = argon2.PasswordHasher()
+        self.search = SearchClient()
 
     #### BUILDING THE DEFAULT DATABASE ####
 
