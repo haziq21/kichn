@@ -21,6 +21,11 @@ def _gen_random_id(k=20) -> str:
 
 
 class DatabaseClient:
+    """
+    Interfaces with the Redis database and, via 
+    `SearchClient`, the Meilisearch search engine.
+    """
+
     def __init__(self):
         self._r = redis.Redis()
         self._ph = argon2.PasswordHasher()
