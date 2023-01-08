@@ -1,13 +1,17 @@
 """
 This module provides dataclasses to work with application-specific data.
+
+Authored by Lohith Tanuku
 """
 
 from dataclasses import dataclass
 
+
 @dataclass
 class Kitchen:
-    name: str 
-    emails: list[str] 
+    name: str
+    emails: list[str]
+
 
 @dataclass
 class Product:
@@ -16,6 +20,7 @@ class Product:
     amount: int
     category: str
     id: str
+
 
 @dataclass
 class User:
