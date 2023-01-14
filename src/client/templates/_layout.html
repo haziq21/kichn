@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" h="screen">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kichn</title>
-    <link rel="stylesheet" href="global.css" />
+    <link rel="stylesheet" href="global.min.css" />
     <script src="htmx.min.js"></script>
   </head>
-  <body></body>
+  <body
+    hx-ext="ws"
+    ws-connect="/ws"
+    h="min-full"
+    flex="~ col"
+    align="items-center"
+    justify="center"
+  ></body>
 </html>
