@@ -9,7 +9,7 @@ import redis
 import argon2
 import string
 import random
-from search import SearchClient
+from .search import SearchClient
 
 
 def _gen_random_id(k=20) -> str:
@@ -39,6 +39,7 @@ class DatabaseClient:
             product_name = self._r.hget("product:" + product_id, "name")
             default_products[product_id] = str(product_name)
 
+        # Add the default products to the search index
         self._search.index_default_products(default_products)
 
     #### DEFAULT PRODUCTS ####
