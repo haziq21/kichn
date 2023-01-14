@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" h="screen">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up to Kichn</title>
+    <link rel="stylesheet" href="global.min.css" />
+    <script src="htmx.min.js"></script>
+  </head>
+  <body h="min-full" flex="~ col" align="items-center" justify="center">
+    <h1 text="4xl center" font="semibold" m="b-14">Sign up to Kichn</h1>
+    <form
+      hx-post="/login"
+      hx-target="#signup-error"
+      flex="~ col"
+      w="full max-80"
+    >
+      <input
+        type="text"
+        name="username"
+        id="username"
+        placeholder="Username"
+        border="~ gray-400"
+        rounded="md"
+        p="y-2 x-3"
+        m="b-2"
+      />
+      <input
+        type="text"
+        name="email"
+        id="email"
+        placeholder="Email address"
+        border="~ gray-400"
+        rounded="md"
+        p="y-2 x-3"
+      />
+      <span id="signup-error" text="xs red-700" m="b-2" p="l-2">
+        <!-- An account with this email address already exists. -->
+      </span>
+      <input
+        type="password"
+        name="password"
+        id="password"
+        placeholder="Password"
+        border="~ gray-400"
+        rounded="md"
+        p="y-2 x-3"
+        m="b-8"
+      />
+      <button
+        type="submit"
+        text="gray-50"
+        font="medium"
+        rounded="md"
+        p="y-2"
+        bg="gray-800"
+      >
+        Sign up
+      </button>
+    </form>
+    <a href="/login" text="sm blue-800" m="t-4" underline="hover:~">
+      Already have an account? Log in instead.
+    </a>
+  </body>
+</html>

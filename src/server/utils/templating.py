@@ -14,14 +14,20 @@ class Templator:
             autoescape=jinja2.select_autoescape(),
         )
 
+    #### AUTHENTICATION ####
+
     def login(self) -> str:
-        return ""
+        """Returns the full HTML document for the login page."""
+        return self._env.get_template("login.html").render()
 
     def login_failed(self) -> str:
-        return ""
+        """Returns the HTML fragment for when a login request fails."""
+        return "Incorrect password or email address."
 
     def signup(self) -> str:
-        return ""
+        """Returns the full HTML document for the signup page."""
+        return self._env.get_template("signup.html").render()
 
     def signup_failed(self) -> str:
-        return ""
+        """Returns the HTML fragment for when a signup request fails."""
+        return "An account with this email address already exists."
