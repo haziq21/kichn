@@ -47,6 +47,7 @@ class DatabaseClient:
         self._r.set(f"product:{product_id}:category", category)
         # TODO: What if the barcode already exists in the database?
         self._r.hset("barcodes", mapping={str(b): product_id for b in barcodes})
+        self._r.sadd("default-products", product_id)
 
         return product_id
 
