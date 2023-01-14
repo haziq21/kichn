@@ -35,9 +35,9 @@ class DatabaseClient:
         default_products = {}
 
         # Fill `default_products`
-        for id in self.get_default_product_ids():
-            product_name = self._r.hget("product:" + id, "name")
-            default_products[id] = str(product_name)
+        for product_id in self.get_default_product_ids():
+            product_name = self._r.hget("product:" + product_id, "name")
+            default_products[product_id] = str(product_name)
 
         self._search.index_default_products(default_products)
 
@@ -71,7 +71,7 @@ class DatabaseClient:
         """
         # Generate the Redis keys of all the default products
         default_product_keys = [
-            "product:" + id for id in self.get_default_product_ids()
+            "product:" + p_id for p_id in self.get_default_product_ids()
         ]
         self._r.delete("default-products", *default_product_keys)
 
