@@ -29,7 +29,17 @@ class DatabaseClient:
     def __init__(self):
         self._r = redis.Redis()
         self._ph = argon2.PasswordHasher()
-        self.search = SearchClient()
+        self._search = SearchClient()
+
+        # Maps default products' IDs to their names
+        default_products = {}
+
+        # Fill `default_products`
+        for id in self.get_default_product_ids():
+            product_name = self._r.hget("product:" + id, "name")
+            default_products[id] = str(product_name)
+
+        self._search.index_default_products(default_products)
 
     #### BUILDING THE DEFAULT DATABASE ####
 
@@ -49,7 +59,15 @@ class DatabaseClient:
         self._r.hset("barcodes", mapping={str(b): product_id for b in barcodes})
         self._r.sadd("default-products", product_id)
 
+        # Add this product to the search index
+        self._search.index_default_products({product_id: name})
+
         return product_id
+
+    def get_default_product_ids(self) -> set[str]:
+        """Returns the IDs of all the default products"""
+        keys = self._r.smembers("default-products")
+        return {str(x) for x in keys}
 
     #### ACCESSING THE APPLICATION ####
 
