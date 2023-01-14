@@ -22,7 +22,7 @@ def _gen_random_id(k=20) -> str:
 
 class DatabaseClient:
     """
-    Interfaces with the Redis database and, via 
+    Interfaces with the Redis database and, via
     `SearchClient`, the Meilisearch search engine.
     """
 
@@ -41,7 +41,7 @@ class DatabaseClient:
 
         self._search.index_default_products(default_products)
 
-    #### BUILDING THE DEFAULT DATABASE ####
+    #### DEFAULT PRODUCTS ####
 
     def create_default_product(
         self, name: str, category: str, barcodes: list[int]
@@ -63,6 +63,17 @@ class DatabaseClient:
         self._search.index_default_products({product_id: name})
 
         return product_id
+
+    def drop_default_products(self):
+        """
+        Drops all default products from the database.
+        For testing purposes only.
+        """
+        # Generate the Redis keys of all the default products
+        default_product_keys = [
+            "product:" + id for id in self.get_default_product_ids()
+        ]
+        self._r.delete("default-products", *default_product_keys)
 
     def get_default_product_ids(self) -> set[str]:
         """Returns the IDs of all the default products"""
