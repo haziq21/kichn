@@ -9,6 +9,8 @@ import redis
 import argon2
 import string
 import random
+from pathlib import Path
+from typing import Optional
 from .search import SearchClient
 
 
@@ -26,7 +28,14 @@ class DatabaseClient:
     `SearchClient`, the Meilisearch search engine.
     """
 
-    def __init__(self):
+    def __init__(self, static_asset_dir: str, generated_content_dir: str):
+        """
+        - `static_asset_dir` - The filepath of the directory containing static assets.
+        - `generated_content_dir` - The filepath of the directory containing product images.
+        """
+        self._static_asset_dir = Path(static_asset_dir)
+        self._generated_content_dir = Path(generated_content_dir)
+
         self._r = redis.Redis()
         self._ph = argon2.PasswordHasher()
         self._search = SearchClient()
@@ -41,6 +50,33 @@ class DatabaseClient:
 
         # Add the default products to the search index
         self._search.index_default_products(default_products)
+
+    #### FILE ASSETS ####
+
+    def get_static_asset(self, filepath: str, use_cache=True) -> Optional[bytes]:
+        """
+        Returns the contents of the specified file, or `None` if the file
+        doesn't exist (and isn't cached). `filepath` is relative to the
+        static asset directory specified during initialisation. This will
+        read from disk if `use_cache` is `False`.
+        """
+        full_path = self._static_asset_dir / filepath  # TODO: .resolve() this?
+        cache_key = f"static:{full_path}"
+        cache = self._r.get(cache_key)
+
+        # Return the cache if we can
+        if use_cache and cache is not None:
+            return cache
+
+        # Return None if the file doesn't exist
+        if not full_path.exists():
+            return None
+
+        # Read from disk to update the cache
+        contents = full_path.read_bytes()
+        self._r.set(cache_key, contents)
+
+        return contents
 
     #### DEFAULT PRODUCTS ####
 
