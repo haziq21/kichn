@@ -8,9 +8,13 @@ import jinja2
 
 
 class Templator:
-    def __init__(self, dir: str):
+    def __init__(self, templates_dir: str):
+        """
+        `templates_dir` is the file path to the directory
+        that contains the Jinja HTML templates.
+        """
         self._env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(dir),
+            loader=jinja2.FileSystemLoader(templates_dir),
             autoescape=jinja2.select_autoescape(),
         )
 
