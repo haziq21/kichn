@@ -60,19 +60,21 @@ class DatabaseClient:
         static asset directory specified during initialisation. This will
         read from disk if `use_cache` is `False`.
         """
-        full_path = self._static_asset_dir / filepath  # TODO: .resolve() this?
-        cache_key = f"static:{full_path}"
+        # Check the cache
+        cache_key = "static:" + filepath
         cache = self._r.get(cache_key)
 
-        # Return the cache if we can
+        # Return the cached data if we can
         if use_cache and cache is not None:
             return cache
+
+        full_path = self._static_asset_dir / filepath
 
         # Return None if the file doesn't exist
         if not full_path.exists():
             return None
 
-        # Read from disk to update the cache
+        # Read from disk and update the cache
         contents = full_path.read_bytes()
         self._r.set(cache_key, contents)
 
