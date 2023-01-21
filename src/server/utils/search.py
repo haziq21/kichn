@@ -10,25 +10,23 @@ class SearchClient:
     """Handles communication with the Meilisearch server."""
 
     def __init__(self):
-        # TODO: Initialise meilisearch client (assign to self._client).
-        pass
+        self._client = meilisearch.Client("http://localhost:7700")
 
     def index_default_products(self, product_names: dict[str, str]):
-        """
-        Indexes the given products as default products.
-        `product_names` maps product IDs to product names.
-        """
-        # TODO: For each entry in `product_names`, create
-        # a dict with the keys `id` and `name`. E.g.:
-        # {
-        #     "id": product_id,
-        #     "name": product_name
-        # }
-        #
-        # One such dict corresponds to one meilisearch document.
-        # Add these documents to the "default" index.
+        documents = []
+
+        for product_id in product_names:
+            doc = {
+                "id": product_id,
+                "name": product_names[product_id],
+            }
+            documents.append(doc)
+
+        self._client.index("default").add_documents(documents)
 
     def index_inventory_products(self, kitchen_id: str, product_names: dict[str, str]):
+
+        self._client.index(kitchen_id + "-inventory").add_documents(documents)
         """
         Indexes the given products as items of the kitchen's inventory.
         `product_names` maps product IDs to product names.
