@@ -22,7 +22,8 @@ class SearchClient:
             }
             documents.append(doc)
 
-        self._client.index("default").add_documents(documents)
+        if documents:
+            self._client.index("default").add_documents(documents)
 
     def index_inventory_products(self, kitchen_id: str, product_names: dict[str, str]):
 
