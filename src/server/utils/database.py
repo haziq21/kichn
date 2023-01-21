@@ -158,21 +158,24 @@ class DatabaseClient:
         Creates and returns a session token for the specified user.
         """
         session_token = _gen_random_id()
-        self._r.hset("pending-sessions", session_token, email)
+        self._r.hset("sessions", session_token, email)
 
         return session_token
 
-    def begin_session(self, session_token: str) -> str:
-        """
-        Removes the session token from the database to prevent the same session from
-        being accessed again. Returns the email of the user whose session it is.
-        Raises an AssertionError if the session token does not exist in the database.
-        """
-        email_bytes = self._r.hget("pending-sessions", session_token)
-        assert email_bytes is not None
+    def delete_session(self, session_token: str):
+        """Removes the session token from the database."""
+        self._r.hdel("sessions", session_token)
 
-        # Delete the session from the database
-        self._r.hdel("pending-sessions", session_token)
+    def get_session_owner(self, session_token: str) -> Optional[str]:
+        """
+        Returns the email address of the user who owns the specified
+        session token, or `None` if the session token is invalid.
+        """
+        email_bytes = self._r.hget("sessions", session_token)
+
+        if email_bytes is None:
+            # The session token doesn't exist (it is invalid)
+            return None
 
         return str(email_bytes)
 
