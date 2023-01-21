@@ -18,12 +18,14 @@ $ pip install -r requirements.txt
 
 ## Running
 
-Run all commands from the project root folder (`cd` into the project root folder first).
-
-Start up the Redis database first.
+Run all commands from the project root folder (`cd` into the project root folder first). In separate shell sessions, start the Redis and Meilisearch servers.
 
 ```
 $ redis-server redis.conf
+```
+
+```
+$ meilisearch
 ```
 
 To run the web server:
