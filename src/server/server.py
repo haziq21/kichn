@@ -65,8 +65,7 @@ async def signup_page(_):
 
 
 async def login(request: web.Request):
-    """TODO: Write this docstring."""
-
+    """Starts a user session if the login credentials are valid."""
     body = await request.post()
     email = body["email"]
     password = body["password"]
@@ -87,8 +86,7 @@ async def login(request: web.Request):
 
 
 async def signup(request: web.Request):
-    """TODO: Write this docstring."""
-
+    """Creates the user account and starts a user session."""
     body = await request.post()
     username = body["username"]
     password = body["password"]
@@ -115,7 +113,7 @@ async def kitchens_page(request: web.Request):
 async def new_kitchen(request: web.Request):
     """
     Creates a new kitchen with the `name` specified in the
-    request's body, then redirects to the newly created kitchen.
+    request body, then redirects to the newly created kitchen.
     """
     user_email = extract_request_owner(request)
     # TODO: Return a 401 response if user_email is None (otherwise, continue on).
