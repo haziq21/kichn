@@ -41,9 +41,7 @@ async def login(request: web.Request):
     email = body["email"]
     password = body["password"]
 
-    # if not db.login_is_valid(email, password):
-
-    if False:
+    if not db.login_is_valid(email, password):
         # Runs if the login credentials are invalid.
         return html_response(body=templator.login_failed())
     else:
