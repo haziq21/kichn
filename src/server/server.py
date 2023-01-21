@@ -4,6 +4,7 @@ with the application running on the client.
 """
 
 from aiohttp import web
+from typing import Optional
 from utils.database import DatabaseClient
 from utils.templating import Templator
 
@@ -21,6 +22,23 @@ def redirect_response(url: str):
     HTMX to redirect to the specified URL.
     """
     # TODO: Return the response
+
+
+def extract_request_owner(request: web.Request) -> Optional[str]:
+    """
+    Returns the email address of the user who submitted the request,
+    or `None` if the request's session token is missing or invalid.
+    """
+    # Context: We can access cookies sent with the request via
+    # `request.cookies["cookie_name_goes_here"]`. `request.cookies`
+    # acts like a dictionary, so you can also use `in` to check if a
+    # certain cookie exists in the request (e.g. `"some_cookie" in request.cookies`).
+
+    # Context: Read the docstring of db.get_session_owner()
+
+    # TODO: Check if the request carries the "session_token" cookie.
+    # If it does, and the session token is valid, return the email
+    # address session token's owner. Otherwise, return `None`.
 
 
 #### LOGIN & SIGNUP ####
@@ -82,6 +100,28 @@ async def kitchens_page(request: web.Request):
     return html_response("Hello, World!")
 
 
+async def new_kitchen(request: web.Request):
+    """
+    Creates a new kitchen with the `name` specified in the
+    request's body, then redirects to the newly created kitchen.
+    """
+    user_email = extract_request_owner(request)
+    # TODO: Return a 401 response if user_email is None (otherwise, continue on).
+    # TODO: Extract the value of the request's `name` parameter (via request.post()).
+    # TODO: Call db.create_kitchen() with the appropriate parameters.
+    # TODO: Use redirect_response() to redirect the user to /kitchens/{kitchen_id}/inventory,
+    # TODO: where kitchen_id is the ID of the kitchen (returned by db.create_kitchen())
+
+    # This is a placeholder
+    return web.Response()
+
+
+#### KITCHEN INVENTORY ####
+
+
+async def kitchen_inventory_page(request: web.Request):
+    # This is a placeholder
+    return html_response("Hello, World!")
 
 
 #### MISC ####
@@ -116,6 +156,8 @@ app.add_routes(
         web.get("/signup", signup_page),
         web.post("/signup", signup),
         web.get("/", kitchens_page),
+        web.post("/", new_kitchen),
+        web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
     ]
 )
 
