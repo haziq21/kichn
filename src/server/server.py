@@ -4,6 +4,7 @@ with the application running on the client.
 """
 
 from aiohttp import web
+from typing import Optional
 from utils.database import DatabaseClient
 from utils.templating import Templator
 
@@ -23,6 +24,35 @@ def redirect_response(url: str):
     # TODO: Return the response
 
 
+def extract_request_owner(request: web.Request) -> Optional[str]:
+    """
+    Returns the email address of the user who submitted the request,
+    or `None` if the request's session token is missing or invalid.
+    """
+    # Context: We can access cookies sent with the request via
+    # `request.cookies["cookie_name_goes_here"]`. `request.cookies`
+    # acts like a dictionary, so you can also use `in` to check if a
+    # certain cookie exists in the request (e.g. `"some_cookie" in request.cookies`).
+
+    # Context: Read the docstring of db.get_session_owner()
+
+    # TODO: Check if the request carries the "session_token" cookie.
+    # If it does, and the session token is valid, return the email
+    # address session token's owner. Otherwise, return `None`.
+
+
+def is_htmx_request(request: web.Request) -> bool:
+    """Returns whether the request was made by HTMX."""
+    # Context: Requests made by HTMX have a "HX-Request" header.
+
+    # Context: The headers of the request can be accessed via `request.headers`.
+    # `request.headers` acts as a dictionary, so you can use `in` to check if a
+    # certain header exists in the request.
+
+    # TODO: Return `True` if the request carries the "HX-Request" header, and `False` otherwise.
+    return False
+
+
 #### LOGIN & SIGNUP ####
 
 
@@ -35,8 +65,7 @@ async def signup_page(_):
 
 
 async def login(request: web.Request):
-    """TODO: Write this docstring."""
-
+    """Starts a user session if the login credentials are valid."""
     body = await request.post()
     email = body["email"]
     password = body["password"]
@@ -57,8 +86,7 @@ async def login(request: web.Request):
 
 
 async def signup(request: web.Request):
-    """TODO: Write this docstring."""
-
+    """Creates the user account and starts a user session."""
     body = await request.post()
     username = body["username"]
     password = body["password"]
@@ -82,6 +110,28 @@ async def kitchens_page(request: web.Request):
     return html_response("Hello, World!")
 
 
+async def new_kitchen(request: web.Request):
+    """
+    Creates a new kitchen with the `name` specified in the
+    request body, then redirects to the newly created kitchen.
+    """
+    user_email = extract_request_owner(request)
+    # TODO: Return a 401 response if user_email is None (otherwise, continue on).
+    # TODO: Extract the value of the request's `name` parameter (via request.post()).
+    # TODO: Call db.create_kitchen() with the appropriate parameters.
+    # TODO: Use redirect_response() to redirect the user to /kitchens/{kitchen_id}/inventory,
+    # TODO: where kitchen_id is the ID of the kitchen (returned by db.create_kitchen())
+
+    # This is a placeholder
+    return web.Response()
+
+
+#### KITCHEN INVENTORY ####
+
+
+async def kitchen_inventory_page(request: web.Request):
+    # This is a placeholder
+    return html_response("Hello, World!")
 
 
 #### MISC ####
@@ -116,6 +166,8 @@ app.add_routes(
         web.get("/signup", signup_page),
         web.post("/signup", signup),
         web.get("/", kitchens_page),
+        web.post("/", new_kitchen),
+        web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
     ]
 )
 
