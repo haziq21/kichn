@@ -7,51 +7,49 @@ from aiohttp import web
 from utils.database import DatabaseClient
 from utils.templating import Templator
 
+#### HELPER FUNCTIONS ####
+
 
 def html_response(body: str):
+    """Returns a `web.Response` with the `text/html` content type."""
     return web.Response(body=body, content_type="text/html")
 
 
-async def kitchens_page(request: web.Request):
-    return html_response("Hello, World!")
+def redirect_response(url: str):
+    """
+    Returns a `web.Response` that instructs
+    HTMX to redirect to the specified URL.
+    """
+    # TODO: Return the response
+
+
+#### LOGIN & SIGNUP ####
+
+
+async def login_page(_):
+    return html_response(templator.login())
+
+
+async def signup_page(_):
+    return html_response(templator.signup())
 
 
 async def login(request: web.Request):
-    """
-    Responds with a session token if the login credentials are valid.
-
-    The following is an example of the expected request body.
-
-    ```json
-    {
-        "email": "john@gmail.com",
-        "password": "correct horse battery staple"
-    }
-    ```
-
-    - 400 Bad Request is returned if the request body does not include these fields.
-    - 401 Unauthorized is returned if the login credentials are invalid.
-    - 200 OK is returned otherwise, along with a session token.
-
-    ```json
-    {
-        "sessionToken": "R7qnHymktvYDnpfb7ExB"
-    }
-    ```
-    """
+    """TODO: Write this docstring."""
 
     body = await request.post()
     email = body["email"]
     password = body["password"]
 
-    # if not db.login_is_valid(email, password):
-
-    if False:
+    if not db.login_is_valid(email, password):
         # Runs if the login credentials are invalid.
         return html_response(body=templator.login_failed())
     else:
         # Runs if returned otherwise [code is good to go]
         ses_create = db.create_session(email)
+        # TODO: Replace this web.Response() with the redirect_response() defined above
+        # (this is essentially the code that should be written in redirect_response(),
+        # except that the URL should be passed in as a parameter instead of being "/".)
         res = web.Response(headers={"HX-redirect": "/"})
         res.set_cookie("session_token", ses_create)
 
@@ -59,29 +57,7 @@ async def login(request: web.Request):
 
 
 async def signup(request: web.Request):
-    """
-    Creates a new user account in the database and responds with a session token.
-
-    The following is an example of the expected request body.
-
-    ```json
-    {
-        "name": "John Doe",
-        "email": "john@gmail.com",
-        "password": "correct horse battery staple"
-    }
-    ```
-
-    - 400 Bad Request is returned if the request body does not include these fields.
-    - 409 Conflict is returned if the email already exists in the user database.
-    - 200 OK is returned otherwise, along with a session token.
-
-    ```json
-    {
-        "sessionToken": "R7qnHymktvYDnpfb7ExB"
-    }
-    ```
-    """
+    """TODO: Write this docstring."""
 
     body = await request.post()
     username = body["username"]
@@ -89,23 +65,26 @@ async def signup(request: web.Request):
     email = body["email"]
 
     if not db.create_user(username, email, password):
-        return html_response(body=templator.signup_failed())
         # Runs if the email already exists in the user database.
-
-    ses_create = db.create_session(email)
-    res = web.Response(status=200)
-    res.set_cookie("session_token", ses_create)
-    return res
+        return html_response(body=templator.signup_failed())
 
     # Runs if returned otherwise [code is good to go]
+    session_token = db.create_session(email)
+    res = web.Response(status=200)
+    res.set_cookie("session_token", session_token)
+    return res
 
 
-async def signup_page(request: web.Request):
-    return html_response(templator.signup())
+#### MAIN PAGE ####
 
 
-async def login_page(request: web.Request):
-    return html_response(templator.login())
+async def kitchens_page(request: web.Request):
+    return html_response("Hello, World!")
+
+
+
+
+#### MISC ####
 
 
 async def static_asset(request: web.Request):
@@ -127,15 +106,16 @@ async def static_asset(request: web.Request):
 
 db = DatabaseClient("src/client/static", "server-store")
 templator = Templator("src/client/templates")
+
 app = web.Application()
 app.add_routes(
     [
-        web.get("/", kitchens_page),
-        web.post("/signup", signup),
+        web.get("/static/{filepath}", static_asset),
+        web.get("/login", login_page),
         web.post("/login", login),
         web.get("/signup", signup_page),
-        web.get("/login", login_page),
-        web.get("/static/{filepath}", static_asset),
+        web.post("/signup", signup),
+        web.get("/", kitchens_page),
     ]
 )
 
