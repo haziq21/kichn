@@ -10,7 +10,7 @@ from dataclasses import dataclass
 @dataclass
 class Kitchen:
     name: str
-    id: int
+    id: str
 
 
 @dataclass
