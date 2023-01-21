@@ -1,0 +1,50 @@
+{% extends layout %} {% block body %}
+<header w="min-full" flex="~" align="items-center" p="2">
+  <a href="#">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+  <a href="#" font="" text="lg" m="l-4">John</a>
+</header>
+<nav w="min-full" border="b gray-400">
+  <!-- <ul>
+    <li><a href="#">Inventory</a></li>
+    <li><a href="#">Grocery</a></li>
+    <li><a href="#">Custom products</a></li>
+    <li><a href="#">Inventory</a></li>
+  </ul> -->
+</nav>
+
+<main w="full max-112" p="4">
+  <form hx-post="/" m="b-4">
+    <label for="name" text="xs gray-400">New kitchen name</label>
+    <div flex="~" space="x-2">
+      <input
+        type="text"
+        id="name"
+        placeholder="Home kitchen"
+        name="name"
+        border="~ gray-400"
+        rounded="md"
+        p="y-2 x-3"
+        w="full"
+      />
+      <button
+        type="submit"
+        text="gray-50"
+        font="medium"
+        rounded="md"
+        p="x-4 y-2"
+        bg="gray-800"
+        whitespace="nowrap"
+      >
+        Create kitchen
+      </button>
+    </div>
+  </form>
+  <ul>
+    <!-- <li><a href="#">Demo kitchen 1</a></li>
+    <li><a href="#">Demo kitchen 2</a></li>
+    <li><a href="#">Demo kitchen 3</a></li> -->
+  </ul>
+</main>
+{% endblock %}
