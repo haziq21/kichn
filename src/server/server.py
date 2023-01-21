@@ -41,6 +41,18 @@ def extract_request_owner(request: web.Request) -> Optional[str]:
     # address session token's owner. Otherwise, return `None`.
 
 
+def is_htmx_request(request: web.Request) -> bool:
+    """Returns whether the request was made by HTMX."""
+    # Context: Requests made by HTMX have a "HX-Request" header.
+
+    # Context: The headers of the request can be accessed via `request.headers`.
+    # `request.headers` acts as a dictionary, so you can use `in` to check if a
+    # certain header exists in the request.
+
+    # TODO: Return `True` if the request carries the "HX-Request" header, and `False` otherwise.
+    return False
+
+
 #### LOGIN & SIGNUP ####
 
 
