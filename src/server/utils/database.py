@@ -12,6 +12,7 @@ import random
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
+from .classes import Kitchen
 
 
 def _gen_random_id(k=20) -> str:
@@ -179,7 +180,30 @@ class DatabaseClient:
 
         return str(email_bytes)
 
-    #### MODIFYING KITCHENS ####
+    #### KITCHEN HANDLING ####
+
+    def get_kitchens(self, email: str) -> list[Kitchen]:
+        """Returns all the kitchens that the specified user is a member of."""
+        # Get the IDs of all the kitchens that the user is in
+        kitchen_ids = self._r.sunion(
+            f"user:{email}:owned-kitchens",
+            f"user:{email}:shared-kitchens",
+        )
+        kitchens = []
+
+        # Instantiate a `Kitchen` for every ID in `kitchen_ids`
+        for k_id in kitchen_ids:
+            kitchen_name = self._r.get(f"kitchen:{k_id}:name")
+            assert kitchen_name is not None
+
+            kitchens.append(
+                Kitchen(
+                    id=str(k_id),
+                    name=str(kitchen_name),
+                )
+            )
+        
+        return kitchens
 
     def create_kitchen(self, email: str, kitchen_name: str) -> str:
         """
