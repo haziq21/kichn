@@ -22,6 +22,7 @@ def redirect_response(url: str):
     HTMX to redirect to the specified URL.
     """
     # TODO: Return the response
+    return web.Response(headers={"HX-redirect": f"{url}"})
 
 
 def extract_request_owner(request: web.Request) -> Optional[str]:
@@ -76,10 +77,7 @@ async def login(request: web.Request):
     else:
         # Runs if returned otherwise [code is good to go]
         ses_create = db.create_session(email)
-        # TODO: Replace this web.Response() with the redirect_response() defined above
-        # (this is essentially the code that should be written in redirect_response(),
-        # except that the URL should be passed in as a parameter instead of being "/".)
-        res = web.Response(headers={"HX-redirect": "/"})
+        res = redirect_response("/")
         res.set_cookie("session_token", ses_create)
 
         return res
@@ -98,7 +96,7 @@ async def signup(request: web.Request):
 
     # Runs if returned otherwise [code is good to go]
     session_token = db.create_session(email)
-    res = web.Response(status=200)
+    res = redirect_response("/")
     res.set_cookie("session_token", session_token)
     return res
 
