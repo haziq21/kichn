@@ -15,7 +15,7 @@ from .search import SearchClient
 from .classes import Kitchen, User
 
 
-def _gen_random_id(k=20) -> str:
+def _gen_random_id(k=6) -> str:
     """
     Returns a randomly-generated string of k letters and digits.
     """
