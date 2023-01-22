@@ -161,7 +161,7 @@ class DatabaseClient:
         username = self._r.get(f"user:{email}:name")
         assert username is not None
 
-        return User(email=email, username=str(username))
+        return User(email=email, username=username.decode())
 
     #### SESSION MANAGEMENT ####
 
@@ -204,13 +204,20 @@ class DatabaseClient:
 
         # Create a `Kitchen` for every ID in `kitchen_ids`
         for k_id in kitchen_ids:
-            kitchen_name = self._r.get(f"kitchen:{k_id}:name")
+            # To make my linter happy...
+            assert isinstance(k_id, bytes)
+
+            # Decode the kitchen ID from bytes into a string
+            k_id_str = k_id.decode()
+
+            # Get the name of the kitchen
+            kitchen_name = self._r.get(f"kitchen:{k_id_str}:name")
             assert kitchen_name is not None
 
             kitchens.append(
                 Kitchen(
-                    id=str(k_id),
-                    name=str(kitchen_name),
+                    id=k_id_str,
+                    name=kitchen_name.decode(),
                 )
             )
 
