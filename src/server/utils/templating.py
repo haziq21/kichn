@@ -5,7 +5,7 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
-from .classes import Kitchen
+from .classes import Kitchen, User
 
 
 class Templator:
@@ -40,7 +40,7 @@ class Templator:
 
     #### KITCHENS ####
 
-    def kitchens(self, kitchens: list[Kitchen], full_doc=True) -> str:
+    def kitchens(self, kitchens: list[Kitchen], user: User, full_doc=True) -> str:
         """
         Returns the body of the kitchens page if `full_doc`
         is `False`, and the full HTML document otherwise.
@@ -49,4 +49,8 @@ class Templator:
             "_layout.html" if full_doc else "_blank_layout.html"
         )
 
-        return self._env.get_template("kitchens.html").render(layout=layout)
+        return self._env.get_template("kitchens.html").render(
+            layout=layout,
+            kitchens=kitchens,
+            user=user,
+        )
