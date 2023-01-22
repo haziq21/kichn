@@ -13,7 +13,7 @@ class SearchClient:
     def __init__(self):
         self._client = meilisearch.Client("http://localhost:7700")
 
-    #### HELPER FUNCTIONS ####
+    #### PRODUCT INDEXING ####
 
     def _add_products_to_index(self, index_name: str, product_names: dict[str, str]):
         """
@@ -31,8 +31,6 @@ class SearchClient:
 
         if documents:
             self._client.index(index_name).add_documents(documents)
-
-    #### PRODUCT INDEXING ####
 
     def index_default_products(self, product_names: dict[str, str]):
         """
