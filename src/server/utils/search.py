@@ -134,10 +134,10 @@ class SearchClient:
         product name. This will create a new custom product if it
         doesn't already exist in the kitchen's custom product index.
         """
-        self.index_custom_products(kitchen_id, new_name)
+        self.index_custom_products(kitchen_id, {product_id: new_name})
 
         if self._product_is_in_index(kitchen_id + "-inventory", product_id):
-            self.index_inventory_products(kitchen_id, new_name)
+            self.index_inventory_products(kitchen_id, {product_id: new_name})
 
         if self._product_is_in_index(kitchen_id + "-grocery", product_id):
-            self.index_grocery_products(kitchen_id, new_name)
+            self.index_grocery_products(kitchen_id, {product_id: new_name})
