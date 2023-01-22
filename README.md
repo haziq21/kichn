@@ -18,23 +18,17 @@ $ pip install -r requirements.txt
 
 ## Running
 
-Run all commands from the project root folder (`cd` into the project root folder first). In separate shell sessions, start the Redis and Meilisearch servers.
-
-```
-$ redis-server redis.conf
-```
-
-```
-$ meilisearch
-```
+Run all commands from the project root folder (`cd` into the project root folder first).
 
 To run the web server:
 
 ```
-$ python3 src/server/server.py
+$ python3 src/server/main.py
 ```
 
-To run the FairPrice API scraper:
+This also starts the Redis and Meilisearch servers.
+
+Once `main.py` is running, you can run the FairPrice API scraper:
 
 ```
 $ python3 src/server/scraper.py
