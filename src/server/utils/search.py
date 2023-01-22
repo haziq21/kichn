@@ -31,14 +31,6 @@ class SearchClient:
         if documents:
             self._client.index(index_name).add_documents(documents)
 
-    def _search_index(self, index_name: str, query: str) -> list[str]:
-        """
-        Returns the IDs of products from the
-        specified index that match the search query.
-        """
-        # TODO: This.
-        return []
-
     #### PRODUCT INDEXING ####
 
     def index_default_products(self, product_names: dict[str, str]):
@@ -67,7 +59,7 @@ class SearchClient:
         Indexes the given products as custom products of the kitchen.
         `product_names` maps product IDs to product names.
         """
-        # TODO: This.
+        self._add_products_to_index(kitchen_id + "-custom", product_names)
 
     #### PRODUCT SEARCHING ####
 
@@ -97,16 +89,27 @@ class SearchClient:
         Returns the IDs of custom products from the
         specified kitchen which match the search query.
         """
-        # TODO: This.
-        return []
+        search_result = self._client.index(kitchen_id + "-custom").search(query)
+        return [i["id"] for i in search_result["hits"]]
+
+    def _search_index(self, index_name: str, query: str) -> list[str]:
+        """
+        Returns the IDs of products from the
+        specified index that match the search query.
+        """
+        search_result = self._client.index(index_name).search(query)
+        return [i["id"] for i in search_result["hits"]]
 
     #### PRODUCT DELETION ####
 
     def delete_inventory_product(self, kitchen_id: str, product_id: str):
         """Removes the specified product from the kitchen's inventory index."""
+        self._client.index(kitchen_id + "-inventory").delete_document(product_id)
 
     def delete_grocery_product(self, kitchen_id: str, product_id: str):
         """Removes the specified product from the kitchen's grocery index."""
+        self._client.index(kitchen_id + "-grocery").delete_document(product_id)
 
     def delete_custom_product(self, kitchen_id: str, product_id: str):
         """Removes the specified product from the kitchen's custom product index."""
+        self._client.index(kitchen_id + "-custom").delete_document(product_id)
