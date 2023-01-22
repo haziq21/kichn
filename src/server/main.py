@@ -1,3 +1,8 @@
+"""
+This module manages the Redis and Meilisearch processes in addition to the web server.
+Authored by Haziq Hairil.
+"""
+
 import subprocess as sp
 import time
 
