@@ -13,7 +13,7 @@ class SearchClient:
     def __init__(self):
         self._client = meilisearch.Client("http://localhost:7700")
 
-    #### HELPER FUNCTIONS ####
+    #### PRODUCT INDEXING ####
 
     def _add_products_to_index(self, index_name: str, product_names: dict[str, str]):
         """
@@ -31,8 +31,6 @@ class SearchClient:
 
         if documents:
             self._client.index(index_name).add_documents(documents)
-
-    #### PRODUCT INDEXING ####
 
     def index_default_products(self, product_names: dict[str, str]):
         """
@@ -64,6 +62,14 @@ class SearchClient:
 
     #### PRODUCT SEARCHING ####
 
+    def _search_index(self, index_name: str, query: str) -> list[str]:
+        """
+        Returns the IDs of products from the
+        specified index that match the search query.
+        """
+        search_result = self._client.index(index_name).search(query)
+        return [i["id"] for i in search_result["hits"]]
+
     def search_default_products(self, query: str) -> list[str]:
         """Returns the IDs of default products that match the search query."""
         search_result = self._client.index("default").search(query)
@@ -91,14 +97,6 @@ class SearchClient:
         specified kitchen which match the search query.
         """
         search_result = self._client.index(kitchen_id + "-custom").search(query)
-        return [i["id"] for i in search_result["hits"]]
-
-    def _search_index(self, index_name: str, query: str) -> list[str]:
-        """
-        Returns the IDs of products from the
-        specified index that match the search query.
-        """
-        search_result = self._client.index(index_name).search(query)
         return [i["id"] for i in search_result["hits"]]
 
     #### PRODUCT DELETION ####
