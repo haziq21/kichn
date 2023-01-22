@@ -45,10 +45,11 @@ def main():
     try:
         # Run the web server
         import server
-    except Exception:
+    except Exception as e:
         # Terminate the Redis and Meilisearch servers when the web server is killed
         redis_proc.terminate()
         meilisearch_proc.terminate()
+        raise e
 
 
 main()
