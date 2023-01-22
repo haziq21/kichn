@@ -9,11 +9,13 @@
     <script src="static/htmx.min.js"></script>
   </head>
   <body
+    hx-boost="true"
     hx-ext="ws"
     ws-connect="/ws"
     h="min-full"
     flex="~ col"
     align="items-center"
+    bg="light-50"
   >
     {% block body %}{% endblock %}
   </body>
