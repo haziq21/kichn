@@ -3,7 +3,7 @@
   <a href="#">
     <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
   </a>
-  <a href="#" font="" text="lg" m="l-4">John</a>
+  <a href="#" font="" text="lg" m="l-4">{{user.username}}</a>
 </header>
 <nav w="min-full" border="b gray-400">
   <!-- <ul>
@@ -14,8 +14,8 @@
   </ul> -->
 </nav>
 
-<main w="full max-112" p="4">
-  <form hx-post="/" m="b-4">
+<main w="full max-112" p="x-4 y-8">
+  <form hx-post="/" m="b-12">
     <label for="name" text="xs gray-400">New kitchen name</label>
     <div flex="~" space="x-2">
       <input
@@ -41,10 +41,24 @@
       </button>
     </div>
   </form>
-  <ul>
-    <!-- <li><a href="#">Demo kitchen 1</a></li>
-    <li><a href="#">Demo kitchen 2</a></li>
-    <li><a href="#">Demo kitchen 3</a></li> -->
+  <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
+  <ul p="x-2">
+    {% for kitchen in kitchens %}
+    <li>
+      <a
+        href="/kitchens/{{kitchen.id}}/inventory"
+        text="lg"
+        m="b-2"
+        p="x-4 y-2"
+        rounded="md"
+        border="~ gray-300 hover:gray-500"
+        bg="hover:gray-50"
+        display="block"
+      >
+        {{kitchen.name}}
+      </a>
+    </li>
+    {% endfor %}
   </ul>
 </main>
 {% endblock %}
