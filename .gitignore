@@ -1,4 +1,5 @@
 __pycache__/
+server-store/dump.rdb
 data.ms/
 dumps/
 .DS_Store
