@@ -119,13 +119,14 @@ class SearchClient:
 
     def _product_is_in_index(self, index_name: str, product_id: str) -> bool:
         """Returns whether the specified product is in the specified search index."""
-        # TODO: `try` to get the product document with .get_document() and return `True`.
-        # TODO: Catch the meilisearch.errors.MeiliSearchApiError exception.
-        # TODO: If the error code is "document_not_found", return `False`.
-        # TODO: If the error code is anything else, something went wrong - re-raise
-        # TODO: the exception so we can debug it: `raise e`
-
-        return False
+        try:
+            self._client.index(index_name).get_document(product_id)
+            return True
+        except meilisearch.errors.MeiliSearchApiError as e:
+            if e.code == "document_not_found":
+                return False
+            else:
+                raise e
 
     def rename_custom_product(self, kitchen_id: str, product_id: str, new_name: str):
         """
@@ -133,13 +134,10 @@ class SearchClient:
         product name. This will create a new custom product if it
         doesn't already exist in the kitchen's custom product index.
         """
-        # TODO: Run self.index_custom_products() with the new product
-        # name (and same id). This will overwrite the old document.
+        self.index_custom_products(kitchen_id, new_name)
 
-        # TODO: Use self._product_is_in_index() to check if the product is in
-        # the kitchen's inventory index. If it is, use self.index_inventory_products()
-        # to overwrite it.
+        if self._product_is_in_index(kitchen_id + "-inventory", product_id):
+            self.index_inventory_products(kitchen_id, new_name)
 
-        # TODO: Use self._product_is_in_index() to check if the product is in
-        # the kitchen's grocery index. If it is, use self.index_grocery_products()
-        # to overwrite it.
+        if self._product_is_in_index(kitchen_id + "-grocery", product_id):
+            self.index_grocery_products(kitchen_id, new_name)
