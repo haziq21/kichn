@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
-from .classes import Kitchen
+from .classes import Kitchen, User
 
 
 def _gen_random_id(k=20) -> str:
@@ -120,7 +120,7 @@ class DatabaseClient:
         keys = self._r.smembers("default-products")
         return {str(x) for x in keys}
 
-    #### ACCESSING THE APPLICATION ####
+    #### USER ACCOUNT MANAGEMENT ####
 
     def login_is_valid(self, email: str, password: str) -> bool:
         """
@@ -156,9 +156,19 @@ class DatabaseClient:
 
         return True
 
+    def get_user(self, email: str) -> User:
+        """Returns the `User` with the specified email address."""
+        username = self._r.get(f"user:{email}:name")
+        assert username is not None
+
+        return User(email=email, username=str(username))
+
+    #### SESSION MANAGEMENT ####
+
     def create_session(self, email: str) -> str:
         """Creates and returns a session token for the specified user."""
         session_token = _gen_random_id()
+        # Store the session in the database
         self._r.hset("sessions", session_token, email)
 
         return session_token
@@ -172,6 +182,7 @@ class DatabaseClient:
         Returns the email address of the user who owns the specified
         session token, or `None` if the session token is invalid.
         """
+        # Email address of the session's owner
         email_bytes = self._r.hget("sessions", session_token)
 
         if email_bytes is None:
@@ -191,7 +202,7 @@ class DatabaseClient:
         )
         kitchens = []
 
-        # Instantiate a `Kitchen` for every ID in `kitchen_ids`
+        # Create a `Kitchen` for every ID in `kitchen_ids`
         for k_id in kitchen_ids:
             kitchen_name = self._r.get(f"kitchen:{k_id}:name")
             assert kitchen_name is not None
@@ -202,7 +213,7 @@ class DatabaseClient:
                     name=str(kitchen_name),
                 )
             )
-        
+
         return kitchens
 
     def create_kitchen(self, email: str, kitchen_name: str) -> str:
@@ -226,6 +237,6 @@ class DatabaseClient:
         """Deletes the kitchen from the database."""
         # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
         # Get all the Redis keys belonging to the specified kitchen
-        kitchen_keys = self._r.keys(f"kitchen:{kitchen_id}:*")
+        kitchen_keys = self._r.keys(f"kitchen:{kitchen_id}:*")  # TODO: Don't use KEYS
         # Delete the keys
         self._r.delete(*kitchen_keys)
