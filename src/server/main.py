@@ -40,7 +40,7 @@ def main():
     try:
         # Run the web server
         import server
-    except KeyboardInterrupt:
+    except Exception:
         # Terminate the Redis and Meilisearch servers when the web server is killed
         redis_proc.terminate()
         meilisearch_proc.terminate()
