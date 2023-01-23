@@ -44,6 +44,7 @@
       </button>
     </div>
   </form>
+  {% if kitchens %}
   <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
   <ul p="x-2">
     {% for kitchen in kitchens %}
@@ -63,5 +64,6 @@
     </li>
     {% endfor %}
   </ul>
+  {% endif %}
 </main>
 {% endblock %}
