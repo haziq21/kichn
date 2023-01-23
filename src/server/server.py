@@ -94,12 +94,19 @@ async def signup(request: web.Request):
     res = htmx_redirect_response("/kitchens")
     res.set_cookie("session_token", session_token)
 
-    print(session_token)
-
     return res
 
 
 #### MAIN PAGE ####
+
+
+async def index(request: web.Request):
+    email = extract_request_owner(request)
+
+    if email is None:
+        redirect_response("/login")
+
+    redirect_response("/kitchens")
 
 
 async def kitchens_page(request: web.Request):
@@ -108,8 +115,6 @@ async def kitchens_page(request: web.Request):
 
     if email is None:
         redirect_response("/login")
-
-    print(email)
 
     kitchens = db.get_kitchens(email)
     info_user = db.get_user(email)
@@ -175,6 +180,7 @@ templator = Templator("src/client/templates")
 app = web.Application()
 app.add_routes(
     [
+        web.get("/", index),
         web.get("/static/{filepath}", static_asset),
         web.get("/login", login_page),
         web.post("/login", login),
