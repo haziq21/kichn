@@ -22,14 +22,17 @@ class User:
 @dataclass
 class Product:
     name: str
-    barcode: int
-    amount: int
     category: str
     id: str
 
 
 @dataclass
-class InventoryProduct(Product):
+class GroceryProduct(Product):
+    amount: int
+
+
+@dataclass
+class InventoryProduct(GroceryProduct):
     closest_expiry_date: int
     amount_expiring: int
 
@@ -43,6 +46,6 @@ class InventoryList:
 
 @dataclass
 class GroceryList:
-    products: list[Product]
+    products: list[GroceryProduct]
     kitchen_name: str
     kitchen_id: str
