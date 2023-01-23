@@ -1,6 +1,8 @@
 """
 This module exposes high-level functions to interface 
 with the Meilisearch full-text search engine.
+
+Authored by Lohith Tanuku
 """
 
 import meilisearch

@@ -14,6 +14,12 @@ class Kitchen:
 
 
 @dataclass
+class User:
+    email: str
+    username: str
+
+
+@dataclass
 class Product:
     name: str
     barcode: int
@@ -23,6 +29,20 @@ class Product:
 
 
 @dataclass
-class User:
-    email: str
-    username: str
+class InventoryProduct(Product):
+    closest_expiry_date: int
+    amount_expiring: int
+
+
+@dataclass
+class InventoryList:
+    products: list[InventoryProduct]
+    kitchen_name: str
+    kitchen_id: str
+
+
+@dataclass
+class GroceryList:
+    products: list[Product]
+    kitchen_name: str
+    kitchen_id: str
