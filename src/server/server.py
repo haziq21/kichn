@@ -107,6 +107,18 @@ async def signup(request: web.Request):
 
 
 async def kitchens_page(request: web.Request):
+    # TODO: Get the email of the user with `extract_request_owner()`.
+    # If it returns `None`, return a redirect to the login page.
+
+    # TODO: Get the kitchen list data with `db.get_kitchens()`.
+
+    # TODO: Get the user's account information with `db.get_user()`.
+
+    # TODO: Pass the kitchen list data and account info to `templator.kitchens()`
+    # (look at the parameters that `templator.inventory()` requires). This will return some HTML.
+
+    # TODO: Pass that HTML into `html_response()`, then return it.
+
     return html_response("Hello, World!")
 
 
@@ -130,7 +142,20 @@ async def new_kitchen(request: web.Request):
 
 
 async def kitchen_inventory_page(request: web.Request):
-    # This is a placeholder
+    # TODO: Get the email of the user with `extract_request_owner()`.
+    # If it returns `None`, return a redirect to the login page.
+
+    # TODO: Extract the kitchen_id from the URL via `match_info`.
+
+    # TODO: Get the inventory list data with `db.get_inventory_list()`.
+
+    # TODO: Get the user's account information with `db.get_user()`.
+
+    # TODO: Pass the inventory list data and account info to `templator.inventory()`
+    # (look at the parameters that `templator.inventory()` requires). This will return some HTML.
+
+    # TODO: Pass that HTML into `html_response()`, then return it.
+
     return html_response("Hello, World!")
 
 
