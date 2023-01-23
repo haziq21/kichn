@@ -54,7 +54,9 @@ class DatabaseClient:
         # Fill `default_products`
         for product_id in self.get_default_product_ids():
             product_name = self._r.hget("product:" + product_id, "name")
-            default_products[product_id] = str(product_name)
+            assert product_name is not None
+
+            default_products[product_id] = product_name.decode()
 
         # Add the default products to the search index
         self._search.index_default_products(default_products)
@@ -125,7 +127,7 @@ class DatabaseClient:
     def get_default_product_ids(self) -> set[str]:
         """Returns the IDs of all the default products."""
         keys = self._r.smembers("default-products")
-        return {str(x) for x in keys}
+        return {x.decode() for x in keys}
 
     #### USER ACCOUNT MANAGEMENT ####
 
@@ -196,7 +198,7 @@ class DatabaseClient:
             # The session token doesn't exist (it is invalid)
             return None
 
-        return str(email_bytes)
+        return email_bytes.decode()
 
     #### KITCHEN HANDLING ####
 
