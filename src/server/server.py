@@ -21,7 +21,7 @@ def htmx_redirect_response(url: str):
     Returns a `web.Response` that instructs
     HTMX to redirect to the specified URL.
     """
-    return web.Response(headers={"HX-redirect": url})
+    return web.Response(headers={"HX-Redirect": url})
 
 
 def redirect_response(url: str):
@@ -43,7 +43,6 @@ def extract_request_owner(request: web.Request) -> Optional[str]:
 
 def is_htmx_request(request: web.Request) -> bool:
     """Returns whether the request was made by HTMX."""
-
     return "HX-Request" in request.headers
 
 
@@ -64,6 +63,10 @@ async def login(request: web.Request):
     email = body["email"]
     password = body["password"]
 
+    # To make the type checker happy...
+    assert isinstance(email, str)
+    assert isinstance(password, str)
+
     if not db.login_is_valid(email, password):
         # Runs if the login credentials are invalid.
         return html_response(body=templator.login_failed())
@@ -83,7 +86,10 @@ async def signup(request: web.Request):
     password = body["password"]
     email = body["email"]
 
-    print(username, email)
+    # To make the type checker happy...
+    assert isinstance(username, str)
+    assert isinstance(email, str)
+    assert isinstance(password, str)
 
     if not db.create_user(username, email, password):
         # Runs if the email already exists in the user database.
@@ -133,6 +139,10 @@ async def new_kitchen(request: web.Request):
 
     body = await request.post()
     kitchen_name = body["name"]
+
+    # To make the type checker happy...
+    assert isinstance(kitchen_name, str)
+
     kitchen_id = db.create_kitchen(user_email, kitchen_name)
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
