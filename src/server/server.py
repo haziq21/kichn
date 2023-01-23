@@ -190,7 +190,9 @@ app.add_routes(
         web.post("/login", login),
         web.get("/signup", signup_page),
         web.post("/signup", signup),
+        # TODO: Change this URL to /kitchens, and change all the redirects accordingly
         web.get("/", kitchens_page),
+        # TODO: Change this URL to /kitchens
         web.post("/", new_kitchen),
         web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
     ]
