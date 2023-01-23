@@ -12,7 +12,14 @@ import random
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
-from .classes import Kitchen, User
+from .classes import (
+    Kitchen,
+    User,
+    Product,
+    InventoryProduct,
+    InventoryList,
+    GroceryList,
+)
 
 
 def _gen_random_id(k=6) -> str:
@@ -247,3 +254,51 @@ class DatabaseClient:
         kitchen_keys = self._r.keys(f"kitchen:{kitchen_id}:*")  # TODO: Don't use KEYS
         # Delete the keys
         self._r.delete(*kitchen_keys)
+
+    #### KITCHEN PRODUCTS ####
+
+    def _get_product_from_kitchen(self, kitchen_id: str, product_id: str) -> Product:
+        """
+        Checks if the specified product is in the kitchen's custom
+        product list. Returns the product from the custom product
+        list if it is, and from the default product list otherwise.
+        """
+        # TODO: Check custom product list
+
+        product_name = self._r.get(f"product:{product_id}:name")
+        assert product_name is not None
+
+        product_category = self._r.get(f"product:{product_id}:category")
+        assert product_category is not None
+
+        return Product(
+            id=product_id,
+            name=product_name.decode(),
+            category=product_category.decode(),
+        )
+
+    def get_inventory_list(self, kitchen_id: str) -> InventoryList:
+        """Returns the `InventoryList` of the specified kitchen."""
+        product_ids = self._r.smembers(f"kitchen:{kitchen_id}:inventory-products")
+        # inv_products: list[InventoryProduct] = []
+
+        # for p_id in product_ids:
+        #     p = self._get_product_from_kitchen(kitchen_id, p_id.decode())
+        #     inv_products.append(
+        #         InventoryProduct(
+        #             id=p.id,
+        #             name=p.name,
+        #             category=p.category,
+        #         )
+        #     )
+
+        kitchen_name = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name is not None
+
+        # TODO: Complete this
+
+        return InventoryList(
+            kitchen_id=kitchen_id,
+            kitchen_name=kitchen_name.decode(),
+            products=[],
+        )
