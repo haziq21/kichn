@@ -5,7 +5,7 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
-from .classes import Kitchen, User
+from .classes import Kitchen, User, InventoryList
 
 
 class Templator:
@@ -18,6 +18,15 @@ class Templator:
         self._env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(templates_dir),
             autoescape=jinja2.select_autoescape(),
+        )
+
+    def _get_layout_template(self, full_doc: bool) -> jinja2.Template:
+        """
+        Returns the `Template` for the full HTML document if
+        `full_doc` is `True`, and an empty `Template` otherwise.
+        """
+        return self._env.get_template(
+            "_layout.html" if full_doc else "_blank_layout.html"
         )
 
     #### AUTHENTICATION ####
@@ -45,12 +54,24 @@ class Templator:
         Returns the body of the kitchens page if `full_doc`
         is `False`, and the full HTML document otherwise.
         """
-        layout = self._env.get_template(
-            "_layout.html" if full_doc else "_blank_layout.html"
-        )
-
         return self._env.get_template("kitchens.html").render(
-            layout=layout,
+            layout=self._get_layout_template(full_doc),
             kitchens=kitchens,
             user=user,
+        )
+
+    def inventory(
+        self,
+        inventory_list: InventoryList,
+        user: User,
+        full_doc=True,
+    ) -> str:
+        """
+        Returns the body of the inventory page if `full_doc`
+        is `False`, and the full HTML document otherwise.
+        """
+        return self._env.get_template("inventory.html").render(
+            layout=self._get_layout_template(full_doc),
+            user=user,
+            inventory=inventory_list,
         )
