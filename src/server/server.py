@@ -21,7 +21,7 @@ def redirect_response(url: str):
     Returns a `web.Response` that instructs
     HTMX to redirect to the specified URL.
     """
-    # TODO: Return the response
+
     return web.Response(headers={"HX-redirect": f"{url}"})
 
 
@@ -77,7 +77,7 @@ async def login(request: web.Request):
     else:
         # Runs if returned otherwise [code is good to go]
         ses_create = db.create_session(email)
-        res = redirect_response("/")
+        res = redirect_response("/kitchens")
         res.set_cookie("session_token", ses_create)
 
         return res
@@ -96,7 +96,7 @@ async def signup(request: web.Request):
 
     # Runs if returned otherwise [code is good to go]
     session_token = db.create_session(email)
-    res = redirect_response("/")
+    res = redirect_response("/kitchens")
     res.set_cookie("session_token", session_token)
     return res
 
