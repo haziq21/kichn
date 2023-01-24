@@ -304,3 +304,18 @@ class DatabaseClient:
             kitchen_name=kitchen_name.decode(),
             products=[],
         )
+
+    #### LIST MANAGEMENT ####
+
+    def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
+        """Updates the grocery list to have `amount` of the specified product."""
+        redis_key = f"kitchen:{kitchen_id}:grocery"
+
+        if amount:
+            # Write the data to Redis
+            self._r.hset(redis_key, product_id, amount)
+        else:
+            # Delete the product from the grocery list
+            # if we're setting the amount to 0
+            self._r.hdel(redis_key, product_id)
+
