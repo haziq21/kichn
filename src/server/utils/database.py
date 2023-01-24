@@ -18,7 +18,9 @@ from .classes import (
     Product,
     InventoryProduct,
     InventoryList,
-    GroceryList,
+    KitchensPageData,
+    InventoryPageData,
+    GroceryPageData,
 )
 
 
@@ -225,8 +227,8 @@ class DatabaseClient:
 
             kitchens.append(
                 Kitchen(
-                    id=k_id_str,
-                    name=kitchen_name.decode(),
+                    kitchen_id=k_id_str,
+                    kitchen_name=kitchen_name.decode(),
                 )
             )
 
@@ -344,8 +346,8 @@ class DatabaseClient:
 
             kitchens.append(
                 Kitchen(
-                    id=k_id,
-                    name=kitchen_name_bytes.decode(),
+                    kitchen_id=k_id,
+                    kitchen_name=kitchen_name_bytes.decode(),
                 )
             )
 
