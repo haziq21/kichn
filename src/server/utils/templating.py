@@ -5,7 +5,7 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
-from .classes import Kitchen, User, InventoryList
+from .classes import Kitchen, User, InventoryList, InventoryPageData, KitchensPageData
 
 
 class Templator:
@@ -49,6 +49,7 @@ class Templator:
 
     #### KITCHENS ####
 
+    # TODO: Remove this
     def kitchens(self, kitchens: list[Kitchen], user: User, full_doc=True) -> str:
         """
         Returns the body of the kitchens page if `full_doc`
@@ -59,6 +60,10 @@ class Templator:
             kitchens=kitchens,
             user=user,
         )
+
+    def kitchens_page(self, page_data: KitchensPageData) -> str:
+        """Returns the HTML of the kitchen list page."""
+        return self._env.get_template("kitchens.html").render(data=page_data)
 
     def inventory(
         self,
