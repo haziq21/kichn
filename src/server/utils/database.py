@@ -204,6 +204,7 @@ class DatabaseClient:
 
     #### KITCHEN HANDLING ####
 
+    # TODO: Remove this
     def get_kitchens(self, email: str) -> list[Kitchen]:
         """Returns all the kitchens that the specified user is a member of."""
         # Get the IDs of all the kitchens that the user is in
@@ -215,7 +216,7 @@ class DatabaseClient:
 
         # Create a `Kitchen` for every ID in `kitchen_ids`
         for k_id in kitchen_ids:
-            # To make my linter happy...
+            # To make the type checker happy...
             assert isinstance(k_id, bytes)
 
             # Decode the kitchen ID from bytes into a string
