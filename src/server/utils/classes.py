@@ -52,13 +52,18 @@ class GroceryList:
 
 
 @dataclass
-class InventoryPageData(User, Kitchen):
+class SortedInventoryPageData(User, Kitchen):
     products: list[InventoryProduct]
 
 
 @dataclass
+class InventoryPageData(User, Kitchen):
+    products: dict[str, list[InventoryProduct]]
+
+
+@dataclass
 class GroceryPageData(User, Kitchen):
-    products: list[GroceryProduct]
+    products: dict[str, list[GroceryProduct]]
 
 
 @dataclass
