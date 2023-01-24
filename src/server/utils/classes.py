@@ -49,3 +49,23 @@ class GroceryList:
     products: list[GroceryProduct]
     kitchen_name: str
     kitchen_id: str
+
+
+@dataclass
+class InventoryPageData(User, Kitchen):
+    products: list[InventoryProduct]
+
+
+@dataclass
+class GroceryPageData(User, Kitchen):
+    products: list[GroceryProduct]
+
+
+@dataclass
+class KitchensPageData(User):
+    kitchens: list[Kitchen]
+
+
+@dataclass
+class CustomPageData(User):
+    products: list[Product]
