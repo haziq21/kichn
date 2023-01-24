@@ -352,7 +352,7 @@ class DatabaseClient:
             )
 
         # Get the user's username
-        username_bytes = self._r.get(f"user:email:name")
+        username_bytes = self._r.get(f"user:{email}:name")
         assert username_bytes is not None
 
         return KitchensPageData(
