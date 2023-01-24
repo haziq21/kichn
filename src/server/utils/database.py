@@ -17,6 +17,7 @@ from .classes import (
     User,
     Product,
     InventoryProduct,
+    GroceryProduct,
     InventoryList,
     KitchensPageData,
     InventoryPageData,
@@ -362,3 +363,63 @@ class DatabaseClient:
             kitchens=kitchens,
         )
 
+    def get_grocery_page_data(self, email: str, kitchen_id: str, search_query=""):
+        """Returns the data required to render the grocery list page."""
+
+        # Maps category names to lists of grocery items
+        grocery_products: dict[str, list[GroceryProduct]] = {}
+        raw_grocery_dict = self._r.hgetall(f"kitchen:{kitchen_id}:grocery")
+
+        # Loop through the grocery list products in
+        # the database to fill up `grocery_products`
+        for p_id_bytes in raw_grocery_dict:
+            product = self._get_product_from_kitchen(kitchen_id, p_id_bytes.decode())
+            # TODO: Does this work without decoding to str? Probably not...
+            # Redis stores integers as strings, so we decode
+            # the bytes into strings before casting to int
+            amount = int(raw_grocery_dict[p_id_bytes].decode())
+
+            # Create an empty list in `grocery_products`
+            # if the key doesn't already exist
+            if product.category not in grocery_products:
+                grocery_products[product.category] = []
+
+            # Add the grocery item to its corresponding list
+            grocery_products[product.category].append(
+                GroceryProduct(
+                    id=product.id,
+                    name=product.name,
+                    category=product.category,
+                    amount=amount,
+                )
+            )
+
+        # Within each product category, sort the products alphabetically
+        for products in grocery_products.values():
+            products.sort(key=lambda p: p.name)
+        
+        # Sorted list of the product categories in `grocery_products`
+        sorted_product_categories = sorted(grocery_products.keys())
+        sorted_grocery_products = {}
+
+        # Insert product categories in the order we want them to be 
+        # iterated in (alphabetical order). This works in Python 3.7+ 
+        # because dictionaries iterate in insertion order.
+        for cat in sorted_product_categories:
+            sorted_grocery_products[cat] = grocery_products[cat]
+
+        # Get the kitchen's name
+        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name_bytes is not None
+
+        # Get the user's username
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        return GroceryPageData(
+            email=email,
+            username=username_bytes.decode(),
+            kitchen_id=kitchen_id,
+            kitchen_name=kitchen_name_bytes.decode(),
+            products=sorted_grocery_products
+        )
