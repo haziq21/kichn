@@ -319,3 +319,43 @@ class DatabaseClient:
             # if we're setting the amount to 0
             self._r.hdel(redis_key, product_id)
 
+    #### PAGE DATA METHODS ####
+
+    def get_kitchens_page_data(self, email: str) -> KitchensPageData:
+        """Returns the data necessary to render the kitchen list page."""
+        # Get the IDs of all the kitchens that the user is in
+        kitchen_ids = self._r.sunion(
+            f"user:{email}:owned-kitchens",
+            f"user:{email}:shared-kitchens",
+        )
+        kitchens: list[Kitchen] = []
+
+        # Create a `Kitchen` for every ID in `kitchen_ids`
+        for k_id_bytes in kitchen_ids:
+            # To make the type checker happy...
+            assert isinstance(k_id_bytes, bytes)
+
+            # Decode the kitchen ID from bytes into a string
+            k_id = k_id_bytes.decode()
+
+            # Get the name of the kitchen
+            kitchen_name_bytes = self._r.get(f"kitchen:{k_id}:name")
+            assert kitchen_name_bytes is not None
+
+            kitchens.append(
+                Kitchen(
+                    id=k_id,
+                    name=kitchen_name_bytes.decode(),
+                )
+            )
+
+        # Get the user's username
+        username_bytes = self._r.get(f"user:email:name")
+        assert username_bytes is not None
+
+        return KitchensPageData(
+            email=email,
+            username=username_bytes.decode(),
+            kitchens=kitchens,
+        )
+
