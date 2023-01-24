@@ -9,8 +9,8 @@ from dataclasses import dataclass
 
 @dataclass
 class Kitchen:
-    name: str
-    id: str
+    kitchen_name: str
+    kitchen_id: str
 
 
 @dataclass
