@@ -10,15 +10,11 @@ endblock %} {% block body %}
         <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
       </a>
     </li>
-    <li p="x-2 b-2" border="b-3 gray-800">
-      <a href="/kitchens/{{data.kitchen_id}}/inventory">Inventory</a>
-    </li>
     <li p="x-2 b-2" border="b-3 transparent">
-      <a
-        href="/kitchens/{{data.kitchen_id}}/grocery"
-        text="gray-500 hover:inherit"
-        >Grocery</a
-      >
+      <a href="/kitchens/{{data.kitchen_id}}/inventory" text="gray-500 hover:inherit">Inventory</a>
+    </li>
+    <li p="x-2 b-2" border="b-3 gray-800">
+      <a href="/kitchens/{{data.kitchen_id}}/grocery">Grocery</a>
     </li>
     <li p="x-2 b-2" border="b-3 transparent">
       <a
@@ -31,14 +27,13 @@ endblock %} {% block body %}
 </nav>
 
 <main w="full max-112" p="x-4 y-8">
-  <!-- <form hx-post="/" m="b-12">
-    <label for="name" text="xs gray-400">New kitchen name</label>
+  <form hx-post="/" m="b-12">
     <div flex="~" space="x-2">
       <input
         type="text"
         id="name"
-        placeholder="Home kitchen"
-        name="name"
+        placeholder="Search for a product..."
+        name="query"
         border="~ gray-400"
         rounded="md"
         p="y-2 x-3"
@@ -55,16 +50,16 @@ endblock %} {% block body %}
         whitespace="nowrap"
         transition="duration-75"
       >
-        Create kitchen
+        Scan barcode
       </button>
     </div>
   </form>
-  <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
+  <!-- <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
   <ul p="x-2">
     {% for kitchen in kitchens %}
     <li>
       <a
-        href="/kitchens/{{inventory.kitchen_id}}/`"
+        href="/kitchens/{{inventory.kitchen_id}}/inventory"
         text="lg"
         m="b-2"
         p="x-4 y-2"

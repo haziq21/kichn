@@ -17,8 +17,11 @@ from .classes import (
     User,
     Product,
     InventoryProduct,
+    GroceryProduct,
     InventoryList,
-    GroceryList,
+    KitchensPageData,
+    InventoryPageData,
+    GroceryPageData,
 )
 
 
@@ -202,6 +205,7 @@ class DatabaseClient:
 
     #### KITCHEN HANDLING ####
 
+    # TODO: Remove this
     def get_kitchens(self, email: str) -> list[Kitchen]:
         """Returns all the kitchens that the specified user is a member of."""
         # Get the IDs of all the kitchens that the user is in
@@ -213,7 +217,7 @@ class DatabaseClient:
 
         # Create a `Kitchen` for every ID in `kitchen_ids`
         for k_id in kitchen_ids:
-            # To make my linter happy...
+            # To make the type checker happy...
             assert isinstance(k_id, bytes)
 
             # Decode the kitchen ID from bytes into a string
@@ -225,8 +229,8 @@ class DatabaseClient:
 
             kitchens.append(
                 Kitchen(
-                    id=k_id_str,
-                    name=kitchen_name.decode(),
+                    kitchen_id=k_id_str,
+                    kitchen_name=kitchen_name.decode(),
                 )
             )
 
@@ -303,4 +307,188 @@ class DatabaseClient:
             kitchen_id=kitchen_id,
             kitchen_name=kitchen_name.decode(),
             products=[],
+        )
+
+    #### LIST MANAGEMENT ####
+
+    def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
+        """Updates the grocery list to have `amount` of the specified product."""
+        redis_key = f"kitchen:{kitchen_id}:grocery"
+
+        if amount:
+            # Write the data to Redis
+            self._r.hset(redis_key, product_id, amount)
+        else:
+            # Delete the product from the grocery list
+            # if we're setting the amount to 0
+            self._r.hdel(redis_key, product_id)
+
+    #### PAGE DATA METHODS ####
+
+    def get_kitchens_page_data(self, email: str) -> KitchensPageData:
+        """Returns the data necessary to render the kitchen list page."""
+        # Get the IDs of all the kitchens that the user is in
+        kitchen_ids = self._r.sunion(
+            f"user:{email}:owned-kitchens",
+            f"user:{email}:shared-kitchens",
+        )
+        kitchens: list[Kitchen] = []
+
+        # Create a `Kitchen` for every ID in `kitchen_ids`
+        for k_id_bytes in kitchen_ids:
+            # To make the type checker happy...
+            assert isinstance(k_id_bytes, bytes)
+
+            # Decode the kitchen ID from bytes into a string
+            k_id = k_id_bytes.decode()
+
+            # Get the name of the kitchen
+            kitchen_name_bytes = self._r.get(f"kitchen:{k_id}:name")
+            assert kitchen_name_bytes is not None
+
+            kitchens.append(
+                Kitchen(
+                    kitchen_id=k_id,
+                    kitchen_name=kitchen_name_bytes.decode(),
+                )
+            )
+
+        # Get the user's username
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        return KitchensPageData(
+            email=email,
+            username=username_bytes.decode(),
+            kitchens=kitchens,
+        )
+
+    def get_inventory_page_data(self, email: str, kitchen_id: str, search_query="") -> InventoryPageData:
+        """Returns the data necessary to render the inventory list page."""
+        # Get the IDs of all the products on the
+        # inventory page that match the search query
+        # product_ids = self._search.search_inventory_products(kitchen_id, search_query)
+        product_ids: list[str] = []
+
+        # product_ids_bytes = self._r.smembers(f"kitchen:{kitchen_id}:inventory-products")
+        products: list[InventoryProduct] = []
+
+        for p_id in product_ids:
+            # Get the product's ID, name and category
+            p = self._get_product_from_kitchen(kitchen_id, p_id)
+
+            # This dict maps expiry dates to the
+            # number of products expiring on that date
+            expiry_data = self._r.hgetall(
+                f"kitchen:{kitchen_id}:inventory-expiry:{p.id}"
+            )
+
+            # The earliest expiry date in `expiry_data`
+            # TODO: Use -1 dates in Redis to represent non-expirables
+            earliest_expiry_date = 0
+            # The number of products expiring on that earliest expiry date
+            earliest_expiry_amount = 0
+            total_amount = 0
+
+            # Traverse through the expiry data to find the earliest expiry date
+            # and the corresponding number of products expiring on that date
+            for date_bytes in expiry_data:
+                date = int(date_bytes.decode())
+                amount = int(expiry_data[date_bytes].decode())
+                total_amount += amount
+
+                if earliest_expiry_date == 0 or date < earliest_expiry_date:
+                    earliest_expiry_date = date
+                    earliest_expiry_amount = amount
+
+            products.append(
+                InventoryProduct(
+                    id=p.id,
+                    name=p.name,
+                    category=p.category,
+                    amount=total_amount,
+                    closest_expiry_date=earliest_expiry_date,
+                    amount_expiring=earliest_expiry_amount,
+                )
+            )
+
+        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name_bytes is not None
+
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        # TODO: Un-mock this
+        return InventoryPageData(
+            kitchen_name=kitchen_name_bytes.decode(),
+            kitchen_id=kitchen_id,
+            email=email,
+            username=username_bytes.decode(),
+            products={},
+        )
+
+    def get_grocery_page_data(self, email: str, kitchen_id: str, search_query=""):
+        """Returns the data required to render the grocery list page."""
+
+        # Maps category names to lists of grocery items
+        grocery_products: dict[str, list[GroceryProduct]] = {}
+
+        # TODO: Use this.
+        # product_ids = self._search.search_grocery_products(kitchen_id, search_query)
+        product_ids: list[str] = []
+
+        raw_grocery_dict = self._r.hgetall(f"kitchen:{kitchen_id}:grocery")
+
+        # Loop through the grocery list products in
+        # the database to fill up `grocery_products`
+        for p_id_bytes in raw_grocery_dict:
+            product = self._get_product_from_kitchen(kitchen_id, p_id_bytes.decode())
+            # TODO: Does this work without decoding to str? Probably not...
+            # Redis stores integers as strings, so we decode
+            # the bytes into strings before casting to int
+            amount = int(raw_grocery_dict[p_id_bytes].decode())
+
+            # Create an empty list in `grocery_products`
+            # if the key doesn't already exist
+            if product.category not in grocery_products:
+                grocery_products[product.category] = []
+
+            # Add the grocery item to its corresponding list
+            grocery_products[product.category].append(
+                GroceryProduct(
+                    id=product.id,
+                    name=product.name,
+                    category=product.category,
+                    amount=amount,
+                )
+            )
+
+        # Within each product category, sort the products alphabetically
+        for products in grocery_products.values():
+            products.sort(key=lambda p: p.name)
+
+        # Sorted list of the product categories in `grocery_products`
+        sorted_product_categories = sorted(grocery_products.keys())
+        sorted_grocery_products = {}
+
+        # Insert product categories in the order we want them to be
+        # iterated in (alphabetical order). This works in Python 3.7+
+        # because dictionaries iterate in insertion order.
+        for cat in sorted_product_categories:
+            sorted_grocery_products[cat] = grocery_products[cat]
+
+        # Get the kitchen's name
+        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name_bytes is not None
+
+        # Get the user's username
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        return GroceryPageData(
+            email=email,
+            username=username_bytes.decode(),
+            kitchen_id=kitchen_id,
+            kitchen_name=kitchen_name_bytes.decode(),
+            products=sorted_grocery_products,
         )

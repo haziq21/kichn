@@ -24,6 +24,7 @@ def htmx_redirect_response(url: str):
     return web.Response(headers={"HX-Redirect": url})
 
 
+# TODO: Remove this function
 def redirect_response(url: str):
     """
     Raises web.HTTPFound exception
@@ -116,15 +117,14 @@ async def index(request: web.Request):
 
 
 async def kitchens_page(request: web.Request):
-
     email = extract_request_owner(request)
 
     if email is None:
         redirect_response("/login")
 
-    kitchens = db.get_kitchens(email)
-    info_user = db.get_user(email)
-    return html_response(templator.kitchens(kitchens, info_user))
+    # Render and return the HTML response
+    page_data = db.get_kitchens_page_data(email)
+    return html_response(templator.kitchens_page(page_data))
 
 
 async def new_kitchen(request: web.Request):
@@ -151,17 +151,16 @@ async def new_kitchen(request: web.Request):
 
 
 async def kitchen_inventory_page(request: web.Request):
-
     user_email = extract_request_owner(request)
 
     if user_email is None:
         return redirect_response("/login")
 
     kitchen_id = request.match_info["kitchen_id"]
-    inv_list = db.get_inventory_list(kitchen_id)
-    user_acc = db.get_user(user_email)
 
-    return html_response(templator.inventory(inv_list, user_acc))
+    # Render and return the HTML response
+    page_data = db.get_inventory_page_data(user_email, kitchen_id)
+    return html_response(templator.inventory_page(page_data))
 
 
 #### MISC ####

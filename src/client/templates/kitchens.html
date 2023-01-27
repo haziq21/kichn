@@ -1,6 +1,6 @@
 {% extends "_layout.html" %} {% block body %}
 <header w="min-full" p="x-8 y-4">
-  <a href="#" font="medium" text="2xl">{{user.username}}</a>
+  <a href="#" font="medium" text="2xl">{{data.username}}</a>
 </header>
 <nav w="min-full" border="b gray-400" p="x-6">
   <ul flex="~" align="items-end" space="x-6" m="-b-px">
@@ -44,13 +44,13 @@
       </button>
     </div>
   </form>
-  {% if kitchens %}
+  {% if data.kitchens %}
   <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
   <ul p="x-2">
-    {% for kitchen in kitchens %}
+    {% for kitchen in data.kitchens %}
     <li>
       <a
-        href="/kitchens/{{kitchen.id}}/inventory"
+        href="/kitchens/{{kitchen.kitchen_id}}/inventory"
         text="lg"
         m="b-2"
         p="x-4 y-2"
@@ -59,7 +59,7 @@
         bg="hover:gray-50"
         display="block"
       >
-        {{kitchen.name}}
+        {{kitchen.kitchen_name}}
       </a>
     </li>
     {% endfor %}
