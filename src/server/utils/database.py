@@ -363,11 +363,80 @@ class DatabaseClient:
             kitchens=kitchens,
         )
 
+    def get_inventory_page_data(self, email: str, kitchen_id: str, search_query="") -> InventoryPageData:
+        """Returns the data necessary to render the inventory list page."""
+        # Get the IDs of all the products on the
+        # inventory page that match the search query
+        # product_ids = self._search.search_inventory_products(kitchen_id, search_query)
+        product_ids: list[str] = []
+
+        # product_ids_bytes = self._r.smembers(f"kitchen:{kitchen_id}:inventory-products")
+        products: list[InventoryProduct] = []
+
+        for p_id in product_ids:
+            # Get the product's ID, name and category
+            p = self._get_product_from_kitchen(kitchen_id, p_id)
+
+            # This dict maps expiry dates to the
+            # number of products expiring on that date
+            expiry_data = self._r.hgetall(
+                f"kitchen:{kitchen_id}:inventory-expiry:{p.id}"
+            )
+
+            # The earliest expiry date in `expiry_data`
+            # TODO: Use -1 dates in Redis to represent non-expirables
+            earliest_expiry_date = 0
+            # The number of products expiring on that earliest expiry date
+            earliest_expiry_amount = 0
+            total_amount = 0
+
+            # Traverse through the expiry data to find the earliest expiry date
+            # and the corresponding number of products expiring on that date
+            for date_bytes in expiry_data:
+                date = int(date_bytes.decode())
+                amount = int(expiry_data[date_bytes].decode())
+                total_amount += amount
+
+                if earliest_expiry_date == 0 or date < earliest_expiry_date:
+                    earliest_expiry_date = date
+                    earliest_expiry_amount = amount
+
+            products.append(
+                InventoryProduct(
+                    id=p.id,
+                    name=p.name,
+                    category=p.category,
+                    amount=total_amount,
+                    closest_expiry_date=earliest_expiry_date,
+                    amount_expiring=earliest_expiry_amount,
+                )
+            )
+
+        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name_bytes is not None
+
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        # TODO: Un-mock this
+        return InventoryPageData(
+            kitchen_name=kitchen_name_bytes.decode(),
+            kitchen_id=kitchen_id,
+            email=email,
+            username=username_bytes.decode(),
+            products={},
+        )
+
     def get_grocery_page_data(self, email: str, kitchen_id: str, search_query=""):
         """Returns the data required to render the grocery list page."""
 
         # Maps category names to lists of grocery items
         grocery_products: dict[str, list[GroceryProduct]] = {}
+
+        # TODO: Use this.
+        # product_ids = self._search.search_grocery_products(kitchen_id, search_query)
+        product_ids: list[str] = []
+
         raw_grocery_dict = self._r.hgetall(f"kitchen:{kitchen_id}:grocery")
 
         # Loop through the grocery list products in
@@ -397,13 +466,13 @@ class DatabaseClient:
         # Within each product category, sort the products alphabetically
         for products in grocery_products.values():
             products.sort(key=lambda p: p.name)
-        
+
         # Sorted list of the product categories in `grocery_products`
         sorted_product_categories = sorted(grocery_products.keys())
         sorted_grocery_products = {}
 
-        # Insert product categories in the order we want them to be 
-        # iterated in (alphabetical order). This works in Python 3.7+ 
+        # Insert product categories in the order we want them to be
+        # iterated in (alphabetical order). This works in Python 3.7+
         # because dictionaries iterate in insertion order.
         for cat in sorted_product_categories:
             sorted_grocery_products[cat] = grocery_products[cat]
@@ -421,5 +490,5 @@ class DatabaseClient:
             username=username_bytes.decode(),
             kitchen_id=kitchen_id,
             kitchen_name=kitchen_name_bytes.decode(),
-            products=sorted_grocery_products
+            products=sorted_grocery_products,
         )
