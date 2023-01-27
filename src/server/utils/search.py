@@ -73,7 +73,7 @@ class SearchClient:
             search_result = self._client.index(index_name).search(query)
             return [i["id"] for i in search_result["hits"]]
         except meilisearch.errors.MeiliSearchApiError as e:
-            if e == "index_not_found":
+            if e.code == "index_not_found":
                 return []
             else:
                 raise e
