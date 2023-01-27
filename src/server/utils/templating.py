@@ -5,7 +5,14 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
-from .classes import Kitchen, User, InventoryList, InventoryPageData, KitchensPageData
+from .classes import (
+    Kitchen,
+    User,
+    InventoryList,
+    InventoryPageData,
+    KitchensPageData,
+    GroceryPageData,
+)
 
 
 class Templator:
@@ -49,34 +56,14 @@ class Templator:
 
     #### KITCHENS ####
 
-    # TODO: Remove this
-    def kitchens(self, kitchens: list[Kitchen], user: User, full_doc=True) -> str:
-        """
-        Returns the body of the kitchens page if `full_doc`
-        is `False`, and the full HTML document otherwise.
-        """
-        return self._env.get_template("kitchens.html").render(
-            layout=self._get_layout_template(full_doc),
-            kitchens=kitchens,
-            user=user,
-        )
-
     def kitchens_page(self, page_data: KitchensPageData) -> str:
         """Returns the HTML of the kitchen list page."""
         return self._env.get_template("kitchens.html").render(data=page_data)
 
-    def inventory(
-        self,
-        inventory_list: InventoryList,
-        user: User,
-        full_doc=True,
-    ) -> str:
-        """
-        Returns the body of the inventory page if `full_doc`
-        is `False`, and the full HTML document otherwise.
-        """
-        return self._env.get_template("inventory.html").render(
-            layout=self._get_layout_template(full_doc),
-            user=user,
-            inventory=inventory_list,
-        )
+    def inventory_page(self, page_data: InventoryPageData) -> str:
+        """Returns the HTML of the inventory page."""
+        return self._env.get_template("inventory.html").render(data=page_data)
+
+    def grocery_page(self, page_data: GroceryPageData) -> str:
+        """Returns the HTML of the grocery page."""
+        return self._env.get_template("grocery.html").render(data=page_data)
