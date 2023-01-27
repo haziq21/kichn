@@ -69,37 +69,39 @@ class SearchClient:
         Returns the IDs of products from the
         specified index that match the search query.
         """
-        search_result = self._client.index(index_name).search(query)
-        return [i["id"] for i in search_result["hits"]]
+        try:
+            search_result = self._client.index(index_name).search(query)
+            return [i["id"] for i in search_result["hits"]]
+        except meilisearch.errors.MeiliSearchApiError as e:
+            if e == "index_not_found":
+                return []
+            else:
+                raise e
 
     def search_default_products(self, query: str) -> list[str]:
         """Returns the IDs of default products that match the search query."""
-        search_result = self._client.index("default").search(query)
-        return [i["id"] for i in search_result["hits"]]
+        return self._search_index("default", query)
 
     def search_inventory_products(self, kitchen_id: str, query: str) -> list[str]:
         """
         Returns the IDs of products that are in the specified
         inventory list which match the search query.
         """
-        search_result = self._client.index(kitchen_id + "-inventory").search(query)
-        return [i["id"] for i in search_result["hits"]]
+        return self._search_index(kitchen_id + "-inventory", query)
 
     def search_grocery_products(self, kitchen_id: str, query: str) -> list[str]:
         """
         Returns the IDs of products that are in the specified
         grocery list which match the search query.
         """
-        search_result = self._client.index(kitchen_id + "-grocery").search(query)
-        return [i["id"] for i in search_result["hits"]]
+        return self._search_index(kitchen_id + "-grocery", query)
 
     def search_custom_products(self, kitchen_id: str, query: str) -> list[str]:
         """
         Returns the IDs of custom products from the
         specified kitchen which match the search query.
         """
-        search_result = self._client.index(kitchen_id + "-custom").search(query)
-        return [i["id"] for i in search_result["hits"]]
+        return self._search_index(kitchen_id + "-custom", query)
 
     #### PRODUCT DELETION ####
 
