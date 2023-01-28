@@ -205,37 +205,6 @@ class DatabaseClient:
 
     #### KITCHEN HANDLING ####
 
-    # TODO: Remove this
-    def get_kitchens(self, email: str) -> list[Kitchen]:
-        """Returns all the kitchens that the specified user is a member of."""
-        # Get the IDs of all the kitchens that the user is in
-        kitchen_ids = self._r.sunion(
-            f"user:{email}:owned-kitchens",
-            f"user:{email}:shared-kitchens",
-        )
-        kitchens = []
-
-        # Create a `Kitchen` for every ID in `kitchen_ids`
-        for k_id in kitchen_ids:
-            # To make the type checker happy...
-            assert isinstance(k_id, bytes)
-
-            # Decode the kitchen ID from bytes into a string
-            k_id_str = k_id.decode()
-
-            # Get the name of the kitchen
-            kitchen_name = self._r.get(f"kitchen:{k_id_str}:name")
-            assert kitchen_name is not None
-
-            kitchens.append(
-                Kitchen(
-                    kitchen_id=k_id_str,
-                    kitchen_name=kitchen_name.decode(),
-                )
-            )
-
-        return kitchens
-
     def create_kitchen(self, email: str, kitchen_name: str) -> str:
         """
         Creates a new kitchen and assigns the indicated
