@@ -28,6 +28,7 @@ def main():
     if redis_proc.poll():
         print("Redis exited with a non-zero exit code.")
         print("Check that you don't already have another Redis instance running.")
+        print("Make sure your current working directory is kichn.")
 
         # Terminate the Meilisearch server
         meilisearch_proc.terminate()
