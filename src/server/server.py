@@ -103,8 +103,10 @@ async def index(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
+        # Redirects user to login
         raise web.HTTPFound("/login")
 
+    # Redirects user to list of kitchens
     raise web.HTTPFound("/kitchens")
 
 
@@ -112,6 +114,7 @@ async def kitchens_page(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
+        # Redirects user to login
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
@@ -146,8 +149,10 @@ async def kitchen_inventory_page(request: web.Request):
     user_email = extract_request_owner(request)
 
     if user_email is None:
+        # Redirects user to login
         raise web.HTTPFound("/login")
 
+    # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
 
     # Render and return the HTML response
@@ -155,10 +160,24 @@ async def kitchen_inventory_page(request: web.Request):
     return html_response(templator.inventory_page(page_data))
 
 
+async def grocery_page(request: web.Request):
+    email = extract_request_owner(request)
+
+    if email is None:
+        # Redirects user to login
+        raise web.HTTPFound("/login")
+
+    # Render and return the HTML response
+    page_data = db.get_grocery_page_data(email)
+    return html_response(templator.grocery_page(page_data))
+
+
 #### MISC ####
 
 
 async def static_asset(request: web.Request):
+
+    # Extract filepath id from ___?
     filepath = request.match_info["filepath"]
     file = db.get_static_asset(filepath)
 
@@ -190,6 +209,7 @@ app.add_routes(
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
         web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
+        web.get("/kitchens/{kitchen_id}/grocery_url", grocery_page),
     ]
 )
 
