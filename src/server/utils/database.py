@@ -441,7 +441,7 @@ class DatabaseClient:
             amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", p_id) or b"0"
             # Redis stores integers as strings, so we decode
             # the bytes into strings before casting to int
-            amount = int(amount_bytes.decode())
+            amount = int(amount_bytes)
 
             product = self._get_product_from_kitchen(kitchen_id, p_id)
 
