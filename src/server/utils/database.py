@@ -246,10 +246,19 @@ class DatabaseClient:
         product list. Returns the product from the custom product
         list if it is, and from the default product list otherwise.
         """
-        # TODO: Check custom product list
-
         product_name = self._r.get(f"product:{product_id}:name")
-        assert product_name is not None
+
+        # Check the custom product list if this product isn't a default product
+        if product_name is None:
+            product_name = self._r.hget(f"kitchen:{kitchen_id}:x-products", product_id)
+            assert product_name is not None
+
+            return Product(
+                id=product_id,
+                name=product_name.decode(),
+                category="Custom product",
+            )
+
 
         product_category = self._r.get(f"product:{product_id}:category")
         assert product_category is not None
