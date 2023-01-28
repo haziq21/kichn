@@ -114,7 +114,7 @@ async def kitchens_page(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
-        # Redirects user to login
+        # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
@@ -149,7 +149,7 @@ async def kitchen_inventory_page(request: web.Request):
     user_email = extract_request_owner(request)
 
     if user_email is None:
-        # Redirects user to login
+        # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
     # Extract kitchen id from URL
@@ -162,13 +162,14 @@ async def kitchen_inventory_page(request: web.Request):
 
 async def grocery_page(request: web.Request):
     email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
 
     if email is None:
-        # Redirects user to login
+        # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
-    page_data = db.get_grocery_page_data(email)
+    page_data = db.get_grocery_page_data(email, kitchen_id)
     return html_response(templator.grocery_page(page_data))
 
 
