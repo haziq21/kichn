@@ -96,7 +96,11 @@ class DatabaseClient:
     #### DEFAULT PRODUCTS ####
 
     def create_default_product(
-        self, name: str, category: str, barcodes: list[int]
+        self,
+        name: str,
+        category: str,
+        barcodes: list[int],
+        image: bytes,
     ) -> str:
         """
         Creates a new default product in the database.
@@ -113,6 +117,10 @@ class DatabaseClient:
 
         # Add this product to the search index
         self._search.index_default_products({product_id: name})
+
+        # Write the product image to disk
+        img_filename = product_id + ".jpg"
+        (self._generated_content_dir / img_filename).write_bytes(image)
 
         return product_id
 
