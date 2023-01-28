@@ -1,65 +1,60 @@
 {% extends "_layout.html" %} {% block title %} {{data.kitchen_name}} | Kichn {%
-endblock %} {% block body %}
-<header w="min-full" p="x-8 y-4">
-  <a href="#" font="medium" text="2xl">{{data.kitchen_name}}</a>
-</header>
-<nav w="min-full" border="b gray-400" p="x-6">
-  <ul flex="~" align="items-end" space="x-6" m="-b-px">
-    <li p="x-2 b-1.5">
-      <a href="/kitchens">
-        <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
-      </a>
-    </li>
-    <li p="x-2 b-2" border="b-3 transparent">
-      <a href="/kitchens/{{data.kitchen_id}}/inventory" text="gray-500 hover:inherit">Inventory</a>
-    </li>
-    <li p="x-2 b-2" border="b-3 gray-800">
-      <a href="/kitchens/{{data.kitchen_id}}/grocery">Grocery</a>
-    </li>
-    <li p="x-2 b-2" border="b-3 transparent">
-      <a
-        href="/kitchens/{{data.kitchen_id}}/custom"
-        text="gray-500 hover:inherit"
-        >Custom products</a
-      >
-    </li>
-  </ul>
-</nav>
-
-<main w="full max-112" p="x-4 y-8">
-  <form hx-post="/" m="b-12">
-    <div flex="~" space="x-2">
-      <input
-        type="text"
-        id="name"
-        placeholder="Search for a product..."
-        name="query"
-        border="~ gray-400"
-        rounded="md"
-        p="y-2 x-3"
-        w="full"
-      />
-      <button
-        type="submit"
-        text="light-50 hover:gray-800"
-        font="medium"
-        rounded="md"
-        p="x-4 y-2"
-        border="2 gray-800"
-        bg="gray-800 hover:light-50"
-        whitespace="nowrap"
-        transition="duration-75"
-      >
-        Scan barcode
-      </button>
-    </div>
-  </form>
-  <!-- <h1 font="medium" text="2xl" m="b-4">Your kitchens</h1>
-  <ul p="x-2">
-    {% for kitchen in kitchens %}
-    <li>
-      <a
-        href="/kitchens/{{inventory.kitchen_id}}/inventory"
+endblock %} {% block header_title %} {{data.kitchen_name}} {% endblock %} {%
+block nav_items %}
+<li p="x-2 b-1.5">
+  <a href="/kitchens">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a
+    href="/kitchens/{{data.kitchen_id}}/inventory"
+    text="gray-500 hover:inherit"
+  >
+    Inventory
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen_id}}/grocery">Grocery</a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="/kitchens/{{data.kitchen_id}}/custom" text="gray-500 hover:inherit">
+    Custom products
+  </a>
+</li>
+{% endblock %} {% block main %}
+<form hx-post="/" m="b-12">
+  <div flex="~" space="x-2">
+    <input
+      type="text"
+      id="name"
+      placeholder="Search for a product..."
+      name="query"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      w="full"
+    />
+    <button
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="x-4 y-2"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      whitespace="nowrap"
+      transition="duration-75"
+    >
+      Scan barcode
+    </button>
+  </div>
+</form>
+<ul p="x-2">
+  {% for category in data.products %}
+  <li>
+    <!-- <a
+        href="/kitchens/{{data.kitchen_id}}/inventory"
         text="lg"
         m="b-2"
         p="x-4 y-2"
@@ -68,10 +63,10 @@ endblock %} {% block body %}
         bg="hover:gray-50"
         display="block"
       >
-        {{kitchen.name}}
-      </a>
-    </li>
-    {% endfor %}
-  </ul> -->
-</main>
+        {{data.kitchen_name}}
+      </a> -->
+    {{data.products[category].name}}
+  </li>
+  {% endfor %}
+</ul>
 {% endblock %}

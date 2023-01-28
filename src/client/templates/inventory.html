@@ -1,37 +1,26 @@
 {% extends "_layout.html" %} {% block title %} {{data.kitchen_name}} | Kichn {%
-endblock %} {% block body %}
-<header w="min-full" p="x-8 y-4">
-  <a href="#" font="medium" text="2xl">{{data.kitchen_name}}</a>
-</header>
-<nav w="min-full" border="b gray-400" p="x-6">
-  <ul flex="~" align="items-end" space="x-6" m="-b-px">
-    <li p="x-2 b-1.5">
-      <a href="/kitchens">
-        <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
-      </a>
-    </li>
-    <li p="x-2 b-2" border="b-3 gray-800">
-      <a href="/kitchens/{{data.kitchen_id}}/inventory">Inventory</a>
-    </li>
-    <li p="x-2 b-2" border="b-3 transparent">
-      <a
-        href="/kitchens/{{data.kitchen_id}}/grocery"
-        text="gray-500 hover:inherit"
-        >Grocery</a
-      >
-    </li>
-    <li p="x-2 b-2" border="b-3 transparent">
-      <a
-        href="/kitchens/{{data.kitchen_id}}/custom"
-        text="gray-500 hover:inherit"
-        >Custom products</a
-      >
-    </li>
-  </ul>
-</nav>
-
-<main w="full max-112" p="x-4 y-8">
-  <!-- <form hx-post="/" m="b-12">
+endblock %} {% block header_title %}{{data.kitchen_name}}{% endblock %} {% block
+nav_items %}
+<li p="x-2 b-1.5">
+  <a href="/kitchens">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen_id}}/inventory">Inventory</a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="/kitchens/{{data.kitchen_id}}/grocery" text="gray-500 hover:inherit">
+    Grocery
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="/kitchens/{{data.kitchen_id}}/custom" text="gray-500 hover:inherit">
+    Custom products
+  </a>
+</li>
+{% endblock %} {% block main %}
+<!-- <form hx-post="/" m="b-12">
     <label for="name" text="xs gray-400">New kitchen name</label>
     <div flex="~" space="x-2">
       <input
@@ -78,5 +67,4 @@ endblock %} {% block body %}
     </li>
     {% endfor %}
   </ul> -->
-</main>
 {% endblock %}
