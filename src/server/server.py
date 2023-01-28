@@ -210,7 +210,7 @@ app.add_routes(
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
         web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
-        web.get("/kitchens/{kitchen_id}/grocery_url", grocery_page),
+        web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
     ]
 )
 
