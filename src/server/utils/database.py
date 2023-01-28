@@ -418,26 +418,36 @@ class DatabaseClient:
             products={},
         )
 
-    def get_grocery_page_data(self, email: str, kitchen_id: str, search_query=""):
+    def get_grocery_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+        search_query="",
+    ) -> GroceryPageData:
         """Returns the data required to render the grocery list page."""
 
         # Maps category names to lists of grocery items
         grocery_products: dict[str, list[GroceryProduct]] = {}
 
-        # TODO: Use this.
-        # product_ids = self._search.search_grocery_products(kitchen_id, search_query)
-        product_ids: list[str] = []
+        product_ids = self._search.search_grocery_products(kitchen_id, search_query)
 
-        raw_grocery_dict = self._r.hgetall(f"kitchen:{kitchen_id}:grocery")
+        # Include default products if the user searched for something
+        if search_query:
+            default_products = self._search.search_default_products(search_query)
+            product_ids.extend(set(default_products) - set(product_ids))
 
-        # Loop through the grocery list products in
-        # the database to fill up `grocery_products`
-        for p_id_bytes in raw_grocery_dict:
-            product = self._get_product_from_kitchen(kitchen_id, p_id_bytes.decode())
-            # TODO: Does this work without decoding to str? Probably not...
+        # Loop through the grocery list products to fill up `grocery_products`
+        for p_id in product_ids:
+            amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", p_id) or b"0"
             # Redis stores integers as strings, so we decode
             # the bytes into strings before casting to int
-            amount = int(raw_grocery_dict[p_id_bytes].decode())
+            amount = int(amount_bytes.decode())
+
+            product = self._get_product_from_kitchen(kitchen_id, p_id)
+
+            # Overwrite the product category if the product isn't in the grocery list
+            if amount == 0:
+                product.category = "Unowned products"
 
             # Create an empty list in `grocery_products`
             # if the key doesn't already exist
@@ -455,15 +465,19 @@ class DatabaseClient:
             )
 
         # Within each product category, sort the products alphabetically
-        for products in grocery_products.values():
-            products.sort(key=lambda p: p.name)
+        # TODO: Do we need this? Is the order non-deterministic otherwise?
+        # for products in grocery_products.values():
+        #     products.sort(key=lambda p: p.name)
 
-        # Sorted list of the product categories in `grocery_products`
-        sorted_product_categories = sorted(grocery_products.keys())
+        # Sort the product categories alphabetically, except
+        # for "Unowned products", which goes at the end
+        sorted_product_categories = sorted(
+            grocery_products.keys() - {"Unowned products"}
+        ) + ["Unowned products"]
         sorted_grocery_products = {}
 
-        # Insert product categories in the order we want them to be
-        # iterated in (alphabetical order). This works in Python 3.7+
+        # Insert product categories in the order we want
+        # them to be iterated in. This works in Python 3.7+
         # because dictionaries iterate in insertion order.
         for cat in sorted_product_categories:
             sorted_grocery_products[cat] = grocery_products[cat]
