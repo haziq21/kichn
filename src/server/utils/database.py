@@ -285,12 +285,26 @@ class DatabaseClient:
         redis_key = f"kitchen:{kitchen_id}:grocery"
 
         if amount:
+            # Check how many of this product is already in the grocery list
+            curr_amount_bytes = self._r.hget(redis_key, product_id)
+            assert curr_amount_bytes is not None
+
+            # Add the product to the corresponding search index
+            # if the product was not already in the grocery list
+            if int(curr_amount_bytes.decode()) == 0:
+                product = self._get_product_from_kitchen(kitchen_id, product_id)
+                self._search.index_grocery_products(
+                    kitchen_id,
+                    {product_id: product.name},
+                )
+
             # Write the data to Redis
             self._r.hset(redis_key, product_id, amount)
         else:
             # Delete the product from the grocery list
             # if we're setting the amount to 0
             self._r.hdel(redis_key, product_id)
+            self._search.delete_grocery_product(kitchen_id, product_id)
 
     #### PAGE DATA METHODS ####
 
