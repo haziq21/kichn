@@ -93,14 +93,19 @@ class DatabaseClient:
 
         return contents
 
-    def get_product_image(self, product_id: str) -> Optional[bytes]:
+    def get_product_image(self, kitchen_id: str, product_id: str) -> Optional[bytes]:
         """
         Returns the image of the specified product,
         or `None` if the image doesn't exist.
         """
-        filepath = self._generated_content_dir / (product_id + ".jpg")
+        filepath = self._generated_content_dir
 
-        if not filepath.exists():
+        if self._r.exists(f"product:{product_id}:name"):
+            filepath = filepath / "default-images" / f"{product_id}.jpg"
+        elif self._r.hexists(f"kitchen:{kitchen_id}:x-products", product_id):
+            filepath = filepath / f"kitchen-{kitchen_id}" / f"{product_id}.jpg"
+        else:
+            # The product doesn't exist
             return None
 
         return filepath.read_bytes()
@@ -131,8 +136,10 @@ class DatabaseClient:
         self._search.index_default_products({product_id: name})
 
         # Write the product image to disk
-        img_filename = product_id + ".jpg"
-        (self._generated_content_dir / img_filename).write_bytes(image)
+        img_filepath = (
+            self._generated_content_dir / "default-images" / f"{product_id}.jpg"
+        )
+        img_filepath.write_bytes(image)
 
         return product_id
 
