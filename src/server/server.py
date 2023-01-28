@@ -24,14 +24,6 @@ def htmx_redirect_response(url: str):
     return web.Response(headers={"HX-Redirect": url})
 
 
-# TODO: Remove this function
-def redirect_response(url: str):
-    """
-    Raises web.HTTPFound exception
-    """
-    raise web.HTTPFound(url)
-
-
 def extract_request_owner(request: web.Request) -> Optional[str]:
     """
     Returns the email address of the user who submitted the request,
@@ -111,16 +103,16 @@ async def index(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
-        redirect_response("/login")
+        raise web.HTTPFound("/login")
 
-    redirect_response("/kitchens")
+    raise web.HTTPFound("/kitchens")
 
 
 async def kitchens_page(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
-        redirect_response("/login")
+        raise web.HTTPFound("/login")
 
     # Render and return the HTML response
     page_data = db.get_kitchens_page_data(email)
@@ -154,7 +146,7 @@ async def kitchen_inventory_page(request: web.Request):
     user_email = extract_request_owner(request)
 
     if user_email is None:
-        return redirect_response("/login")
+        raise web.HTTPFound("/login")
 
     kitchen_id = request.match_info["kitchen_id"]
 
