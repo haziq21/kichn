@@ -473,7 +473,11 @@ class DatabaseClient:
         # for "Unowned products", which goes at the end
         sorted_product_categories = sorted(
             grocery_products.keys() - {"Unowned products"}
-        ) + ["Unowned products"]
+        )
+
+        if "Unowned products" in grocery_products:
+            sorted_product_categories.append("Unowned products")
+
         sorted_grocery_products = {}
 
         # Insert product categories in the order we want
