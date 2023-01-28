@@ -93,6 +93,18 @@ class DatabaseClient:
 
         return contents
 
+    def get_product_image(self, product_id: str) -> Optional[bytes]:
+        """
+        Returns the image of the specified product,
+        or `None` if the image doesn't exist.
+        """
+        filepath = self._generated_content_dir / (product_id + ".jpg")
+
+        if not filepath.exists():
+            return None
+
+        return filepath.read_bytes()
+
     #### DEFAULT PRODUCTS ####
 
     def create_default_product(
@@ -182,6 +194,15 @@ class DatabaseClient:
         assert username is not None
 
         return User(email=email, username=username.decode())
+
+    def user_has_access_to_kitchen(self, email: str, kitchen_id: str) -> bool:
+        """Returns whether the user has access to the specified kitchen."""
+        # Whether the kitchen is owned by the user
+        is_owned = self._r.sismember(f"user:{email}:owned-kitchens", kitchen_id)
+        # Whether the kitchen has been shared to the user
+        is_shared = self._r.sismember(f"user:{email}:shared-kitchens", kitchen_id)
+
+        return is_owned or is_shared
 
     #### SESSION MANAGEMENT ####
 
