@@ -334,17 +334,25 @@ class DatabaseClient:
 
     #### LIST MANAGEMENT ####
 
+    def get_grocery_product_amount(self, kitchen_id: str, product_id: str) -> int:
+        """
+        Returns the amount of the product
+        present in the kitchen's grocery list.
+        """
+        amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", product_id)
+        return int(amount_bytes or b"0")
+
     def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
         """Updates the grocery list to have `amount` of the specified product."""
         redis_key = f"kitchen:{kitchen_id}:grocery"
 
         if amount:
             # Check how many of this product is already in the grocery list
-            curr_amount_bytes = self._r.hget(redis_key, product_id)
+            curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
 
             # Add the product to the corresponding search index
             # if the product was not already in the grocery list
-            if curr_amount_bytes is None:
+            if curr_amount == 0:
                 product = self._get_product_from_kitchen(kitchen_id, product_id)
                 self._search.index_grocery_products(
                     kitchen_id,
