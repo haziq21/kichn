@@ -18,6 +18,12 @@
         "url": "/category/morrisons"
       },
       {
+        "name": "Marks \u0026 Spencer",
+        "id": 17432,
+        "image": "https://media.nedigital.sg/fairprice/images/971fab86-690c-41e9-a4ea-b58662a84654/L2_MarksSpencer_161122.jpg",
+        "url": "/category/marks--spencer"
+      },
+      {
         "name": "India",
         "id": 14572,
         "image": "https://media.nedigital.sg/fairprice/images/468816ed-5975-4ff2-b966-0812484fed68/InternationalSelections-India-LandingSubBanner-May2022.jpg",
@@ -30,12 +36,6 @@
             "url": "/category/rice,-noodles--cooking-ingredients-1"
           },
           {
-            "name": "Frozen",
-            "id": 14591,
-            "image": "https://media.nedigital.sg/fairprice/images/ea7237e4-ca64-45e7-a2d5-9dd2e5fa7f8d/L3_IndiaFrozen_240222.jpg",
-            "url": "/category/frozen-28"
-          },
-          {
             "name": "Drinks",
             "id": 14589,
             "image": "https://media.nedigital.sg/fairprice/images/d1680adb-1d97-415c-aac4-1b437ab0b181/L3_InternationalSelectionsIndiaDrinks_130422.jpg",
@@ -46,6 +46,12 @@
             "id": 14587,
             "image": "https://media.nedigital.sg/fairprice/images/34c9b505-4019-4470-b9d1-7031cfb5377a/L3_IndiaBeerWineSpirits_240222.jpg",
             "url": "/category/beer,-wine--spirits-1"
+          },
+          {
+            "name": "Beauty \u0026 Personal Care",
+            "id": 14586,
+            "image": "https://media.nedigital.sg/fairprice/images/0ab0a8a8-2dcd-4185-9b18-bdf96a663b1a/L3_IndiaBeautyPersonalCare_240222.jpg",
+            "url": "/category/beauty--personal-care-2"
           },
           {
             "name": "Snacks \u0026 Confectionery",
@@ -214,12 +220,6 @@
             "id": 15364,
             "image": "https://media.nedigital.sg/fairprice/images/ac2e4168-ae87-4063-acc0-9c54ea4f99ae/L3_ChinaBeerWine\u0026Spirits_060622.jpg",
             "url": "/category/beer,-wine--spirits-5"
-          },
-          {
-            "name": "Rice, Noodles \u0026 Cooking Ingredients",
-            "id": 15362,
-            "image": "https://media.nedigital.sg/fairprice/images/ff23f2bc-5d5f-4be9-a19f-82fc7877288b/L3_ChinaRiceNoodles\u0026CookingIngredients_060622.jpg",
-            "url": "/category/rice,-noodles--cooking-ingredients-5"
           }
         ]
       },
@@ -264,10 +264,10 @@
     "url": "/category/chinese-new-year-1",
     "menu": [
       {
-        "name": "Chinese New Year Hampers",
-        "id": 14383,
-        "image": "https://media.nedigital.sg/fairprice/images/c9112469-c732-40c3-b621-e431b0c4173b/L3_ChineseNewYearHampers_281221.jpg",
-        "url": "/category/chinese-new-year-hampers"
+        "name": "Mandarin Oranges",
+        "id": 17653,
+        "image": "https://media.nedigital.sg/fairprice/images/011e7079-f2ac-4e74-8d22-af39f75eb41d/L2_MandarinOranges_170123.jpg",
+        "url": "/category/mandarin-oranges-1"
       },
       {
         "name": "Yu Sheng",
@@ -306,12 +306,6 @@
             "id": 14405,
             "image": "https://media.nedigital.sg/fairprice/images/a7ef2f77-55af-4cfd-9b82-51cabdb633d5/L3_BakKwa_040122.jpg",
             "url": "/category/bak-kwa"
-          },
-          {
-            "name": "Mandarin Oranges",
-            "id": 14385,
-            "image": "https://media.nedigital.sg/fairprice/images/424e163b-ee63-48d1-a6a2-e6040684e78d/L3_MandarinOranges_281221.jpg",
-            "url": "/category/mandarin-oranges"
           },
           {
             "name": "Chinese New Year Snacks",
@@ -852,12 +846,6 @@
             "id": 2426,
             "image": "https://media.nedigital.sg/fairprice/images/9c21127b-0c48-4291-a721-7f0c35475c0a/L3_MomAccessories_151121.jpg",
             "url": "/category/moms-accessories"
-          },
-          {
-            "name": "Nursing Access",
-            "id": 2969,
-            "image": "https://media.nedigital.sg/fairprice/images/28b4eb42-dc7c-4cca-9a4d-f07580ca01ec/L3_NursingAccess_221221.jpg",
-            "url": "/category/nursing-access"
           },
           {
             "name": "Dresses",
@@ -3004,12 +2992,6 @@
             "url": "/category/minerals"
           },
           {
-            "name": "Bird's Nest \u0026 Essence",
-            "id": 14243,
-            "image": "https://media.nedigital.sg/fairprice/images/c9e4d520-0ded-4443-93a9-738433a34bf1/L3_BirdsNestEssence_141221.jpg",
-            "url": "/category/bird's-nest--essence"
-          },
-          {
             "name": "Sports Nutrition",
             "id": 14244,
             "image": "https://media.nedigital.sg/fairprice/images/17a7fa7a-63b6-4143-9527-e2ea39923a79/L3_SportsNutrition_141221.jpg",
@@ -3064,12 +3046,6 @@
             "url": "/category/women's-health"
           },
           {
-            "name": "Mental Development",
-            "id": 14255,
-            "image": "https://media.nedigital.sg/fairprice/images/96e8edf3-8038-4940-83ea-4285367f81c2/L3_MentalDevelopment_141221.jpg",
-            "url": "/category/mental-development"
-          },
-          {
             "name": "Skin \u0026 Hair Supplements",
             "id": 14248,
             "image": "https://media.nedigital.sg/fairprice/images/efab2739-8c15-4bdc-be3e-2e5ccdbdd3dd/L3_SkinHairSupplements_141221.jpg",
@@ -3086,6 +3062,30 @@
             "id": 14256,
             "image": "https://media.nedigital.sg/fairprice/images/3566c62a-f042-4775-983a-426b1d88a78d/L3_Vitality_141221.jpg",
             "url": "/category/vitality"
+          },
+          {
+            "name": "Essence of Chicken \u0026 Fish",
+            "id": 17517,
+            "image": "https://media.nedigital.sg/fairprice/images/f427a413-0163-4750-84f5-ab8e7945ad7d/L3_EssenceofChickenFish_090123.jpg",
+            "url": "/category/essence-of-chicken--fish"
+          },
+          {
+            "name": "Bird's Nest",
+            "id": 17516,
+            "image": "https://media.nedigital.sg/fairprice/images/75a27a1c-c560-418c-bc03-2cceb7f1fb6a/L3_BirdsNest_090123.jpg",
+            "url": "/category/bird's-nest-2"
+          },
+          {
+            "name": "Probiotics",
+            "id": 17501,
+            "image": "https://media.nedigital.sg/fairprice/images/229f7eaf-2512-4f39-86dc-d7e01d63d0ac/L3_Probiotics_090123.jpg",
+            "url": "/category/probiotics-2"
+          },
+          {
+            "name": "Sleep Aids",
+            "id": 17500,
+            "image": "https://media.nedigital.sg/fairprice/images/e6503c5e-a415-4ead-9068-a4b76a2f4126/L3_SleepAids_090123.jpg",
+            "url": "/category/sleep-aids"
           }
         ]
       },
@@ -3170,7 +3170,7 @@
             "url": "/category/vitamins--immunities"
           },
           {
-            "name": "Probiotics",
+            "name": "Children's Probiotics",
             "id": 14316,
             "image": "https://media.nedigital.sg/fairprice/images/e6af16d6-ebc7-4386-9b35-2eb46ed7f80a/L3_Probiotics_171221.jpg",
             "url": "/category/probiotics"
@@ -3480,6 +3480,12 @@
             "url": "/category/housebrand-frozen-greens"
           },
           {
+            "name": "Frozen Meat",
+            "id": 3434,
+            "image": "https://media.nedigital.sg/fairprice/images/8360189f-7aa1-4caf-a29c-952b45bf78e7/L3_FrozenMeat_171121.jpg",
+            "url": "/category/frozen-meat--1"
+          },
+          {
             "name": "Frozen Seafood",
             "id": 2546,
             "image": "https://media.nedigital.sg/fairprice/images/f35ce17e-ae2b-418b-9299-191eddb99e88/L3_FrozenSeafood_171121.jpg",
@@ -3599,6 +3605,12 @@
         "image": "https://media.nedigital.sg/fairprice/images/9293dbae-a492-4d6f-b9ef-589d871082fc/L2_Household_161121.jpg",
         "url": "/category/housebrand-household",
         "menu": [
+          {
+            "name": "Detergents",
+            "id": 2710,
+            "image": "https://media.nedigital.sg/fairprice/images/ebcc728a-6c87-4797-b372-7895e264e631/L3_Detergents_181121.jpg",
+            "url": "/category/housebrand-detergents"
+          },
           {
             "name": "Dishwashing",
             "id": 1849,
@@ -5296,7 +5308,7 @@
           {
             "name": "Chocolate Boxes \u0026 Gifts",
             "id": 3646,
-            "image": "https://media.nedigital.sg/fairprice/images/4439a9ae-8fcf-4ba2-bbac-f0e3e88c02e8/L3_ChocolateBoxesGifts_021121.jpg",
+            "image": "https://media.nedigital.sg/fairprice/images/501e964b-95c2-470a-be8c-d7d34136375b/433178_XL1_20221010.jpg",
             "url": "/category/chocolate-boxes---gifts"
           },
           {
@@ -5310,7 +5322,7 @@
       {
         "name": "Biscuits",
         "id": 1675,
-        "image": "https://media.nedigital.sg/fairprice/images/afefb323-41ff-4770-9840-0d382816d295/L2_Biscuits_021121.jpg",
+        "image": "https://media.nedigital.sg/fairprice/images/169d024d-1544-452c-bfe4-eb877e0f6de6/oreo%20BP.jpg",
         "url": "/category/biscuits",
         "menu": [
           {
