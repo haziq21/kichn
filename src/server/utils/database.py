@@ -126,8 +126,10 @@ class DatabaseClient:
         product_id = _gen_random_id()
 
         # Write the product data to the database
-        self._r.set(f"product:{product_id}:name", name)
-        self._r.set(f"product:{product_id}:category", category)
+        self._r.hset(
+            f"product:{product_id}",
+            mapping={"name": name, "category": category},
+        )
         self._r.sadd("default-products", product_id)
 
         # TODO: What if the barcode already exists in the database?
