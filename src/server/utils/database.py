@@ -128,9 +128,11 @@ class DatabaseClient:
         # Write the product data to the database
         self._r.set(f"product:{product_id}:name", name)
         self._r.set(f"product:{product_id}:category", category)
-        # TODO: What if the barcode already exists in the database?
-        self._r.hset("barcodes", mapping={str(b): product_id for b in barcodes})
         self._r.sadd("default-products", product_id)
+
+        # TODO: What if the barcode already exists in the database?
+        if barcodes:
+            self._r.hset("barcodes", mapping={str(b): product_id for b in barcodes})
 
         # Add this product to the search index
         self._search.index_default_products({product_id: name})
