@@ -567,3 +567,24 @@ class DatabaseClient:
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
         )
+
+    def get_grocery_product_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+        product_id: str,
+    ):
+        """Returns the data required to render the grocery product page."""
+        # Get the grocery product's information
+        product_data = self._get_product_from_kitchen(kitchen_id, product_id)
+        amount = self.get_grocery_product_amount(kitchen_id, product_id)
+
+        # Construct the `GroceryProduct`
+        grocery_product = GroceryProduct(
+            name=product_data.name,
+            category=product_data.category,
+            id=product_data.id,
+            amount=amount,
+        )
+
+        # TODO: Complete this.
