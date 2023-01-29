@@ -52,21 +52,22 @@ block nav_items %}
 </form>
 <ul p="x-2">
   {% for category in data.products %}
-  <li>
-    <!-- <a
-        href="/kitchens/{{data.kitchen_id}}/inventory"
-        text="lg"
-        m="b-2"
-        p="x-4 y-2"
-        rounded="md"
-        border="~ gray-300 hover:gray-500"
-        bg="hover:gray-50"
-        display="block"
-      >
-        {{data.kitchen_name}}
-      </a> -->
-    {{data.products[category].name}}
+  <li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
+    {{category}}
   </li>
-  {% endfor %}
+  {% for product in data.products[category] %}
+  <a
+    href="/kitchens/{{data.kitchen_id}}/grocery/{{product.id}}"
+    text="lg"
+    m="b-2"
+    p="x-4 y-2"
+    rounded="md"
+    border="~ gray-300 hover:gray-500"
+    bg="hover:gray-50"
+    display="block"
+  >
+    {{product.name}}
+  </a>
+  {% endfor %} {% endfor %}
 </ul>
 {% endblock %}
