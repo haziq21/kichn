@@ -101,14 +101,18 @@ class DatabaseClient:
         filepath = self._generated_content_dir
 
         if self._r.exists(f"product:{product_id}:name"):
-            filepath = filepath / "default-images" / f"{product_id}.jpg"
+            # If the product is a default product then it
+            # should be in the default-images folder
+            filepath /= "default-images"
         elif self._r.hexists(f"kitchen:{kitchen_id}:x-products", product_id):
-            filepath = filepath / f"kitchen-{kitchen_id}" / f"{product_id}.jpg"
+            # If the product is a custom product then it should be in
+            # the kitchen-{kitchen_id} folder (e.g. kitchen-abc123)
+            filepath /= f"kitchen-{kitchen_id}"
         else:
             # The product doesn't exist
             return None
 
-        return filepath.read_bytes()
+        return (filepath / f"{product_id}.jpg").read_bytes()
 
     #### DEFAULT PRODUCTS ####
 
