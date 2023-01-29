@@ -282,7 +282,7 @@ class DatabaseClient:
         product list. Returns the product from the custom product
         list if it is, and from the default product list otherwise.
         """
-        product_name = self._r.get(f"product:{product_id}:name")
+        product_name = self._r.hget(f"product:{product_id}", "name")
 
         # Check the custom product list if this product isn't a default product
         if product_name is None:
@@ -295,8 +295,7 @@ class DatabaseClient:
                 category="Custom product",
             )
 
-
-        product_category = self._r.get(f"product:{product_id}:category")
+        product_category = self._r.hget(f"product:{product_id}", "category")
         assert product_category is not None
 
         return Product(
@@ -340,11 +339,10 @@ class DatabaseClient:
         if amount:
             # Check how many of this product is already in the grocery list
             curr_amount_bytes = self._r.hget(redis_key, product_id)
-            assert curr_amount_bytes is not None
 
             # Add the product to the corresponding search index
             # if the product was not already in the grocery list
-            if int(curr_amount_bytes.decode()) == 0:
+            if curr_amount_bytes is None:
                 product = self._get_product_from_kitchen(kitchen_id, product_id)
                 self._search.index_grocery_products(
                     kitchen_id,
