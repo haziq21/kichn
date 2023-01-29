@@ -67,3 +67,7 @@ class Templator:
     def grocery_page(self, page_data: GroceryPageData) -> str:
         """Returns the HTML of the grocery page."""
         return self._env.get_template("grocery.html").render(data=page_data)
+
+    def grocery_product_page(self, page_data) -> str:
+        """Returns the HTML of a grocery product's page."""
+        return self._env.get_template("grocery_product.html").render(data=page_data)

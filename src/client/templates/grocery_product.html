@@ -1,0 +1,70 @@
+{% extends "_layout.html" %} {% block title %} {{data.kitchen_name}} | Kichn {%
+endblock %} {% block header_title %} {{data.kitchen_name}} {% endblock %} {%
+block nav_items %}
+<li p="x-2 b-1.5">
+  <a href="/kitchens">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a
+    href="/kitchens/{{data.kitchen_id}}/inventory"
+    text="gray-500 hover:inherit"
+  >
+    Inventory
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen_id}}/grocery">Grocery</a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="/kitchens/{{data.kitchen_id}}/custom" text="gray-500 hover:inherit">
+    Custom products
+  </a>
+</li>
+{% endblock %} {% block main %}
+<div pos="relative" m="b-4">
+  <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
+  <div
+    w="10"
+    h="10"
+    rounded="full"
+    bg="gray-500"
+    flex="~ col"
+    align="items-center"
+    justify="center"
+    pos="absolute right-4 -bottom-5"
+  >
+    <span text="lg gray-50" font="bold" select="none">2</span>
+  </div>
+</div>
+<h2 text="xl" font="medium" m="b-4">Big Blue Bananas</h2>
+
+<form hx-post="/" m="b-12">
+  <div flex="~" space="x-2">
+    <input
+      type="number"
+      value="1"
+      name="buy_amount"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      w="full"
+    />
+    <button
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="x-4 y-2"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      whitespace="nowrap"
+      transition="duration-75"
+    >
+      Buy
+    </button>
+  </div>
+</form>
+
+{% endblock %}
