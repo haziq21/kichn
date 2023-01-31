@@ -6,6 +6,8 @@ Authored by Lohith Tanuku
 
 from dataclasses import dataclass
 
+#### ENTITY CLASSES ####
+
 
 @dataclass
 class Kitchen:
@@ -51,6 +53,9 @@ class GroceryList:
     kitchen_id: str
 
 
+#### PAGE CLASSES ####
+
+
 @dataclass
 class SortedInventoryPageData(User, Kitchen):
     products: list[InventoryProduct]
@@ -74,3 +79,9 @@ class KitchensPageData(User):
 @dataclass
 class CustomPageData(User):
     products: list[Product]
+
+
+@dataclass
+class GroceryProductPageData(User, Kitchen):
+    product: GroceryProduct
+    has_expiry_date: bool
