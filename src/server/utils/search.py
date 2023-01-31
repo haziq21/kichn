@@ -31,6 +31,7 @@ class SearchClient:
             }
             documents.append(doc)
 
+        # Ensures that
         if documents:
             self._client.index(index_name).add_documents(documents)
 
