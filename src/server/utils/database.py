@@ -9,6 +9,7 @@ import redis
 import argon2
 import string
 import random
+import dataclasses
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
@@ -56,10 +57,11 @@ class DatabaseClient:
 
         # Fill `default_products`
         for product_id in self.get_default_product_ids():
-            product_name = self._r.hget("product:" + product_id, "name")
-            assert product_name is not None
+            # Get the name of the product from Redis
+            product_name_bytes = self._r.hget("product:" + product_id, "name")
+            assert product_name_bytes is not None
 
-            default_products[product_id] = product_name.decode()
+            default_products[product_id] = product_name_bytes.decode()
 
         # Add the default products to the search index
         self._search.index_default_products(default_products)
@@ -332,17 +334,25 @@ class DatabaseClient:
 
     #### LIST MANAGEMENT ####
 
+    def get_grocery_product_amount(self, kitchen_id: str, product_id: str) -> int:
+        """
+        Returns the amount of the product
+        present in the kitchen's grocery list.
+        """
+        amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", product_id)
+        return int(amount_bytes or b"0")
+
     def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
         """Updates the grocery list to have `amount` of the specified product."""
         redis_key = f"kitchen:{kitchen_id}:grocery"
 
         if amount:
             # Check how many of this product is already in the grocery list
-            curr_amount_bytes = self._r.hget(redis_key, product_id)
+            curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
 
             # Add the product to the corresponding search index
             # if the product was not already in the grocery list
-            if curr_amount_bytes is None:
+            if curr_amount == 0:
                 product = self._get_product_from_kitchen(kitchen_id, product_id)
                 self._search.index_grocery_products(
                     kitchen_id,
@@ -358,6 +368,37 @@ class DatabaseClient:
             self._search.delete_grocery_product(kitchen_id, product_id)
 
     #### PAGE DATA METHODS ####
+
+    def _get_user_data_as_dict(self, email: str) -> dict:
+        """
+        Returns a dictionary version of the `User` with the
+        specified `email`, to be unpacked into another dataclass.
+        """
+        # Get the user's username
+        username_bytes = self._r.get(f"user:{email}:name")
+        assert username_bytes is not None
+
+        # Construct the User object
+        user = User(email=email, username=username_bytes.decode())
+
+        return dataclasses.asdict(user)
+
+    def _get_kitchen_data_as_dict(self, kitchen_id: str) -> dict:
+        """
+        Returns a dictionary version of the `Kitchen` with the
+        specified `kitchen_id`, to be unpacked into another dataclass.
+        """
+        # Get the kitchen's name
+        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
+        assert kitchen_name_bytes is not None
+
+        # Construct the `Kitchen` object
+        kitchen = Kitchen(
+            kitchen_id=kitchen_id,
+            kitchen_name=kitchen_name_bytes.decode(),
+        )
+
+        return dataclasses.asdict(kitchen)
 
     def get_kitchens_page_data(self, email: str) -> KitchensPageData:
         """Returns the data necessary to render the kitchen list page."""
@@ -387,17 +428,17 @@ class DatabaseClient:
                 )
             )
 
-        # Get the user's username
-        username_bytes = self._r.get(f"user:{email}:name")
-        assert username_bytes is not None
-
         return KitchensPageData(
-            email=email,
-            username=username_bytes.decode(),
             kitchens=kitchens,
+            **self._get_user_data_as_dict(email),
         )
 
-    def get_inventory_page_data(self, email: str, kitchen_id: str, search_query="") -> InventoryPageData:
+    def get_inventory_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+        search_query="",
+    ) -> InventoryPageData:
         """Returns the data necessary to render the inventory list page."""
         # Get the IDs of all the products on the
         # inventory page that match the search query
@@ -446,19 +487,11 @@ class DatabaseClient:
                 )
             )
 
-        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
-        assert kitchen_name_bytes is not None
-
-        username_bytes = self._r.get(f"user:{email}:name")
-        assert username_bytes is not None
-
         # TODO: Un-mock this
         return InventoryPageData(
-            kitchen_name=kitchen_name_bytes.decode(),
-            kitchen_id=kitchen_id,
-            email=email,
-            username=username_bytes.decode(),
             products={},
+            **self._get_user_data_as_dict(email),
+            **self._get_kitchen_data_as_dict(kitchen_id),
         )
 
     def get_grocery_page_data(
@@ -529,18 +562,29 @@ class DatabaseClient:
         for cat in sorted_product_categories:
             sorted_grocery_products[cat] = grocery_products[cat]
 
-        # Get the kitchen's name
-        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
-        assert kitchen_name_bytes is not None
-
-        # Get the user's username
-        username_bytes = self._r.get(f"user:{email}:name")
-        assert username_bytes is not None
-
         return GroceryPageData(
-            email=email,
-            username=username_bytes.decode(),
-            kitchen_id=kitchen_id,
-            kitchen_name=kitchen_name_bytes.decode(),
             products=sorted_grocery_products,
+            **self._get_user_data_as_dict(email),
+            **self._get_kitchen_data_as_dict(kitchen_id),
         )
+
+    def get_grocery_product_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+        product_id: str,
+    ):
+        """Returns the data required to render the grocery product page."""
+        # Get the grocery product's information
+        product_data = self._get_product_from_kitchen(kitchen_id, product_id)
+        amount = self.get_grocery_product_amount(kitchen_id, product_id)
+
+        # Construct the `GroceryProduct`
+        grocery_product = GroceryProduct(
+            name=product_data.name,
+            category=product_data.category,
+            id=product_data.id,
+            amount=amount,
+        )
+
+        # TODO: Complete this.

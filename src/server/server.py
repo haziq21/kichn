@@ -130,7 +130,7 @@ async def new_kitchen(request: web.Request):
     user_email = extract_request_owner(request)
 
     if user_email is None:
-        return web.Response(status=401)
+        raise web.HTTPUnauthorized()
 
     body = await request.post()
     kitchen_name = body["name"]
@@ -183,7 +183,7 @@ async def static_asset(request: web.Request):
     file = db.get_static_asset(filepath)
 
     if file is None:
-        return web.Response(status=404)
+        raise web.HTTPUnauthorized()
 
     content_types = {
         "css": "text/css",
@@ -211,6 +211,7 @@ app.add_routes(
         web.post("/kitchens", new_kitchen),
         web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
+        web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
     ]
 )
 
