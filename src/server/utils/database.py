@@ -102,7 +102,7 @@ class DatabaseClient:
         """
         filepath = self._generated_content_dir
 
-        if self._r.exists(f"product:{product_id}:name"):
+        if self._r.exists(f"product:{product_id}"):
             # If the product is a default product then it
             # should be in the default-images folder
             filepath /= "default-images"
