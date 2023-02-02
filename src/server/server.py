@@ -173,30 +173,6 @@ async def grocery_page(request: web.Request):
     return html_response(templator.grocery_page(page_data))
 
 
-async def product_image(request: web.Request):
-    email = extract_request_owner(request)
-
-    if email is None:
-        # The user isn't signed in
-        raise web.HTTPUnauthorized()
-
-    kitchen_id = request.match_info["kitchen_id"]
-    product_id = request.match_info["product_id"]
-    product_img = db.get_product_image(kitchen_id, product_id)
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
-
-    if not access:
-        # User has no access to kitchen
-        raise web.HTTPForbidden()
-
-    if product_img is None:
-        # If image does not exist
-        raise web.HTTPNotFound()
-
-    # Returns image in jpeg form.
-    return web.Response(body=product_img, content_type="image/jpeg")
-
-
 #### MISC ####
 
 
@@ -219,6 +195,69 @@ async def static_asset(request: web.Request):
     return web.Response(body=file, content_type=content_types[file_ext])
 
 
+async def product_image(request: web.Request):
+    email = extract_request_owner(request)
+
+    if email is None:
+        # The user isn't signed in
+        raise web.HTTPUnauthorized()
+
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+    product_img = db.get_product_image(kitchen_id, product_id)
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        # User has no access to kitchen
+        raise web.HTTPForbidden()
+
+    if product_img is None:
+        # If image does not exist
+        print("Img not found")
+        raise web.HTTPNotFound()
+
+    # Returns image in jpeg form.
+    return web.Response(body=product_img, content_type="image/jpeg")
+
+
+#### GROCERY LIST ####
+async def search_grocery(request: web.Request):
+    return web.Response(status=200)
+
+
+async def grocery_scan_get(request: web.Request):
+    return web.Response(status=200)
+
+
+async def grocery_scan_post(request: web.Request):
+    return web.Response(status=200)
+
+
+async def product_page(request: web.Request):
+    return web.Response(status=200)
+
+
+async def set_product(request: web.Request):
+    return web.Response(status=200)
+
+
+async def buy_product(request: web.Request):
+    return web.Response(status=200)
+
+
+### INVENTORY LIST###
+async def inventory_product(request: web.Request):
+    return web.Response(status=200)
+
+
+async def inventory_use(request: web.Request):
+    return web.Response(status=200)
+
+
+async def grocery_search(request: web.Request):
+    return web.Response(status=200)
+
+
 db = DatabaseClient("src/client/static", "server-store")
 templator = Templator("src/client/templates")
 
@@ -236,6 +275,14 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
+        web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
+        web.get("/kitchens/{kitchen_id}/grocery/{product_id}", product_page),
+        web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
+        web.post("/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_product),
+        web.get("/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product),
+        web.post("/kitchens/{kitchen_id}/inventory/{product_id}/use", inventory_use),
     ]
 )
 
