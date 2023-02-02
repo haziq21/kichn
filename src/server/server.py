@@ -5,8 +5,8 @@ with the application running on the client.
 
 from aiohttp import web
 from typing import Optional
-from utils.database import DatabaseClient
-from utils.templating import Templator
+from modules.database import DatabaseClient
+from modules.templating import Templator
 
 #### HELPER FUNCTIONS ####
 

@@ -1,5 +1,5 @@
 import requests
-from utils.database import DatabaseClient
+from modules.database import DatabaseClient
 
 db = DatabaseClient("src/client/static", "server-store")
 img = requests.get(
