@@ -13,7 +13,7 @@ import dataclasses
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
-from .classes import (
+from .models import (
     Kitchen,
     User,
     Product,

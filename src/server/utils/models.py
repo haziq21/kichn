@@ -1,7 +1,7 @@
 """
-This module provides dataclasses to work with application-specific data.
+Provides classes that model application-specific entities and page GUIs.
 
-Authored by Lohith Tanuku
+Authored by Lohith Tanuku.
 """
 
 from dataclasses import dataclass

@@ -5,7 +5,7 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
-from .classes import (
+from .models import (
     Kitchen,
     User,
     InventoryList,
