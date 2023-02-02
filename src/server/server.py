@@ -145,34 +145,6 @@ async def new_kitchen(request: web.Request):
 #### KITCHEN INVENTORY ####
 
 
-async def kitchen_inventory_page(request: web.Request):
-    user_email = extract_request_owner(request)
-
-    if user_email is None:
-        # Redirects user to login if no email is inputted
-        raise web.HTTPFound("/login")
-
-    # Extract kitchen id from URL
-    kitchen_id = request.match_info["kitchen_id"]
-
-    # Render and return the HTML response
-    page_data = db.get_inventory_page_data(user_email, kitchen_id)
-    return html_response(templator.inventory_page(page_data))
-
-
-async def grocery_page(request: web.Request):
-    email = extract_request_owner(request)
-    kitchen_id = request.match_info["kitchen_id"]
-
-    if email is None:
-        # Redirects user to login if no email is inputted
-        raise web.HTTPFound("/login")
-
-    # Render and return the HTML response
-    page_data = db.get_grocery_page_data(email, kitchen_id)
-    return html_response(templator.grocery_page(page_data))
-
-
 #### MISC ####
 
 
@@ -221,6 +193,21 @@ async def product_image(request: web.Request):
 
 
 #### GROCERY LIST ####
+
+
+async def grocery_page(request: web.Request):
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    # Render and return the HTML response
+    page_data = db.get_grocery_page_data(email, kitchen_id)
+    return html_response(templator.grocery_page(page_data))
+
+
 async def search_grocery(request: web.Request):
     return web.Response(status=200)
 
@@ -245,7 +232,24 @@ async def buy_product(request: web.Request):
     return web.Response(status=200)
 
 
-### INVENTORY LIST###
+### INVENTORY LIST ####
+
+
+async def inventory_page(request: web.Request):
+    user_email = extract_request_owner(request)
+
+    if user_email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    # Extract kitchen id from URL
+    kitchen_id = request.match_info["kitchen_id"]
+
+    # Render and return the HTML response
+    page_data = db.get_inventory_page_data(user_email, kitchen_id)
+    return html_response(templator.inventory_page(page_data))
+
+
 async def inventory_product(request: web.Request):
     return web.Response(status=200)
 
@@ -272,15 +276,17 @@ app.add_routes(
         web.post("/signup", signup),
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
-        web.get("/kitchens/{kitchen_id}/inventory", kitchen_inventory_page),
+        #### GROCERY ####
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
         web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
-        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
+        web.post("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_product),
+        #### INVENTORY ####
+        web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
         web.get("/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product),
         web.post("/kitchens/{kitchen_id}/inventory/{product_id}/use", inventory_use),
     ]
