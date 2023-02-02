@@ -123,7 +123,7 @@ class DatabaseClient:
         name: str,
         category: str,
         barcodes: list[int],
-        image: bytes,
+        image: Optional[bytes] = None,
     ) -> str:
         """
         Creates a new default product in the database.
@@ -145,11 +145,12 @@ class DatabaseClient:
         # Add this product to the search index
         self._search.index_default_products({product_id: name})
 
-        # Write the product image to disk
-        img_filepath = (
-            self._generated_content_dir / "default-images" / f"{product_id}.jpg"
-        )
-        img_filepath.write_bytes(image)
+        # Write the product image to disk if there is one
+        if image is not None:
+            img_filepath = (
+                self._generated_content_dir / f"default-images/{product_id}.jpg"
+            )
+            img_filepath.write_bytes(image)
 
         return product_id
 
