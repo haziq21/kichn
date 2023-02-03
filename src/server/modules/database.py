@@ -1,6 +1,5 @@
 """
-This module exposes high-level functions to interface with the
-Redis database while abstracting away its architectural details.
+Interfaces with the Redis database, abstracting away its architectural details.
 
 Authored by Haziq Hairil.
 """
@@ -40,13 +39,13 @@ class DatabaseClient:
     `SearchClient`, the Meilisearch search engine.
     """
 
-    def __init__(self, static_asset_dir: str, generated_content_dir: str):
+    def __init__(self, static_asset_dir: str, content_dir: str):
         """
         - `static_asset_dir` - The filepath of the directory containing static assets.
-        - `generated_content_dir` - The filepath of the directory containing product images.
+        - `content_dir` - The filepath of the directory containing product images.
         """
         self._static_asset_dir = Path(static_asset_dir)
-        self._generated_content_dir = Path(generated_content_dir)
+        self._content_dir = Path(content_dir)
 
         self._r = redis.Redis()
         self._ph = argon2.PasswordHasher()
@@ -100,21 +99,18 @@ class DatabaseClient:
         Returns the image of the specified product,
         or `None` if the image doesn't exist.
         """
-        filepath = self._generated_content_dir
+        path_default = self._content_dir / f"default-images/{product_id}.jpg"
+        path_custom = self._content_dir / f"kitchen-{kitchen_id}/{product_id}.jpg"
 
-        if self._r.exists(f"product:{product_id}"):
-            # If the product is a default product then it
-            # should be in the default-images folder
-            filepath /= "default-images"
-        elif self._r.hexists(f"kitchen:{kitchen_id}:x-products", product_id):
-            # If the product is a custom product then it should be in
-            # the kitchen-{kitchen_id} folder (e.g. kitchen-abc123)
-            filepath /= f"kitchen-{kitchen_id}"
-        else:
-            # The product doesn't exist
-            return None
+        if path_default.exists():
+            # Return the image if it's in the default images folder
+            return path_default.read_bytes()
+        elif path_custom.exists():
+            # Return the image if it's in the kitchen's image folder
+            return path_custom.read_bytes()
 
-        return (filepath / f"{product_id}.jpg").read_bytes()
+        # The product doesn't exist
+        return None
 
     #### DEFAULT PRODUCTS ####
 
@@ -147,9 +143,7 @@ class DatabaseClient:
 
         # Write the product image to disk if there is one
         if image is not None:
-            img_filepath = (
-                self._generated_content_dir / f"default-images/{product_id}.jpg"
-            )
+            img_filepath = self._content_dir / f"default-images/{product_id}.jpg"
             img_filepath.write_bytes(image)
 
         return product_id
