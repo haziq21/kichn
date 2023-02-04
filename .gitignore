@@ -1,5 +1,5 @@
-__pycache__/
-server-store/dump.rdb
-data.ms/
-dumps/
 .DS_Store
+__pycache__/
+dump.rdb
+data.ms/
+dumps.ms/

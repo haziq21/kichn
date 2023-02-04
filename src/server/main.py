@@ -5,18 +5,32 @@ Authored by Haziq Hairil.
 
 import subprocess as sp
 import time
+from pathlib import Path
 
 
 def main():
+    # Get the absolute filepath of the server-store directory
+    server_store_dir = (Path(__file__) / "../../../server-store").resolve()
+
     # Start the Redis server as a subprocess
     redis_proc = sp.Popen(
-        ["redis-server", "redis.conf"],
+        [
+            "redis-stack-server",
+            "--dir",
+            server_store_dir,
+        ],
         stdout=sp.DEVNULL,
     )
 
     # Start the Meilisearch server as a subprocess
     meilisearch_proc = sp.Popen(
-        ["meilisearch"],
+        [
+            "meilisearch",
+            "--db-path",
+            server_store_dir / "data.ms",
+            "--dumps-dir",
+            server_store_dir / "dumps.ms"
+        ],
         # Meilisearch outputs normal info text to stderr instead of stdout
         stderr=sp.DEVNULL,
     )
@@ -27,9 +41,7 @@ def main():
     # Check that Redis was able to start successfully
     if redis_proc.poll():
         print("Redis exited with a non-zero exit code.")
-        print("Check that:")
-        print("  - Your current working directory is kichn.")
-        print("  - There is no other Redis instance running.")
+        print("Check that there is no other Redis instance running.")
         print("\nTo terminate a Redis instance, run")
         print("  $ redis-cli SHUTDOWN")
 
