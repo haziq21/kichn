@@ -142,6 +142,12 @@ async def new_kitchen(request: web.Request):
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
 
+async def kitchen_index(request: web.Request):
+    kitchen_id_url = request.match_info["kitchen_id"]
+    direct_url = f"/kitchen/{kitchen_id_url}/inventory"
+    raise web.HTTPFound(direct_url)
+
+
 #### KITCHEN INVENTORY ####
 
 
@@ -277,6 +283,7 @@ app.add_routes(
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
         #### GROCERY ####
+        web.get("/kitchens/{kitchen_id}", kitchen_index),
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
