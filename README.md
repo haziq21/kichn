@@ -7,7 +7,8 @@ Kichn is a kitchen inventory tracker and grocery list webapp. This is a school p
 On a Mac, install all software dependencies with [Homebrew](https://brew.sh/).
 
 ```
-$ brew install redis meilisearch zbar
+$ brew tap redis-stack/redis-stack
+$ brew install redis-stack-server meilisearch zbar
 ```
 
 And install all the Python dependencies from `requirements.txt`.
