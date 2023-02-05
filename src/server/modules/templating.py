@@ -12,6 +12,7 @@ from .models import (
     InventoryPageData,
     KitchensPageData,
     GroceryPageData,
+    GroceryProductPageData,
 )
 
 
@@ -66,8 +67,20 @@ class Templator:
 
     def grocery_page(self, page_data: GroceryPageData) -> str:
         """Returns the HTML of the grocery page."""
-        return self._env.get_template("grocery.html").render(data=page_data)
+        layout = self._env.get_template("grocery/index.html")
+        return self._env.get_template("grocery/list.partial.html").render(
+            layout=layout,
+            data=page_data,
+        )
 
-    def grocery_product_page(self, page_data) -> str:
+    def grocery_partial(self, page_data: GroceryPageData) -> str:
+        """Returns the HTML partial of the grocery list."""
+        layout = self._env.get_template("_blank_layout.html")
+        return self._env.get_template("grocery/list.partial.html").render(
+            layout=layout,
+            data=page_data,
+        )
+
+    def grocery_product_page(self, page_data: GroceryProductPageData) -> str:
         """Returns the HTML of a grocery product's page."""
         return self._env.get_template("grocery_product.html").render(data=page_data)

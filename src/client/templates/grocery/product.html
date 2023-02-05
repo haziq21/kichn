@@ -40,31 +40,30 @@ block nav_items %}
 </div>
 <h2 text="xl" font="medium" m="b-4">Big Blue Bananas</h2>
 
-<form hx-post="/" m="b-12">
-  <div flex="~" space="x-2">
-    <input
-      type="number"
-      value="1"
-      name="buy_amount"
-      border="~ gray-400"
-      rounded="md"
-      p="y-2 x-3"
-      w="full"
-    />
-    <button
-      type="submit"
-      text="light-50 hover:gray-800"
-      font="medium"
-      rounded="md"
-      p="x-4 y-2"
-      border="2 gray-800"
-      bg="gray-800 hover:light-50"
-      whitespace="nowrap"
-      transition="duration-75"
-    >
-      Buy
-    </button>
-  </div>
+<form hx-post="/" flex="~" justify="center" space="x-2">
+  <input
+    type="number"
+    value="1"
+    min="1"
+    name="buy_amount"
+    border="~ gray-400"
+    rounded="md"
+    p="y-2 x-3"
+    w="16"
+  />
+  <button
+    type="submit"
+    text="light-50 hover:gray-800"
+    font="medium"
+    rounded="md"
+    p="x-4 y-2"
+    border="2 gray-800"
+    bg="gray-800 hover:light-50"
+    whitespace="nowrap"
+    transition="duration-75"
+  >
+    Buy
+  </button>
 </form>
 
 {% endblock %}
