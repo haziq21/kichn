@@ -1,23 +1,9 @@
-<button hx-post="{{data.product.id}}/set" hx-include="#inc">
-  <input
-    type="number"
-    name="amount"
-    id="inc"
-    value="{{data.product.amount + 1}}"
-    display="hidden"
-  />
+<button hx-post="{{data.product.id}}/set?amount={{data.product.amount + 1}}">
   <img src="/static/add-icon.svg" alt="Add one" />
 </button>
 <span text="lg gray-50" font="bold" select="none">
   {{data.product.amount}}
 </span>
-<button hx-post="{{data.product.id}}/set" hx-include="#dec">
-  <input
-    type="number"
-    name="amount"
-    id="dec"
-    value="{{data.product.amount - 1}}"
-    display="hidden"
-  />
+<button hx-post="{{data.product.id}}/set?amount={{data.product.amount - 1}}">
   <img src="/static/remove-icon.svg" alt="Remove one" />
 </button>
