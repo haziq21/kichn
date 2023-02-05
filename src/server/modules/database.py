@@ -61,19 +61,6 @@ class DatabaseClient:
         self._rj.set("products", "$", {}, nx=True)
         self._rj.set("kitchens", "$", {}, nx=True)
 
-        # Get all the default products
-        default_products = {
-            # Map product IDs to the product's names
-            p_id: self._rj.get("products", f"$.{p_id}.name")[0]
-            # Iterate through the IDs of the default products
-            for p_id in self._rj.objkeys("products")
-        }
-
-        # Add the default products to the search index
-        self._search.index_default_products(default_products)
-
-        # TODO: Add inventory & grocery products to their respective search indexes
-
     #### FILE ASSETS ####
 
     def get_static_asset(self, filepath: str, use_cache=True) -> Optional[bytes]:
@@ -346,6 +333,46 @@ class DatabaseClient:
         """Returns the IDs of the products in the kitchen's grocery list."""
         return self._rj.objkeys("kitchens", f"$.{kitchen_id}.grocery")
 
+    def _get_inventory_product(
+        self,
+        kitchen_id: str,
+        product_id: str,
+        expiry: int,
+    ):
+        """
+        Returns the amount of the product
+        present in the kitchen's inventory list.
+        """
+        amount_matches = self._rj.get(
+            "kitchens",
+            f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+        )
+        return amount_matches[0] if amount_matches else 0
+
+    def _set_inventory_product(
+        self,
+        kitchen_id: str,
+        product_id: str,
+        expiry: int,
+        amount: int,
+    ):
+        """Updates the inventory list to have `amount` of the product."""
+        # Create an empty entry for the product in the
+        # inventory list if it doesn't already exist
+        self._rj.set(
+            "kitchens",
+            f"$.{kitchen_id}.inventory.{product_id}",
+            {},
+            nx=True,
+        )
+
+        # Set the amount
+        self._rj.set(
+            "kitchens",
+            f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+            amount,
+        )
+
     def get_grocery_product_amount(self, kitchen_id: str, product_id: str) -> int:
         """
         Returns the amount of the product
@@ -356,12 +383,16 @@ class DatabaseClient:
             f"$.{kitchen_id}.grocery.{product_id}",
         )
 
-        # `amount` could be `None`
+        # If the grocery product entry doesn't exist
+        # in the database then there must be 0 products
         return amount_matches[0] if amount_matches else 0
 
     def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
-        """Updates the grocery list to have `amount` of the specified product."""
-        if amount:
+        """
+        Updates the grocery list to have `amount` of the specified
+        product. If `amount` is negative, it will be treated as 0.
+        """
+        if amount > 0:
             # Check how many of this product is already in the grocery list
             curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
 
@@ -382,9 +413,30 @@ class DatabaseClient:
             )
         else:
             # Delete the product from the grocery
-            # list if we're setting the amount to 0
+            # list if we're setting the amount <= 0
             self._rj.delete("kitchens", f"$.{kitchen_id}.grocery.{product_id}")
             self._search.delete_grocery_product(kitchen_id, product_id)
+
+    def buy_product(self, kitchen_id: str, product_id: str, expiry: int, amount: int):
+        """Moves the product from the kitchen's grocery list to its inventory list."""
+        # Capture the inital state of the grocery and inventory lists
+        initial_groc_amt = self.get_grocery_product_amount(kitchen_id, product_id)
+        inital_inv_amt = self._get_inventory_product(kitchen_id, product_id, expiry)
+
+        # Remove the product from the grocery list
+        self.set_grocery_product(
+            kitchen_id,
+            product_id,
+            initial_groc_amt - amount,
+        )
+
+        # Add it to the inventory list
+        self._set_inventory_product(
+            kitchen_id,
+            product_id,
+            expiry,
+            inital_inv_amt + amount,
+        )
 
     #### PAGE DATA METHODS ####
 

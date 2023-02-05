@@ -41,12 +41,12 @@ block nav_items %}
 </div>
 <h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
 
-<form hx-post="/" flex="~" justify="center" space="x-2">
+<form hx-post="{{data.product.id}}/buy" flex="~" justify="center" space="x-2">
   <input
     type="number"
     value="1"
     min="1"
-    name="buy_amount"
+    name="amount"
     border="~ gray-400"
     rounded="md"
     p="y-2 x-3"

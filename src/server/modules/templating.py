@@ -6,9 +6,6 @@ Authored by Haziq Hairil.
 
 import jinja2
 from .models import (
-    Kitchen,
-    User,
-    InventoryList,
     InventoryPageData,
     KitchensPageData,
     GroceryPageData,
@@ -63,7 +60,7 @@ class Templator:
 
     def inventory_page(self, page_data: InventoryPageData) -> str:
         """Returns the HTML of the inventory page."""
-        return self._env.get_template("inventory.html").render(data=page_data)
+        return self._env.get_template("inventory/index.html").render(data=page_data)
 
     def grocery_page(self, page_data: GroceryPageData) -> str:
         """Returns the HTML of the grocery page."""
