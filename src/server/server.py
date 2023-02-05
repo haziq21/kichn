@@ -144,7 +144,7 @@ async def new_kitchen(request: web.Request):
 
 async def kitchen_index(request: web.Request):
     kitchen_id_url = request.match_info["kitchen_id"]
-    direct_url = f"/kitchen/{kitchen_id_url}/inventory"
+    direct_url = f"/kitchens/{kitchen_id_url}/inventory"
     raise web.HTTPFound(direct_url)
 
 
