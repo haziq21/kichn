@@ -42,15 +42,20 @@ class DatabaseClient:
     def __init__(self, static_asset_dir: str, content_dir: str):
         """
         - `static_asset_dir` - The filepath of the directory containing static assets.
-        - `content_dir` - The filepath of the directory containing product images.
+        - `content_dir` - The filepath of the directory containing runtime-generated data.
         """
         self._static_asset_dir = Path(static_asset_dir)
         self._content_dir = Path(content_dir)
 
+        # Start the Redis client
         self._r = redis.Redis()
         self._rj = self._r.json()
-        self._ph = argon2.PasswordHasher()
+
+        # Start the Meilisearch client
         self._search = SearchClient()
+
+        # Password hasher to store passwords securely
+        self._ph = argon2.PasswordHasher()
 
         # Write empty objects to Redis if they don't already exist
         self._rj.set("products", "$", {}, nx=True)
@@ -147,8 +152,11 @@ class DatabaseClient:
 
         # Write the product image to disk if there is one
         if image is not None:
-            img_filepath = self._content_dir / f"default-images/{product_id}.jpg"
-            img_filepath.write_bytes(image)
+            image_dir = self._content_dir / "default-images"
+            # Create the default-images directory if it doesn't already exist
+            image_dir.mkdir(exist_ok=True)
+            # Write the image
+            (image_dir / f"{product_id}.jpg").write_bytes(image)
 
         return product_id
 

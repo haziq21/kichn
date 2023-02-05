@@ -12,6 +12,9 @@ import time
 def main():
     # Get the absolute filepath of the server-store directory
     server_store_dir = (Path(__file__) / "../../../server-store").resolve()
+    # Create the server-store directory if it doesn't already exist
+    server_store_dir.mkdir(exist_ok=True)
+    
     # Locate the Redis executable
     redis_path = shutil.which("redis-stack-server")
 
