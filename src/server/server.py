@@ -215,7 +215,22 @@ async def grocery_page(request: web.Request):
 
 
 async def search_grocery(request: web.Request):
-    return web.Response(status=200)
+    body = await request.post()
+    search_query = body["query"]
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    assert isinstance(email, str)
+    assert isinstance(kitchen_id, str)
+    assert isinstance(search_query, str)
+
+    # Render and return the HTML response
+    page_data = db.get_grocery_page_data(email, kitchen_id, search_query)
+    return html_response(templator.grocery_partial(page_data))
 
 
 async def grocery_scan_get(request: web.Request):
@@ -264,7 +279,7 @@ async def inventory_use(request: web.Request):
     return web.Response(status=200)
 
 
-async def grocery_search(request: web.Request):
+async def inventory_search(request: web.Request):
     return web.Response(status=200)
 
 
@@ -296,6 +311,7 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
         web.get("/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product),
         web.post("/kitchens/{kitchen_id}/inventory/{product_id}/use", inventory_use),
+        web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
     ]
 )
 
