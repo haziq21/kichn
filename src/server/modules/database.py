@@ -22,6 +22,7 @@ from .models import (
     KitchensPageData,
     InventoryPageData,
     GroceryPageData,
+    GroceryProductPageData,
 )
 
 
@@ -48,19 +49,21 @@ class DatabaseClient:
         self._content_dir = Path(content_dir)
 
         self._r = redis.Redis()
+        self._rj = self._r.json()
         self._ph = argon2.PasswordHasher()
         self._search = SearchClient()
 
-        # Maps default products' IDs to their names
-        default_products = {}
+        # Write empty objects to Redis if they don't already exist
+        self._rj.set("products", "$", {}, nx=True)
+        self._rj.set("kitchens", "$", {}, nx=True)
 
-        # Fill `default_products`
-        for product_id in self.get_default_product_ids():
-            # Get the name of the product from Redis
-            product_name_bytes = self._r.hget("product:" + product_id, "name")
-            assert product_name_bytes is not None
-
-            default_products[product_id] = product_name_bytes.decode()
+        # Get all the default products
+        default_products = {
+            # Map product IDs to the product's names
+            p_id: self._rj.get("products", f"$.{p_id}.name")[0]
+            # Iterate through the IDs of the default products
+            for p_id in self._rj.objkeys("products")
+        }
 
         # Add the default products to the search index
         self._search.index_default_products(default_products)
@@ -128,11 +131,11 @@ class DatabaseClient:
         product_id = _gen_random_id()
 
         # Write the product data to the database
-        self._r.hset(
-            f"product:{product_id}",
-            mapping={"name": name, "category": category},
+        self._rj.set(
+            "products",
+            f"$.{product_id}",
+            {"name": name, "category": category},
         )
-        self._r.sadd("default-products", product_id)
 
         # TODO: What if the barcode already exists in the database?
         if barcodes:
@@ -153,16 +156,11 @@ class DatabaseClient:
         Drops all default products from the database.
         For testing purposes only.
         """
-        # Generate the Redis keys of all the default products
-        default_product_keys = [
-            "product:" + p_id for p_id in self.get_default_product_ids()
-        ]
-        self._r.delete("default-products", *default_product_keys)
+        self._rj.clear("products")
 
     def get_default_product_ids(self) -> set[str]:
         """Returns the IDs of all the default products."""
-        keys = self._r.smembers("default-products")
-        return {x.decode() for x in keys}
+        return set(self._rj.objkeys("products"))
 
     #### USER ACCOUNT MANAGEMENT ####
 
@@ -171,11 +169,12 @@ class DatabaseClient:
         Returns `True` if the user exists in the database
         and the password matches. Returns `False` otherwise.
         """
-        hashed_pw = self._r.get(f"user:{email}:auth")
-
-        if hashed_pw is None:
+        if not self._r.exists(f"user:{email}"):
             # User does not exist
             return False
+
+        # Get the hashed password
+        hashed_pw = self._rj.get(f"user:{email}", "$.auth")[0]
 
         try:
             # User exists and password is correct
@@ -190,29 +189,55 @@ class DatabaseClient:
         already exists in the database, and `True` otherwise. A return value
         of `True` can be taken to mean that the operation was successful.
         """
-        if self._r.get(f"user:{email}:auth") is not None:
+        if self._r.exists(f"user:{email}"):
             # User already exists
             return False
 
         # Write the user's account data to the database
-        self._r.set(f"user:{email}:name", name)
-        self._r.set(f"user:{email}:auth", self._ph.hash(password))
+        self._rj.set(
+            f"user:{email}",
+            "$",
+            {
+                "name": name,
+                "auth": self._ph.hash(password),
+                "owned-kitchens": [],
+                "shared-kitchens": [],
+            },
+        )
 
         return True
 
     def get_user(self, email: str) -> User:
         """Returns the `User` with the specified email address."""
-        username = self._r.get(f"user:{email}:name")
-        assert username is not None
+        username = self._rj.get(f"user:{email}", "$.name")[0]
 
-        return User(email=email, username=username.decode())
+        return User(email=email, username=username)
 
     def user_has_access_to_kitchen(self, email: str, kitchen_id: str) -> bool:
         """Returns whether the user has access to the specified kitchen."""
         # Whether the kitchen is owned by the user
-        is_owned = self._r.sismember(f"user:{email}:owned-kitchens", kitchen_id)
+        is_owned = (
+            self._rj.arrindex(
+                f"user:{email}",
+                "$.owned-kitchens",
+                kitchen_id,
+            )
+            # If the kitchen ID is present in the user's list
+            # of owned kitchens, then the index shouldn't be -1
+            != -1
+        )
+
         # Whether the kitchen has been shared to the user
-        is_shared = self._r.sismember(f"user:{email}:shared-kitchens", kitchen_id)
+        is_shared = (
+            self._rj.arrindex(
+                f"user:{email}",
+                "$.shared-kitchens",
+                kitchen_id,
+            )
+            # If the kitchen ID is present in the user's list
+            # of shared kitchens, then the index shouldn't be -1
+            != -1
+        )
 
         return is_owned or is_shared
 
@@ -254,24 +279,30 @@ class DatabaseClient:
         kitchen_id = _gen_random_id()
 
         # Write the kitchen data to the database
-        self._r.set(f"kitchen:{kitchen_id}:name", kitchen_name)
-        self._r.sadd(f"user:{email}:owned-kitchens", kitchen_id)
+        self._rj.set(
+            "kitchens",
+            f"$.{kitchen_id}",
+            {
+                "name": kitchen_name,
+                "grocery": {},
+                "inventory": {},
+                "customProducts": {},
+            },
+        )
+        self._rj.arrappend(f"user:{email}", "$.owned-kitchens", kitchen_id)
 
         return kitchen_id
 
     def rename_kitchen(self, kitchen_id: str, new_name: str):
         """Sets the name of the kitchen to `new_name`."""
-        self._r.set(f"kitchen:{kitchen_id}:name", new_name)
+        self._rj.set("kitchens", f"$.{kitchen_id}.name", new_name)
 
     def delete_kitchen(self, kitchen_id: str):
         """Deletes the kitchen from the database."""
         # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
-        # Get all the Redis keys belonging to the specified kitchen
-        kitchen_keys = self._r.keys(f"kitchen:{kitchen_id}:*")  # TODO: Don't use KEYS
-        # Delete the keys
-        self._r.delete(*kitchen_keys)
+        self._rj.delete("kitchens", f"$.{kitchen_id}")
 
-    #### KITCHEN PRODUCTS ####
+    #### PRODUCT & LIST MANAGEMENT ####
 
     def _get_product_from_kitchen(self, kitchen_id: str, product_id: str) -> Product:
         """
@@ -279,63 +310,45 @@ class DatabaseClient:
         product list. Returns the product from the custom product
         list if it is, and from the default product list otherwise.
         """
-        product_name = self._r.hget(f"product:{product_id}", "name")
+        product_name_matches = self._rj.get("products", f"$.{product_id}.name")
 
         # Check the custom product list if this product isn't a default product
-        if product_name is None:
-            product_name = self._r.hget(f"kitchen:{kitchen_id}:x-products", product_id)
-            assert product_name is not None
+        if len(product_name_matches) == 0:
+            product_name = self._rj.get(
+                "kitchens",
+                f"$.{kitchen_id}.customProducts.{product_id}",
+            )[0]
 
             return Product(
                 id=product_id,
-                name=product_name.decode(),
+                name=product_name,
                 category="Custom product",
             )
 
-        product_category = self._r.hget(f"product:{product_id}", "category")
-        assert product_category is not None
+        product_category = self._rj.get("products", f"$.{product_id}.category")[0]
 
         return Product(
             id=product_id,
-            name=product_name.decode(),
-            category=product_category.decode(),
+            name=product_name_matches[0],
+            category=product_category,
         )
 
-    def get_inventory_list(self, kitchen_id: str) -> InventoryList:
-        """Returns the `InventoryList` of the specified kitchen."""
-        product_ids = self._r.smembers(f"kitchen:{kitchen_id}:inventory-products")
-        # inv_products: list[InventoryProduct] = []
-
-        # for p_id in product_ids:
-        #     p = self._get_product_from_kitchen(kitchen_id, p_id.decode())
-        #     inv_products.append(
-        #         InventoryProduct(
-        #             id=p.id,
-        #             name=p.name,
-        #             category=p.category,
-        #         )
-        #     )
-
-        kitchen_name = self._r.get(f"kitchen:{kitchen_id}:name")
-        assert kitchen_name is not None
-
-        # TODO: Complete this
-
-        return InventoryList(
-            kitchen_id=kitchen_id,
-            kitchen_name=kitchen_name.decode(),
-            products=[],
-        )
-
-    #### LIST MANAGEMENT ####
+    def _get_grocery_product_ids(self, kitchen_id: str) -> list[str]:
+        """Returns the IDs of the products in the kitchen's grocery list."""
+        return self._rj.objkeys("kitchens", f"$.{kitchen_id}.grocery")
 
     def get_grocery_product_amount(self, kitchen_id: str, product_id: str) -> int:
         """
         Returns the amount of the product
         present in the kitchen's grocery list.
         """
-        amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", product_id)
-        return int(amount_bytes or b"0")
+        amount_matches = self._rj.get(
+            "kitchens",
+            f"$.{kitchen_id}.grocery.{product_id}",
+        )
+
+        # `amount` could be `None`
+        return amount_matches[0] if amount_matches else 0
 
     def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
         """Updates the grocery list to have `amount` of the specified product."""
@@ -355,11 +368,15 @@ class DatabaseClient:
                 )
 
             # Write the data to Redis
-            self._r.hset(redis_key, product_id, amount)
+            self._rj.set(
+                "kitchens",
+                f"$.{kitchen_id}.grocery.{product_id}",
+                amount,
+            )
         else:
-            # Delete the product from the grocery list
-            # if we're setting the amount to 0
-            self._r.hdel(redis_key, product_id)
+            # Delete the product from the grocery
+            # list if we're setting the amount to 0
+            self._rj.delete("kitchens", f"$.{kitchen_id}.grocery.{product_id}")
             self._search.delete_grocery_product(kitchen_id, product_id)
 
     #### PAGE DATA METHODS ####
@@ -369,12 +386,9 @@ class DatabaseClient:
         Returns a dictionary version of the `User` with the
         specified `email`, to be unpacked into another dataclass.
         """
-        # Get the user's username
-        username_bytes = self._r.get(f"user:{email}:name")
-        assert username_bytes is not None
-
-        # Construct the User object
-        user = User(email=email, username=username_bytes.decode())
+        # Construct the `User` object
+        username = self._rj.get(f"user:{email}", "$.name")[0]
+        user = User(email=email, username=username)
 
         return dataclasses.asdict(user)
 
@@ -383,14 +397,11 @@ class DatabaseClient:
         Returns a dictionary version of the `Kitchen` with the
         specified `kitchen_id`, to be unpacked into another dataclass.
         """
-        # Get the kitchen's name
-        kitchen_name_bytes = self._r.get(f"kitchen:{kitchen_id}:name")
-        assert kitchen_name_bytes is not None
-
         # Construct the `Kitchen` object
+        kitchen_name = self._rj.get("kitchens", f"$.{kitchen_id}.name")[0]
         kitchen = Kitchen(
             kitchen_id=kitchen_id,
-            kitchen_name=kitchen_name_bytes.decode(),
+            kitchen_name=kitchen_name,
         )
 
         return dataclasses.asdict(kitchen)
@@ -398,28 +409,21 @@ class DatabaseClient:
     def get_kitchens_page_data(self, email: str) -> KitchensPageData:
         """Returns the data necessary to render the kitchen list page."""
         # Get the IDs of all the kitchens that the user is in
-        kitchen_ids = self._r.sunion(
-            f"user:{email}:owned-kitchens",
-            f"user:{email}:shared-kitchens",
-        )
+
+        owned_kitchen_ids = self._rj.get(f"user:{email}", "$.owned-kitchens")[0]
+        shared_kitchen_ids = self._rj.get(f"user:{email}", "$.shared-kitchens")[0]
+        kitchen_ids: list[str] = owned_kitchen_ids + shared_kitchen_ids
         kitchens: list[Kitchen] = []
 
         # Create a `Kitchen` for every ID in `kitchen_ids`
-        for k_id_bytes in kitchen_ids:
-            # To make the type checker happy...
-            assert isinstance(k_id_bytes, bytes)
-
-            # Decode the kitchen ID from bytes into a string
-            k_id = k_id_bytes.decode()
-
+        for k_id in kitchen_ids:
             # Get the name of the kitchen
-            kitchen_name_bytes = self._r.get(f"kitchen:{k_id}:name")
-            assert kitchen_name_bytes is not None
+            kitchen_name = self._rj.get("kitchens", f"$.{k_id}.name")[0]
 
             kitchens.append(
                 Kitchen(
                     kitchen_id=k_id,
-                    kitchen_name=kitchen_name_bytes.decode(),
+                    kitchen_name=kitchen_name,
                 )
             )
 
@@ -437,41 +441,44 @@ class DatabaseClient:
         """Returns the data necessary to render the inventory list page."""
         # Get the IDs of all the products on the
         # inventory page that match the search query
-        # product_ids = self._search.search_inventory_products(kitchen_id, search_query)
-        product_ids: list[str] = []
-
-        # product_ids_bytes = self._r.smembers(f"kitchen:{kitchen_id}:inventory-products")
-        products: list[InventoryProduct] = []
+        product_ids = self._search.search_inventory_products(kitchen_id, search_query)
+        products: dict[str, list[InventoryProduct]] = {}
 
         for p_id in product_ids:
-            # Get the product's ID, name and category
+            # Get the product's name and category
             p = self._get_product_from_kitchen(kitchen_id, p_id)
 
-            # This dict maps expiry dates to the
-            # number of products expiring on that date
-            expiry_data = self._r.hgetall(
-                f"kitchen:{kitchen_id}:inventory-expiry:{p.id}"
+            # Calculate the total amount of this product in the inventory list
+            total_amount = sum(
+                self._rj.get(
+                    "kitchens",
+                    f"$.{kitchen_id}.inventory.{p_id}.*",
+                )
             )
 
-            # The earliest expiry date in `expiry_data`
-            # TODO: Use -1 dates in Redis to represent non-expirables
-            earliest_expiry_date = 0
-            # The number of products expiring on that earliest expiry date
-            earliest_expiry_amount = 0
-            total_amount = 0
+            # Get the expiry date of the product that's expiring the soonest
+            earliest_expiry_date = min(
+                int(x)
+                # Iterate over all the expiry dates
+                for x in self._rj.objkeys(
+                    "kitchens",
+                    f"$.{kitchen_id}.inventory.{p_id}",
+                )
+            )
 
-            # Traverse through the expiry data to find the earliest expiry date
-            # and the corresponding number of products expiring on that date
-            for date_bytes in expiry_data:
-                date = int(date_bytes.decode())
-                amount = int(expiry_data[date_bytes].decode())
-                total_amount += amount
+            # Get the amount of the product that's expiring the soonest
+            earliest_expiry_amount = self._rj.get(
+                "kitchens",
+                f"$.{kitchen_id}.inventory.{p_id}.{earliest_expiry_date}",
+            )[0]
 
-                if earliest_expiry_date == 0 or date < earliest_expiry_date:
-                    earliest_expiry_date = date
-                    earliest_expiry_amount = amount
+            # Create an empty list in `products`
+            # if the key doesn't already exist
+            if p.category not in products:
+                products[p.category] = []
 
-            products.append(
+            # Add the inventory item to its corresponding list
+            products[p.category].append(
                 InventoryProduct(
                     id=p.id,
                     name=p.name,
@@ -482,9 +489,16 @@ class DatabaseClient:
                 )
             )
 
-        # TODO: Un-mock this
+        sorted_products: dict[str, list[InventoryProduct]] = {}
+
+        # Insert product categories in the order we want
+        # them to be iterated in. This works in Python 3.7+
+        # because dictionaries iterate in insertion order.
+        for cat in sorted(products.keys()):
+            sorted_products[cat] = products[cat]
+
         return InventoryPageData(
-            products={},
+            products=sorted_products,
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
         )
@@ -500,6 +514,7 @@ class DatabaseClient:
         # Maps category names to lists of grocery items
         grocery_products: dict[str, list[GroceryProduct]] = {}
 
+        # Get the IDs of grocery items that match the search query
         product_ids = self._search.search_grocery_products(kitchen_id, search_query)
 
         # Include default products if the user searched for something
@@ -509,11 +524,8 @@ class DatabaseClient:
 
         # Loop through the grocery list products to fill up `grocery_products`
         for p_id in product_ids:
-            amount_bytes = self._r.hget(f"kitchen:{kitchen_id}:grocery", p_id) or b"0"
-            # Redis stores integers as strings, so we decode
-            # the bytes into strings before casting to int
-            amount = int(amount_bytes)
-
+            amount_matches = self._rj.get("kitchens", f"$.{kitchen_id}.grocery.{p_id}")
+            amount = amount_matches[0] if amount_matches else 0
             product = self._get_product_from_kitchen(kitchen_id, p_id)
 
             # Overwrite the product category if the product isn't in the grocery list
@@ -568,7 +580,7 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
         product_id: str,
-    ):
+    ) -> GroceryProductPageData:
         """Returns the data required to render the grocery product page."""
         # Get the grocery product's information
         product_data = self._get_product_from_kitchen(kitchen_id, product_id)
