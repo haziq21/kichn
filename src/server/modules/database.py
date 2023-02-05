@@ -154,10 +154,6 @@ class DatabaseClient:
         """
         self._rj.clear("products")
 
-    def get_default_product_ids(self) -> set[str]:
-        """Returns the IDs of all the default products."""
-        return set(self._rj.objkeys("products"))
-
     #### USER ACCOUNT MANAGEMENT ####
 
     def login_is_valid(self, email: str, password: str) -> bool:
@@ -329,10 +325,6 @@ class DatabaseClient:
             category=product_category,
         )
 
-    def _get_grocery_product_ids(self, kitchen_id: str) -> list[str]:
-        """Returns the IDs of the products in the kitchen's grocery list."""
-        return self._rj.objkeys("kitchens", f"$.{kitchen_id}.grocery")
-
     def _get_inventory_product(
         self,
         kitchen_id: str,
@@ -340,14 +332,24 @@ class DatabaseClient:
         expiry: int,
     ):
         """
-        Returns the amount of the product
-        present in the kitchen's inventory list.
+        Returns the amount of the product present in the kitchen's inventory
+        list, for instances where the product's expiry date is `expiry`.
         """
         amount_matches = self._rj.get(
             "kitchens",
             f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
         )
         return amount_matches[0] if amount_matches else 0
+
+    def _get_total_inventory_product(self, kitchen_id: str, product_id: str) -> int:
+        """
+        Returns the amount of the product present in the kitchen's inventory
+        list, regardless of expiry date.
+        """
+        amount_matches = self._rj.get(
+            "kitchens", f"$.{kitchen_id}.inventory.{product_id}.*"
+        )
+        return sum(amount_matches)
 
     def _set_inventory_product(
         self,
@@ -357,14 +359,37 @@ class DatabaseClient:
         amount: int,
     ):
         """Updates the inventory list to have `amount` of the product."""
-        # Create an empty entry for the product in the
-        # inventory list if it doesn't already exist
-        self._rj.set(
-            "kitchens",
-            f"$.{kitchen_id}.inventory.{product_id}",
-            {},
-            nx=True,
-        )
+        # Delete the product from the inventory
+        # list if we're setting the amount <= 0
+        if amount <= 0:
+            self._rj.delete(
+                "kitchens",
+                f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+            )
+            # Remove the product from the search index too
+            self._search.delete_inventory_product(kitchen_id, product_id)
+            return
+
+        # Get the amount of this product already in the inventory list
+        curr_total_amount = self._get_total_inventory_product(kitchen_id, product_id)
+
+        # Check if the product is not already in the inventory list
+        if curr_total_amount == 0:
+            # Get the product data
+            product = self._get_product_from_kitchen(kitchen_id, product_id)
+
+            # Create an empty entry for the product in the inventory list
+            self._rj.set(
+                "kitchens",
+                f"$.{kitchen_id}.inventory.{product_id}",
+                {},
+            )
+
+            # Add the product to the corresponding search index
+            self._search.index_inventory_products(
+                kitchen_id,
+                {product_id: product.name},
+            )
 
         # Set the amount
         self._rj.set(
@@ -392,30 +417,32 @@ class DatabaseClient:
         Updates the grocery list to have `amount` of the specified
         product. If `amount` is negative, it will be treated as 0.
         """
-        if amount > 0:
-            # Check how many of this product is already in the grocery list
-            curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
-
-            # Add the product to the corresponding search index
-            # if the product was not already in the grocery list
-            if curr_amount == 0:
-                product = self._get_product_from_kitchen(kitchen_id, product_id)
-                self._search.index_grocery_products(
-                    kitchen_id,
-                    {product_id: product.name},
-                )
-
-            # Write the data to Redis
-            self._rj.set(
-                "kitchens",
-                f"$.{kitchen_id}.grocery.{product_id}",
-                amount,
-            )
-        else:
-            # Delete the product from the grocery
-            # list if we're setting the amount <= 0
+        # Delete the product from the grocery
+        # list if we're setting the amount <= 0
+        if amount <= 0:
             self._rj.delete("kitchens", f"$.{kitchen_id}.grocery.{product_id}")
+            # Remove the product from the search index too
             self._search.delete_grocery_product(kitchen_id, product_id)
+            return
+
+        # Check how many of this product is already in the grocery list
+        curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
+
+        # Add the product to the corresponding search index
+        # if the product was not already in the grocery list
+        if curr_amount == 0:
+            product = self._get_product_from_kitchen(kitchen_id, product_id)
+            self._search.index_grocery_products(
+                kitchen_id,
+                {product_id: product.name},
+            )
+
+        # Write the data to Redis
+        self._rj.set(
+            "kitchens",
+            f"$.{kitchen_id}.grocery.{product_id}",
+            amount,
+        )
 
     def buy_product(self, kitchen_id: str, product_id: str, expiry: int, amount: int):
         """Moves the product from the kitchen's grocery list to its inventory list."""
