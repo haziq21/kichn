@@ -158,7 +158,7 @@ async def static_asset(request: web.Request):
 
     # Extract filepath id from ___?
     filepath = request.match_info["filepath"]
-    file = db.get_static_asset(filepath)
+    file = db.get_static_asset(filepath, use_cache=False)
 
     if file is None:
         raise web.HTTPUnauthorized()
