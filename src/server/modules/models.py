@@ -85,3 +85,4 @@ class CustomPageData(User):
 class GroceryProductPageData(User, Kitchen):
     product: GroceryProduct
     has_expiry_date: bool
+    buy_amount: int
