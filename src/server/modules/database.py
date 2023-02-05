@@ -522,7 +522,7 @@ class DatabaseClient:
                 for x in self._rj.objkeys(
                     "kitchens",
                     f"$.{kitchen_id}.inventory.{p_id}",
-                )
+                )[0]
             )
 
             # Get the amount of the product that's expiring the soonest
