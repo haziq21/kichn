@@ -67,20 +67,22 @@ class Templator:
 
     def grocery_page(self, page_data: GroceryPageData) -> str:
         """Returns the HTML of the grocery page."""
-        layout = self._env.get_template("grocery/index.html")
-        return self._env.get_template("grocery/list.partial.html").render(
-            layout=layout,
+        return self._env.get_template("grocery/index.html").render(
             data=page_data,
         )
 
     def grocery_partial(self, page_data: GroceryPageData) -> str:
         """Returns the HTML partial of the grocery list."""
-        layout = self._env.get_template("_blank_layout.html")
         return self._env.get_template("grocery/list.partial.html").render(
-            layout=layout,
             data=page_data,
         )
 
     def grocery_product_page(self, page_data: GroceryProductPageData) -> str:
         """Returns the HTML of a grocery product's page."""
-        return self._env.get_template("grocery_product.html").render(data=page_data)
+        return self._env.get_template("grocery/product.html").render(data=page_data)
+
+    def grocery_product_amount_partial(self, page_data: GroceryProductPageData) -> str:
+        """Returns the HTML partial of a grocery product's amount adjuster"""
+        return self._env.get_template("grocery/amount.partial.html").render(
+            data=page_data
+        )

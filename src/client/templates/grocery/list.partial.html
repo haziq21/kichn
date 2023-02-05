@@ -1,4 +1,4 @@
-{% extends layout %} {% block slot %} {% for category in data.products %}
+{% for category in data.products %}
 <li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
   {{category}}
 </li>
@@ -15,4 +15,4 @@
 >
   {{product.name}}
 </a>
-{% endfor %} {% endfor %} {% endblock %}
+{% endfor %} {% endfor %}

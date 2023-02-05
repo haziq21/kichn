@@ -18,7 +18,6 @@ from .models import (
     Product,
     InventoryProduct,
     GroceryProduct,
-    InventoryList,
     KitchensPageData,
     InventoryPageData,
     GroceryPageData,
@@ -67,6 +66,8 @@ class DatabaseClient:
 
         # Add the default products to the search index
         self._search.index_default_products(default_products)
+
+        # TODO: Add inventory & grocery products to their respective search indexes
 
     #### FILE ASSETS ####
 
@@ -352,8 +353,6 @@ class DatabaseClient:
 
     def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
         """Updates the grocery list to have `amount` of the specified product."""
-        redis_key = f"kitchen:{kitchen_id}:grocery"
-
         if amount:
             # Check how many of this product is already in the grocery list
             curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
@@ -583,15 +582,20 @@ class DatabaseClient:
     ) -> GroceryProductPageData:
         """Returns the data required to render the grocery product page."""
         # Get the grocery product's information
-        product_data = self._get_product_from_kitchen(kitchen_id, product_id)
+        p = self._get_product_from_kitchen(kitchen_id, product_id)
         amount = self.get_grocery_product_amount(kitchen_id, product_id)
 
         # Construct the `GroceryProduct`
         grocery_product = GroceryProduct(
-            name=product_data.name,
-            category=product_data.category,
-            id=product_data.id,
+            name=p.name,
+            category=p.category,
+            id=p.id,
             amount=amount,
         )
 
-        # TODO: Complete this.
+        return GroceryProductPageData(
+            product=grocery_product,
+            has_expiry_date=False,
+            **self._get_kitchen_data_as_dict(kitchen_id),
+            **self._get_user_data_as_dict(email),
+        )

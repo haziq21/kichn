@@ -26,19 +26,20 @@ block nav_items %}
 <div pos="relative" m="b-4">
   <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
   <div
-    w="10"
-    h="10"
+    id="amount-adjuster"
+    p="y-2 x-3"
     rounded="full"
-    bg="gray-500"
+    bg="gray-600"
     flex="~ col"
     align="items-center"
     justify="center"
     pos="absolute right-4 -bottom-5"
+    hx-target="#amount-adjuster"
   >
-    <span text="lg gray-50" font="bold" select="none">2</span>
+    {% include "grocery/amount.partial.html" %}
   </div>
 </div>
-<h2 text="xl" font="medium" m="b-4">Big Blue Bananas</h2>
+<h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
 
 <form hx-post="/" flex="~" justify="center" space="x-2">
   <input
