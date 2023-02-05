@@ -224,8 +224,6 @@ async def search_grocery(request: web.Request):
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
-    assert isinstance(email, str)
-    assert isinstance(kitchen_id, str)
     assert isinstance(search_query, str)
 
     # Render and return the HTML response
@@ -241,8 +239,17 @@ async def grocery_scan_post(request: web.Request):
     return web.Response(status=200)
 
 
-async def product_page(request: web.Request):
-    return web.Response(status=200)
+async def grocery_product_page(request: web.Request):
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
+    return html_response(templator.grocery_product_page(page_data))
 
 
 async def set_product(request: web.Request):
@@ -304,7 +311,7 @@ app.add_routes(
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
         web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
         web.post("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
-        web.get("/kitchens/{kitchen_id}/grocery/{product_id}", product_page),
+        web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_product),
         #### INVENTORY ####
