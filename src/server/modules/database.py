@@ -581,7 +581,11 @@ class DatabaseClient:
         # them to be iterated in. This works in Python 3.7+
         # because dictionaries iterate in insertion order.
         for cat in sorted(products.keys()):
-            sorted_products[cat] = products[cat]
+            sorted_products[cat] = sorted(
+                products[cat],
+                # Within the category, sort the products alphabetically
+                key=lambda x: x.name,
+            )
 
         return InventoryPageData(
             products=sorted_products,
@@ -633,11 +637,6 @@ class DatabaseClient:
                 )
             )
 
-        # Within each product category, sort the products alphabetically
-        # TODO: Do we need this? Is the order non-deterministic otherwise?
-        # for products in grocery_products.values():
-        #     products.sort(key=lambda p: p.name)
-
         # Sort the product categories alphabetically, except
         # for "Unowned products", which goes at the end
         sorted_product_categories = sorted(
@@ -653,7 +652,11 @@ class DatabaseClient:
         # them to be iterated in. This works in Python 3.7+
         # because dictionaries iterate in insertion order.
         for cat in sorted_product_categories:
-            sorted_grocery_products[cat] = grocery_products[cat]
+            sorted_grocery_products[cat] = sorted(
+                grocery_products[cat],
+                # Within the category, sort the products alphabetically
+                key=lambda p: p.name,
+            )
 
         return GroceryPageData(
             products=sorted_grocery_products,
