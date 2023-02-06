@@ -4,6 +4,7 @@ with the application running on the client.
 """
 
 from aiohttp import web
+from datetime import date
 from typing import Optional
 from modules.database import DatabaseClient
 from modules.rendering import Renderer
