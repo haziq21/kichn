@@ -23,8 +23,12 @@ block nav_items %}
   </a>
 </li>
 {% endblock %} {% block main %}
+
+<!-- Product image -->
 <div pos="relative" m="b-4">
   <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
+
+  <!-- Grocery amount adjuster -->
   <div
     id="amount-adjuster"
     p="y-2 x-3"
@@ -39,40 +43,133 @@ block nav_items %}
     {% include "grocery/amount.partial.html" %}
   </div>
 </div>
-<h2 text="2xl" font="medium" m="b-12">{{data.product.name}}</h2>
 
-<div flex="~" justify="between" w="40" m="x-auto b-6">
-  {% include "grocery/buy-widget.partial.html" %}
-</div>
+<h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
 
-<button
-  hx-post="F7bqBm/buy"
-  hx-include="[name='amount']"
-  class="group"
-  text="light-50 hover:gray-800"
-  font="medium"
-  rounded="md"
-  p="x-4 y-2"
-  m="x-auto"
-  flex="~"
-  space="x-2"
-  border="2 gray-800"
-  bg="gray-800 hover:light-50"
-  whitespace="nowrap"
-  transition="duration-100"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    height="24"
-    width="24"
-    fill="light-50 group-hover:gray-800"
+<form hx-post="{{data.product.id}}/buy" hx-trigger="click target:#buy-button">
+  <div space="x-1" m="b-10">
+    <input
+      type="text"
+      name="dd"
+      placeholder="dd"
+      w="12"
+      border="~ gray-400"
+      rounded="md"
+      p="x-2 y-1"
+      text="center"
+    />
+    <span text="xl gray-400">/</span>
+    <input
+      type="text"
+      name="mm"
+      placeholder="mm"
+      w="12"
+      border="~ gray-400"
+      rounded="md"
+      p="x-2 y-1"
+      text="center"
+    />
+    <span text="xl gray-400">/</span>
+    <input
+      type="text"
+      name="yyyy"
+      placeholder="yyyy"
+      w="18"
+      border="~ gray-400"
+      rounded="md"
+      p="x-2 y-1"
+      text="center"
+    />
+    <!-- <label>
+    <input type="checkbox" name="" id=""  />
+    Include expiry date
+    <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
+      <path
+        d="M9.55 17.275q-.175 0-.337-.063-.163-.062-.288-.187L4.75 12.85q-.225-.225-.213-.538.013-.312.213-.537.225-.225.538-.225.312 0 .512.225l3.75 3.75 8.65-8.65q.2-.225.525-.225t.525.225q.225.225.225.537 0 .313-.225.538l-9.075 9.075q-.125.125-.287.187-.163.063-.338.063Z"
+      />
+    </svg>
+  </label> -->
+  </div>
+
+  <!-- Cart adjuster -->
+  <div
+    x-data="{ amount: {{data.buy_amount}} }"
+    flex="~"
+    justify="between"
+    w="40"
+    m="x-auto b-6"
+  >
+    <button
+      @click="amount = amount == 1 ? 1 : amount - 1"
+      rounded="full"
+      bg="gray-100 hover:gray-200"
+      p="2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        width="24"
+        fill="gray-700"
+      >
+        <path
+          d="M6 13q-.425 0-.713-.288Q5 12.425 5 12t.287-.713Q5.575 11 6 11h12q.425 0 .712.287.288.288.288.713t-.288.712Q18.425 13 18 13Z"
+        />
+      </svg>
+    </button>
+
+    <span text="3xl" font="medium" select="none" x-text="amount">
+      {{data.buy_amount}}
+    </span>
+    <input type="hidden" name="amount" :value="amount" />
+
+    <button
+      @click="amount += 1"
+      rounded="full"
+      bg="gray-100 hover:gray-200"
+      p="2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        width="24"
+        fill="gray-700"
+      >
+        <path
+          d="M12 19q-.425 0-.712-.288Q11 18.425 11 18v-5H6q-.425 0-.713-.288Q5 12.425 5 12t.287-.713Q5.575 11 6 11h5V6q0-.425.288-.713Q11.575 5 12 5t.713.287Q13 5.575 13 6v5h5q.425 0 .712.287.288.288.288.713t-.288.712Q18.425 13 18 13h-5v5q0 .425-.287.712Q12.425 19 12 19Z"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Buy button -->
+  <button
+    id="buy-button"
+    class="group"
+    text="light-50 hover:gray-800"
+    font="medium"
+    rounded="md"
+    p="x-4 y-2"
+    m="x-auto"
+    flex="~"
+    space="x-2"
+    border="2 gray-800"
+    bg="gray-800 hover:light-50"
+    whitespace="nowrap"
     transition="duration-100"
   >
-    <path
-      d="M7.15 21.55q-.725 0-1.237-.512Q5.4 20.525 5.4 19.8t.513-1.238q.512-.512 1.237-.512.725 0 1.237.512.513.513.513 1.238t-.513 1.238q-.512.512-1.237.512Zm9.7 0q-.725 0-1.237-.512-.513-.513-.513-1.238t.513-1.238q.512-.512 1.237-.512.725 0 1.237.512.513.513.513 1.238t-.513 1.238q-.512.512-1.237.512ZM6.025 5.75l2.525 5.3h7l2.775-5.025q.05-.1 0-.187-.05-.088-.15-.088Zm1.125 10.8q-1 0-1.5-.862-.5-.863-.025-1.713L7.05 11.4 3.4 3.75H2.225q-.3 0-.513-.213Q1.5 3.325 1.5 3q0-.325.212-.538.213-.212.538-.212h1.525q.25 0 .475.137.225.138.35.388l.7 1.475h13.875q.7 0 .988.512.287.513-.013 1.088l-3.225 5.8q-.225.425-.625.662-.4.238-.9.238H8.1l-1.15 2.125q-.075.125-.012.25.062.125.212.125h10.725q.3 0 .513.225.212.225.212.525 0 .325-.212.537-.213.213-.538.213Zm1.4-5.5h7Z"
-    ></path>
-  </svg>
-  <span>Buy</span>
-</button>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      width="24"
+      fill="light-50 group-hover:gray-800"
+      transition="duration-100"
+    >
+      <path
+        d="M7.15 21.55q-.725 0-1.237-.512Q5.4 20.525 5.4 19.8t.513-1.238q.512-.512 1.237-.512.725 0 1.237.512.513.513.513 1.238t-.513 1.238q-.512.512-1.237.512Zm9.7 0q-.725 0-1.237-.512-.513-.513-.513-1.238t.513-1.238q.512-.512 1.237-.512.725 0 1.237.512.513.513.513 1.238t-.513 1.238q-.512.512-1.237.512ZM6.025 5.75l2.525 5.3h7l2.775-5.025q.05-.1 0-.187-.05-.088-.15-.088Zm1.125 10.8q-1 0-1.5-.862-.5-.863-.025-1.713L7.05 11.4 3.4 3.75H2.225q-.3 0-.513-.213Q1.5 3.325 1.5 3q0-.325.212-.538.213-.212.538-.212h1.525q.25 0 .475.137.225.138.35.388l.7 1.475h13.875q.7 0 .988.512.287.513-.013 1.088l-3.225 5.8q-.225.425-.625.662-.4.238-.9.238H8.1l-1.15 2.125q-.075.125-.012.25.062.125.212.125h10.725q.3 0 .513.225.212.225.212.525 0 .325-.212.537-.213.213-.538.213Zm1.4-5.5h7Z"
+      ></path>
+    </svg>
+    <span>Buy</span>
+  </button>
+</form>
 
 {% endblock %}
