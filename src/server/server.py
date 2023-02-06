@@ -221,10 +221,7 @@ async def search_grocery(request: web.Request):
     email = extract_request_owner(request)
     kitchen_id = request.match_info["kitchen_id"]
 
-    if email is None:
-        # Redirects user to login if no email is inputted
-        raise web.HTTPFound("/login")
-
+    assert isinstance(email, str)
     assert isinstance(search_query, str)
 
     # Render and return the HTML response
@@ -263,10 +260,13 @@ async def set_product(request: web.Request):
         raise web.HTTPFound("/login")
 
     amount = int(request.query["amount"])
+
+    # Set product amount to the product (if user changes it)
     db.set_grocery_product(kitchen_id, product_id, amount)
     page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
+    assert isinstance(email, str)
 
-    return html_response(templator.grocery_product_amount_partial(page_data))
+    return htmx_redirect_response(templator.grocery_product_amount_partial(page_data))
 
 
 async def buy_product(request: web.Request):
