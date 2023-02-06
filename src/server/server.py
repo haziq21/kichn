@@ -253,7 +253,19 @@ async def grocery_product_page(request: web.Request):
 
 
 async def set_product(request: web.Request):
-    return web.Response(status=200)
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    amount = int(request.query["amount"])
+    db.set_grocery_product(kitchen_id, product_id, amount)
+    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
+
+    return html_response(templator.grocery_product_amount_partial(page_data))
 
 
 async def buy_product(request: web.Request):
