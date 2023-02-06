@@ -8,7 +8,9 @@ import redis
 import argon2
 import string
 import random
-import dataclasses
+import dataclasses  # TODO: Remove this
+import time
+from datetime import date
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
@@ -444,11 +446,28 @@ class DatabaseClient:
             amount,
         )
 
-    def buy_product(self, kitchen_id: str, product_id: str, expiry: int, amount: int):
-        """Moves the product from the kitchen's grocery list to its inventory list."""
+    def buy_product(
+        self,
+        kitchen_id: str,
+        product_id: str,
+        expiry: tuple[int, int, int],
+        amount: int,
+    ):
+        """
+        Moves the product from the kitchen's grocery list to its inventory list.
+        `expiry` is a tuple in the form of `(yyyy, mm, dd)`.
+        """
+
+        # Convert the (yyyy, mm, dd) tuple to a unix timestamp
+        expiry_unix_timestamp = int(time.mktime(date(*expiry).timetuple()))
+
         # Capture the inital state of the grocery and inventory lists
         initial_groc_amt = self.get_grocery_product_amount(kitchen_id, product_id)
-        inital_inv_amt = self._get_inventory_product(kitchen_id, product_id, expiry)
+        inital_inv_amt = self._get_inventory_product(
+            kitchen_id,
+            product_id,
+            expiry_unix_timestamp,
+        )
 
         # Remove the product from the grocery list
         self.set_grocery_product(
@@ -461,7 +480,7 @@ class DatabaseClient:
         self._set_inventory_product(
             kitchen_id,
             product_id,
-            expiry,
+            expiry_unix_timestamp,
             inital_inv_amt + amount,
         )
 
