@@ -1,5 +1,5 @@
 """
-This module provides functions to render Jinja templates.
+Provides an interface for rendering HTML.
 
 Authored by Haziq Hairil.
 """
@@ -13,7 +13,9 @@ from .models import (
 )
 
 
-class Templator:
+class Renderer:
+    """Renders Jinja templates from page data objects."""
+
     def __init__(self, templates_dir: str):
         """
         `templates_dir` is the file path to the directory
@@ -23,15 +25,6 @@ class Templator:
         self._env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(templates_dir),
             autoescape=jinja2.select_autoescape(),
-        )
-
-    def _get_layout_template(self, full_doc: bool) -> jinja2.Template:
-        """
-        Returns the `Template` for the full HTML document if
-        `full_doc` is `True`, and an empty `Template` otherwise.
-        """
-        return self._env.get_template(
-            "_layout.html" if full_doc else "_blank_layout.html"
         )
 
     #### AUTHENTICATION ####

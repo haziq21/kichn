@@ -6,7 +6,7 @@ with the application running on the client.
 from aiohttp import web
 from typing import Optional
 from modules.database import DatabaseClient
-from modules.templating import Templator
+from modules.rendering import Renderer
 
 #### HELPER FUNCTIONS ####
 
@@ -303,7 +303,7 @@ async def inventory_search(request: web.Request):
 
 
 db = DatabaseClient("src/client/static", "server-store")
-templator = Templator("src/client/templates")
+templator = Renderer("src/client/templates")
 
 app = web.Application()
 app.add_routes(
