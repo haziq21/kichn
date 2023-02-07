@@ -13,6 +13,9 @@ db = DatabaseClient("src/client/static", "server-store")
 
 
 def get_fairprice_slugs(fairprice_categories):
+    """
+    Gets the slugs from fairpricecategories.json to be used in the URL.
+    """
     category_slugs = []
     for category in fairprice_categories:
         for sub_cat in category["menu"]:
@@ -31,26 +34,26 @@ async def extract_product(session: aiohttp.ClientSession, product: dict, top_lev
     name = product["name"]
     barcodes = []
     image = b""
+
     # Get product barcode
     try:
         barcodes = [int(bar) for bar in product["barcodes"]]
     except TypeError:
-        pass
-        # print(product["name"], "no barcode")
+        print(product["name"], "no barcode")
 
     # Get product image
     try:
         image_url = product["images"][0]
-        # async with session.get(image_url) as res:
-        # image = await res.read()
+        async with session.get(image_url) as res:
+            image = await res.read()
     except:
-        pass
-        # print(product["name"], "no image")
+        print(product["name"], "no image")
 
+    # Adds product to database
     try:
         product_id = db.create_default_product(name, top_level_cat, barcodes, image)
     except:
-        print("cant add product")
+        print("cannot add product")
 
 
 async def scrape_page(session: aiohttp.ClientSession, category: str, page: int) -> int:
@@ -59,29 +62,31 @@ async def scrape_page(session: aiohttp.ClientSession, category: str, page: int) 
     Scrapes data from one page of the API and writes it to the database.
     Returns the total number of pages in the specified category.
     """
+    # generates URL for each category and page
     endpoint = api_url(category, page)
-    # Get the data from the API
 
+    # Get the data from the API
     async with session.get(endpoint) as res:
         body = await res.json()
 
+    # Gets current page to show progress
     curr_page = 0
     try:
         curr_page = body["data"]["pagination"]["page"]
     except:
-        pass
-        # print("curr_page", category, "/", page)
+        print("curr_page", category, "/", page)
 
+    # Get total pages in the category
     total_pages = 0
-
     try:
         total_pages = body["data"]["pagination"]["total_pages"]
     except:
-        pass
-        # print("total_page", category, "/", page)
+        print("total_page", category, "/", page)
 
     # Print current progress
     print(f"Scraped page {curr_page} / {total_pages} of category {category}")
+
+    # Gets product information from the response
     tasks = []
     try:
         for p in body["data"]["product"]:
@@ -96,6 +101,7 @@ async def scrape_page(session: aiohttp.ClientSession, category: str, page: int) 
 
 async def scrape_category(session: aiohttp.ClientSession, category: str):
     """Scrapes data from one category of the API and writes it to the database."""
+
     total_pages = await scrape_page(session, category, 1)
 
     # Scrape all the other pages in parallel
@@ -118,7 +124,12 @@ def api_url(product_category: str, page_number=1) -> str:
 
 
 async def main():
+    """
+    Runs the scraper
+    """
+    # Prevents aiohttp from timing out
     session_timout = aiohttp.ClientTimeout(total=None)
+
     async with aiohttp.ClientSession(timeout=session_timout) as session:
         await scrape(session)
 
@@ -127,8 +138,7 @@ async def main():
 with open("fairprice_categories.json") as cats:
     fairprice_categories = json.load(cats)
 
+# List of all the slugs for URL
 deepest_categories = get_fairprice_slugs(fairprice_categories)
-# print(deepest_categories)
-products = []
 
 asyncio.run(main())
