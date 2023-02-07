@@ -4,6 +4,7 @@ with the application running on the client.
 """
 
 from aiohttp import web
+from datetime import date
 from typing import Optional
 from modules.database import DatabaseClient
 from modules.rendering import Renderer
@@ -268,8 +269,33 @@ async def set_product(request: web.Request):
     return htmx_redirect_response(templator.grocery_product_amount_partial(page_data))
 
 
-async def buy_product(request: web.Request):
-    return web.Response(status=200)
+async def buy_grocery_product(request: web.Request):
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+    body = await request.post()
+
+    # Extract amount of [item] from body dictionary.
+    amount = body["amount"]
+
+    # Extract values of expiry year, month and date from the body dictionary.
+    exp_year, exp_month, exp_day = body["yyyy"], body["mm"], body["dd"]
+
+    # Assert that expiry and amount should be strings
+    # and not integers, otherwise string values will be left out
+    assert isinstance(exp_year, str)
+    assert isinstance(exp_month, str)
+    assert isinstance(exp_day, str)
+    assert isinstance(amount, str)
+
+    # Convert expiry and amount into integers to be processed by buy_product function
+    expiry = (int(exp_year), int(exp_month), int(exp_day))
+    amount = int(amount)
+
+    # Move product from kitchen to inventory
+    db.buy_product(kitchen_id, product_id, expiry, amount)
+
+    # Redirect the user to the grocery page
+    return htmx_redirect_response("/kitchens/{kitchen_id}/grocery")
 
 
 ### INVENTORY LIST ####
@@ -325,7 +351,9 @@ app.add_routes(
         web.post("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
-        web.post("/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_product),
+        web.post(
+            "/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_grocery_product
+        ),
         #### INVENTORY ####
         web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
         web.get("/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product),
