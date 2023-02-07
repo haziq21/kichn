@@ -1,6 +1,8 @@
 """
 This module contains the web server that communicates 
 with the application running on the client.
+
+Authored by Haziq. Typed by Evan. 
 """
 
 from aiohttp import web
@@ -255,18 +257,14 @@ async def set_product(request: web.Request):
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
-    if email is None:
-        # Redirects user to login if no email is inputted
-        raise web.HTTPFound("/login")
-
     amount = int(request.query["amount"])
 
     # Set product amount to the product (if user changes it)
     db.set_grocery_product(kitchen_id, product_id, amount)
-    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
     assert isinstance(email, str)
+    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
 
-    return htmx_redirect_response(templator.grocery_product_amount_partial(page_data))
+    return html_response(templator.grocery_product_amount_partial(page_data))
 
 
 async def buy_grocery_product(request: web.Request):
