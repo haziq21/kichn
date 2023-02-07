@@ -93,7 +93,7 @@ block nav_items %}
 
   <!-- Cart adjuster -->
   <div
-    x-data="{ amount: {{data.buy_amount}} }"
+    x-data="{ amount: {{data.product.amount or 1}} }"
     flex="~"
     justify="between"
     w="40"
@@ -118,7 +118,7 @@ block nav_items %}
     </button>
 
     <span text="3xl" font="medium" select="none" x-text="amount">
-      {{data.buy_amount}}
+      {{data.product.amount or 1}}
     </span>
     <input type="hidden" name="amount" :value="amount" />
 
