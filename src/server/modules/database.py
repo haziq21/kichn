@@ -450,7 +450,7 @@ class DatabaseClient:
         self,
         kitchen_id: str,
         product_id: str,
-        expiry: tuple[int, int, int],
+        expiry: Optional[tuple[int, int, int]],
         amount: int,
     ):
         """
@@ -458,8 +458,11 @@ class DatabaseClient:
         `expiry` is a tuple in the form of `(yyyy, mm, dd)`.
         """
 
-        # Convert the (yyyy, mm, dd) tuple to a unix timestamp
-        expiry_unix_timestamp = int(time.mktime(date(*expiry).timetuple()))
+        if expiry is not None:
+            # Convert the (yyyy, mm, dd) tuple to a unix timestamp
+            expiry_unix_timestamp = int(time.mktime(date(*expiry).timetuple()))
+        else:
+            expiry_unix_timestamp = -1
 
         # Capture the inital state of the grocery and inventory lists
         initial_groc_amt = self.get_grocery_product_amount(kitchen_id, product_id)
@@ -562,13 +565,22 @@ class DatabaseClient:
             )
 
             # Get the expiry date of the product that's expiring the soonest
-            earliest_expiry_date = min(
-                int(x)
-                # Iterate over all the expiry dates
-                for x in self._rj.objkeys(
-                    "kitchens",
-                    f"$.{kitchen_id}.inventory.{p_id}",
-                )[0]
+            earliest_expiry_date = (
+                min(
+                    int(x)
+                    # Iterate over all the expiry dates
+                    for x in self._rj.objkeys(
+                        "kitchens",
+                        f"$.{kitchen_id}.inventory.{p_id}",
+                    )[0]
+                    # The lack of an expiry date is
+                    # indicated as -1 in the JSON document
+                    if int(x) != -1
+                )
+                # If there are no expiry dates for this product, min() would
+                # be called with an empty iterator, resulting in a return
+                # value of 0. We set expiry_date to -1 to indicate this.
+                or -1
             )
 
             # Get the amount of the product that's expiring the soonest
@@ -705,7 +717,7 @@ class DatabaseClient:
         return GroceryProductPageData(
             product=grocery_product,
             has_expiry_date=False,
-            buy_amount=max(1, amount),
+            buy_amount=max(1, amount),  # TODO: Remove this
             **self._get_kitchen_data_as_dict(kitchen_id),
             **self._get_user_data_as_dict(email),
         )
