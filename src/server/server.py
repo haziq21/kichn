@@ -293,7 +293,7 @@ async def buy_grocery_product(request: web.Request):
     db.buy_product(kitchen_id, product_id, expiry, amount)
 
     # Redirect the user to the grocery page
-    return htmx_redirect_response("/kitchens/{kitchen_id}/grocery")
+    return htmx_redirect_response(f"/kitchens/{kitchen_id}/grocery")
 
 
 ### INVENTORY LIST ####
