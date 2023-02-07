@@ -717,7 +717,6 @@ class DatabaseClient:
         return GroceryProductPageData(
             product=grocery_product,
             has_expiry_date=False,
-            buy_amount=max(1, amount),  # TODO: Remove this
             **self._get_kitchen_data_as_dict(kitchen_id),
             **self._get_user_data_as_dict(email),
         )

@@ -39,20 +39,6 @@ class InventoryProduct(GroceryProduct):
     amount_expiring: int
 
 
-@dataclass
-class InventoryList:
-    products: list[InventoryProduct]
-    kitchen_name: str
-    kitchen_id: str
-
-
-@dataclass
-class GroceryList:
-    products: list[GroceryProduct]
-    kitchen_name: str
-    kitchen_id: str
-
-
 #### PAGE CLASSES ####
 
 
@@ -85,4 +71,3 @@ class CustomPageData(User):
 class GroceryProductPageData(User, Kitchen):
     product: GroceryProduct
     has_expiry_date: bool
-    buy_amount: int
