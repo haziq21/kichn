@@ -39,7 +39,9 @@ block nav_items %}
   />
   <a
     href="scan"
-    display="block"
+    class="group"
+    flex="~"
+    space="x-2"
     text="light-50 hover:gray-800"
     font="medium"
     rounded="md"
@@ -47,9 +49,21 @@ block nav_items %}
     border="2 gray-800"
     bg="gray-800 hover:light-50"
     whitespace="nowrap"
-    transition="duration-75"
+    transition="duration-100"
   >
-    Scan barcode
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      width="24"
+      fill="light-50 group-hover:gray-800"
+      transition="duration-100"
+    >
+      <path
+        d="M1 21v-5h2v3h3v2Zm17 0v-2h3v-3h2v5ZM4 18V6h2v12Zm3 0V6h1v12Zm3 0V6h2v12Zm3 0V6h3v12Zm4 0V6h1v12Zm2 0V6h1v12ZM1 8V3h5v2H3v3Zm20 0V5h-3V3h5v5Z"
+      />
+    </svg>
+
+    <span>Scan barcode</span>
   </a>
 </div>
 <ul id="grocery-list" p="x-2">
