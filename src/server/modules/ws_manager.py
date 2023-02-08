@@ -1,39 +1,41 @@
 from aiohttp import web
+from typing import Callable
 
 
-class WSManager:
+class WebSocketManager:
     """
     Handles WebSocket connections and real-time
     sharing logic with a pub/sub system.
     """
 
     def __init__(self):
-        # Maps URLs to WS connections from users who are at the URL
-        self._subs_by_page: dict[str, set[web.WebSocketResponse]] = {}
-        # Maps kitchen IDs to WS connections from
-        # users who are at a URL in the kitchen
-        self._subs_by_kitchen: dict[str, set[web.WebSocketResponse]] = {}
-        # Maps email addresses to WS connections
-        # from users with the email address
-        self._subs_by_email: dict[str, set[web.WebSocketResponse]] = {}
+        # Maps session tokens to the WS connection used by the corresponding user
+        self._subscribers: dict[str, web.WebSocketResponse] = {}
+        # Maps topics to the session tokens of sessions subscribed to the topic
+        self._subscriptions: dict[str, str] = {}
 
-    def subscribe(self, email: str, kitchen_ids: list[str]):
-        """Subscribe the specified user to the specified kitchens."""
-
-    def unsubscribe(self, email: str, kitchen_id: str):
-        """Unsubscribe the specified user from the specified kitchen."""
-
-    async def handle_connection(self, email: str, ws: web.WebSocketResponse):
+    def subscribe(
+        self,
+        session_token: str,
+        topic_callbacks: dict[str, Callable[[], str]],
+    ):
         """
-        Sends HTML updates through the WebSocket when they
-        are published. Returns when the connection is closed.
+        Subscribes the user session to the specified topics,
+        using the corresponding callbacks to update the
+        UI whenever an update is published to a topic.
+
+        `topic_callbacks` maps topics to
+        callbacks that render the updated HTML.
         """
 
-    async def publish_to_page(self, page: str, html: str):
-        """Sends the HTML to every client on the same page."""
+    async def handle_connection(self, session_token: str, ws: web.WebSocketResponse):
+        """
+        Sends HTML updates through the WebSocket when they're
+        published. Returns when the connection is closed.
+        """
 
-    async def publish_to_email(self, email: str, html: str):
-        """Sends the HTML to every client with the same email address."""
-
-    async def publish_to_kitchen(self, kitchen_id: str, html: str):
-        """Sends the HTML to every client with the same email address."""
+    async def publish_update(self, topics: list[str]):
+        """
+        For every user session subscribed to a topic in `topics`,
+        updates their UI using the registered redering callback.
+        """
