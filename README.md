@@ -49,5 +49,6 @@ Here's a breakdown of the libraries and softwares that we've used in this projec
 
 ### Client
 
+- [HTMX](https://htmx.org/) as a SSR-first HTML framework
+- [AlpineJS](https://alpinejs.dev/) as a JS framework
 - [Windi CSS](https://windicss.org/) as a CSS framework
-- [HTMX](https://htmx.org/) as a HTML framework
