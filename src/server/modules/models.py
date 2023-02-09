@@ -5,12 +5,15 @@ Authored by Lohith Tanuku.
 """
 
 from dataclasses import dataclass
+from datetime import date
 
 #### ENTITY CLASSES ####
 
 
 @dataclass
 class Kitchen:
+    """ """
+
     kitchen_name: str
     kitchen_id: str
 
@@ -35,6 +38,7 @@ class GroceryProduct(Product):
 
 @dataclass
 class InventoryProduct(GroceryProduct):
+    expiries: dict[date, int]
     closest_expiry_date: int
     amount_expiring: int
 
@@ -71,3 +75,10 @@ class CustomPageData(User):
 class GroceryProductPageData(User, Kitchen):
     product: GroceryProduct
     has_expiry_date: bool
+
+
+@dataclass
+class InventoryProductPage:
+    user: User
+    kitchen: Kitchen
+    product: InventoryProduct
