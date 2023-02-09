@@ -39,8 +39,6 @@ class GroceryProduct(Product):
 @dataclass
 class InventoryProduct(GroceryProduct):
     expiries: dict[date, int]
-    closest_expiry_date: int
-    amount_expiring: int
 
 
 #### PAGE CLASSES ####
