@@ -7,7 +7,7 @@ Authored by Lohith Tanuku.
 from dataclasses import dataclass
 from datetime import date
 
-#### ENTITY CLASSES ####
+#### ENTITY MODELS ####
 
 
 @dataclass
@@ -41,7 +41,7 @@ class InventoryProduct(GroceryProduct):
     expiries: dict[date, int]
 
 
-#### PAGE CLASSES ####
+#### PAGE MODELS ####
 
 
 @dataclass
