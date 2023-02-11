@@ -46,12 +46,37 @@ block nav_items %}
 
 <h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
 
-<form hx-post="{{data.product.id}}/buy" hx-trigger="click target:#buy-button">
+<script>
+  document.addEventListener("alpine:init", () =>
+    Alpine.data("date_input", (max) => ({
+      newValue(currVal, newChar) {
+        if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
+          num = parseFloat(currVal.slice(1) + newChar);
+          return num > max
+            ? "0".repeat(max.toString().length - 1) + newChar
+            : num == 0
+            ? currVal
+            : currVal.slice(1) + newChar;
+        }
+        return newChar == "Tab" ? null : currVal;
+      },
+    }))
+  );
+</script>
+
+<form hx-post="{{data.product.id}}/buy">
   <div space="x-1" m="b-10">
     <input
+      x-data="date_input(31)"
+      @click="$el.select()"
+      @keydown="newVal = newValue($el.value, $event.key);
+      if (newVal) {
+        $el.value = newVal;
+        $event.preventDefault();
+      }"
       type="text"
       name="dd"
-      placeholder="dd"
+      value="01"
       w="12"
       border="~ gray-400"
       rounded="md"
@@ -60,9 +85,16 @@ block nav_items %}
     />
     <span text="xl gray-400">/</span>
     <input
+      x-data="date_input(12)"
+      @click="$el.select()"
+      @keydown="newVal = newValue($el.value, $event.key);
+      if (newVal) {
+        $el.value = newVal;
+        $event.preventDefault();
+      }"
       type="text"
       name="mm"
-      placeholder="mm"
+      value="01"
       w="12"
       border="~ gray-400"
       rounded="md"
@@ -71,9 +103,16 @@ block nav_items %}
     />
     <span text="xl gray-400">/</span>
     <input
+      x-data="date_input(9999)"
+      @click="$el.select()"
+      @keydown="newVal = newValue($el.value, $event.key);
+      if (newVal) {
+        $el.value = newVal;
+        $event.preventDefault();
+      }"
       type="text"
       name="yyyy"
-      placeholder="yyyy"
+      value="2023"
       w="18"
       border="~ gray-400"
       rounded="md"
@@ -143,7 +182,7 @@ block nav_items %}
 
   <!-- Buy button -->
   <button
-    id="buy-button"
+    hx-trigger="click"
     class="group"
     text="light-50 hover:gray-800"
     font="medium"
