@@ -7,13 +7,11 @@ Authored by Lohith Tanuku.
 from dataclasses import dataclass
 from datetime import date
 
-#### ENTITY CLASSES ####
+#### ENTITY MODELS ####
 
 
 @dataclass
 class Kitchen:
-    """ """
-
     kitchen_name: str
     kitchen_id: str
 
@@ -39,9 +37,10 @@ class GroceryProduct(Product):
 @dataclass
 class InventoryProduct(GroceryProduct):
     expiries: dict[date, int]
+    non_expirables: int
 
 
-#### PAGE CLASSES ####
+#### PAGE MODELS ####
 
 
 @dataclass
@@ -51,16 +50,22 @@ class SortedInventoryPageData(User, Kitchen):
 
 @dataclass
 class InventoryPageData(User, Kitchen):
+    """Page model for '/kitchens/{kitchen_id}/inventory'"""
+
     products: dict[str, list[InventoryProduct]]
 
 
 @dataclass
 class GroceryPageData(User, Kitchen):
+    """Page model for '/kitchens/{kitchen_id}/grocery'"""
+
     products: dict[str, list[GroceryProduct]]
 
 
 @dataclass
 class KitchensPageData(User):
+    """Page model for '/kitchens'"""
+
     kitchens: list[Kitchen]
 
 
@@ -71,8 +76,9 @@ class CustomPageData(User):
 
 @dataclass
 class GroceryProductPageData(User, Kitchen):
+    """Data model for the page on `/kitchens/{kitchen_id}/grocery/{product_id}`"""
+
     product: GroceryProduct
-    has_expiry_date: bool
 
 
 @dataclass
@@ -80,3 +86,10 @@ class InventoryProductPage:
     user: User
     kitchen: Kitchen
     product: InventoryProduct
+
+
+@dataclass
+class SharingSettingsPage:
+    user: User
+    kitchen: Kitchen
+    members: list[User]
