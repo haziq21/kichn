@@ -260,7 +260,7 @@ async def set_product(request: web.Request):
     amount = int(request.query["amount"])
 
     # Set product amount to the product (if user changes it)
-    db.set_grocery_product(kitchen_id, product_id, amount)
+    db.set_groc_product_count(kitchen_id, product_id, amount)
     assert isinstance(email, str)
     page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
 
