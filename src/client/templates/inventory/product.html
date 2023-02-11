@@ -1,0 +1,31 @@
+{% extends "_layout.html" %} {% block title %} {{data.kitchen_name}} | Kichn {%
+endblock %} {% block header_title %} {{data.kitchen_name}} {% endblock %} {%
+block nav_items %}
+<li p="x-2 b-1.5">
+  <a href="/kitchens">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="{{data.kitchen_id}}/inventory"> Inventory </a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="{{data.kitchen_id}}/grocery" text="gray-500 hover:inherit">
+    Grocery
+  </a>
+</li>
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="{{data.kitchen_id}}/custom" text="gray-500 hover:inherit">
+    Custom products
+  </a>
+</li>
+{% endblock %} {% block main %}
+
+<!-- Product image -->
+<div pos="relative" m="b-4">
+  <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
+</div>
+
+<h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
+
+this is the inventory product page {% endblock %}

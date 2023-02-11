@@ -77,7 +77,8 @@ def main():
         print("Check that you don't already have another Meilisearch instance running.")
 
         # Terminate the Redis server
-        redis_proc.terminate()
+        # `redis_proc.terminate()` doesn't seem to work sometimes
+        sp.run(["redis-cli", "shutdown"])
         return
 
     try:

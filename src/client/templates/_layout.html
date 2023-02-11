@@ -13,15 +13,14 @@
     hx-boost="true"
     hx-ext="ws"
     ws-connect="/ws"
+    x-data
     h="min-full"
     flex="~ col"
     align="items-center"
     bg="light-50"
   >
     <header w="min-full" p="x-8 y-4">
-      <h1 font="medium" text="2xl">
-        {% block header_title %} {% endblock %}
-      </h1>
+      <h1 font="medium" text="2xl">{% block header_title %} {% endblock %}</h1>
     </header>
     <nav w="min-full" border="b gray-400" p="x-6">
       <ul flex="~" align="items-end" space="x-6" m="-b-px">

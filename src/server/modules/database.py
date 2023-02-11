@@ -24,6 +24,7 @@ from .models import (
     InventoryPageData,
     GroceryPageData,
     GroceryProductPageData,
+    InventoryProductPage,
 )
 
 
@@ -296,9 +297,9 @@ class DatabaseClient:
         # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
         self._rj.delete("kitchens", f"$.{kitchen_id}")
 
-    #### PRODUCT & LIST MANAGEMENT ####
+    #### PRODUCT GETTERS & SETTERS ####
 
-    def _get_product_from_kitchen(self, kitchen_id: str, product_id: str) -> Product:
+    def _product(self, kitchen_id: str, product_id: str) -> Product:
         """
         Checks if the specified product is in the kitchen's custom
         product list. Returns the product from the custom product
@@ -327,59 +328,110 @@ class DatabaseClient:
             category=product_category,
         )
 
-    def _get_inventory_product(
-        self,
-        kitchen_id: str,
-        product_id: str,
-        expiry: int,
-    ):
-        """
-        Returns the amount of the product present in the kitchen's inventory
-        list, for instances where the product's expiry date is `expiry`.
-        """
+    def _inv_product(self, kitchen_id: str, product_id: str) -> InventoryProduct:
+        """Returns the specified `InventoryProduct`."""
+        # Get the raw expiry data from the database
+        expiry_data_matches = self._rj.get(
+            "kitchens",
+            f"$.{kitchen_id}.inventory.{product_id}",
+        )
+        raw_expiry_data: dict[str, int] = (
+            # If there is no database entry for this product in the
+            # inventory list, we assign raw_expiry_data to an empty dict
+            expiry_data_matches[0]
+            if expiry_data_matches
+            else {}
+        )
+
+        # Maps expiry timestamps to the amount of the product expiring on the date
+        expiries: dict[date, int] = {
+            # Cast the expiry timestamp from a str into a date
+            date.fromtimestamp(float(k)): v
+            # Iterate through the key-value pairs of the expiry data
+            for k, v in raw_expiry_data.items()
+            # Skip non-expirables (indicated with a -1 expiry date)
+            if k != "-1"
+        }
+
+        # Insert products in the order we want to iterate over them
+        # (in order of their expiry date). This works in Python 3.7+
+        # because dictionaries iterate in insertion order.
+        expiries = {k: expiries[k] for k in sorted(expiries.keys())}
+
+        # Get the amount of non-expirables
+        # TODO: Use this
+        non_expiries: int = raw_expiry_data.get("-1", 0)
+
+        # Get the product's name and category
+        p = self._product(kitchen_id, product_id)
+
+        # Calculate the total amount of this product in the inventory list
+        amount = sum(
+            # Get the amounts of all instances (all expiry dates) of this product
+            self._rj.get(
+                "kitchens",
+                f"$.{kitchen_id}.inventory.{product_id}.*",
+            )
+        )
+
+        return InventoryProduct(
+            id=p.id,
+            name=p.name,
+            category=p.category,
+            amount=amount,
+            expiries=expiries,
+        )
+
+    def _groc_product(self, kitchen_id: str, product_id: str) -> GroceryProduct:
+        """Returns the specified `GroceryProduct`."""
         amount_matches = self._rj.get(
             "kitchens",
-            f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+            f"$.{kitchen_id}.grocery.{product_id}",
         )
-        return amount_matches[0] if amount_matches else 0
+        # Get the amount of the product in the grocery list
+        amount: int = amount_matches[0] if amount_matches else 0
 
-    def _get_total_inventory_product(self, kitchen_id: str, product_id: str) -> int:
-        """
-        Returns the amount of the product present in the kitchen's inventory
-        list, regardless of expiry date.
-        """
-        amount_matches = self._rj.get(
-            "kitchens", f"$.{kitchen_id}.inventory.{product_id}.*"
+        # Get the other product information
+        p = self._product(kitchen_id, product_id)
+
+        # Add the grocery item to its corresponding list
+        return GroceryProduct(
+            id=p.id,
+            name=p.name,
+            category=p.category,
+            amount=amount,
         )
-        return sum(amount_matches)
 
-    def _set_inventory_product(
+    def _set_inv_product_count(
         self,
         kitchen_id: str,
         product_id: str,
-        expiry: int,
+        expiry: Optional[date],
         amount: int,
     ):
         """Updates the inventory list to have `amount` of the product."""
+        if expiry:
+            expiry_timestamp = int(time.mktime(expiry.timetuple()))
+        else:
+            # Store non-expirables as products with a -1 expiry date
+            expiry_timestamp = -1
+
         # Delete the product from the inventory
         # list if we're setting the amount <= 0
         if amount <= 0:
             self._rj.delete(
                 "kitchens",
-                f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+                f"$.{kitchen_id}.inventory.{product_id}.{expiry_timestamp}",
             )
             # Remove the product from the search index too
             self._search.delete_inventory_product(kitchen_id, product_id)
             return
 
-        # Get the amount of this product already in the inventory list
-        curr_total_amount = self._get_total_inventory_product(kitchen_id, product_id)
+        # Get the inventory product's data
+        product = self._inv_product(kitchen_id, product_id)
 
         # Check if the product is not already in the inventory list
-        if curr_total_amount == 0:
-            # Get the product data
-            product = self._get_product_from_kitchen(kitchen_id, product_id)
-
+        if product.amount == 0:
             # Create an empty entry for the product in the inventory list
             self._rj.set(
                 "kitchens",
@@ -390,31 +442,17 @@ class DatabaseClient:
             # Add the product to the corresponding search index
             self._search.index_inventory_products(
                 kitchen_id,
-                {product_id: product.name},
+                {product.id: product.name},
             )
 
         # Set the amount
         self._rj.set(
             "kitchens",
-            f"$.{kitchen_id}.inventory.{product_id}.{expiry}",
+            f"$.{kitchen_id}.inventory.{product.id}.{expiry_timestamp}",
             amount,
         )
 
-    def get_grocery_product_amount(self, kitchen_id: str, product_id: str) -> int:
-        """
-        Returns the amount of the product
-        present in the kitchen's grocery list.
-        """
-        amount_matches = self._rj.get(
-            "kitchens",
-            f"$.{kitchen_id}.grocery.{product_id}",
-        )
-
-        # If the grocery product entry doesn't exist
-        # in the database then there must be 0 products
-        return amount_matches[0] if amount_matches else 0
-
-    def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
+    def set_groc_product_count(self, kitchen_id: str, product_id: str, amount: int):
         """
         Updates the grocery list to have `amount` of the specified
         product. If `amount` is negative, it will be treated as 0.
@@ -427,22 +465,20 @@ class DatabaseClient:
             self._search.delete_grocery_product(kitchen_id, product_id)
             return
 
-        # Check how many of this product is already in the grocery list
-        curr_amount = self.get_grocery_product_amount(kitchen_id, product_id)
+        product = self._groc_product(kitchen_id, product_id)
 
         # Add the product to the corresponding search index
         # if the product was not already in the grocery list
-        if curr_amount == 0:
-            product = self._get_product_from_kitchen(kitchen_id, product_id)
+        if product.amount == 0:
             self._search.index_grocery_products(
                 kitchen_id,
-                {product_id: product.name},
+                {product.id: product.name},
             )
 
-        # Write the data to Redis
+        # Write the data to the database
         self._rj.set(
             "kitchens",
-            f"$.{kitchen_id}.grocery.{product_id}",
+            f"$.{kitchen_id}.grocery.{product.id}",
             amount,
         )
 
@@ -455,35 +491,36 @@ class DatabaseClient:
     ):
         """
         Moves the product from the kitchen's grocery list to its inventory list.
-        `expiry` is a tuple in the form of `(yyyy, mm, dd)`.
+        `expiry` is a tuple in the form of `(year, month, date)`.
         """
 
-        if expiry is not None:
-            # Convert the (yyyy, mm, dd) tuple to a unix timestamp
-            expiry_unix_timestamp = int(time.mktime(date(*expiry).timetuple()))
-        else:
-            expiry_unix_timestamp = -1
+        # Convert the (year, month, date) tuple to a date
+        expiry_date = date(*expiry) if expiry else None
 
-        # Capture the inital state of the grocery and inventory lists
-        initial_groc_amt = self.get_grocery_product_amount(kitchen_id, product_id)
-        inital_inv_amt = self._get_inventory_product(
-            kitchen_id,
-            product_id,
-            expiry_unix_timestamp,
-        )
+        # Get the grocery product's data
+        groc_product = self._groc_product(kitchen_id, product_id)
 
         # Remove the product from the grocery list
-        self.set_grocery_product(
+        self.set_groc_product_count(
             kitchen_id,
             product_id,
-            initial_groc_amt - amount,
+            groc_product.amount - amount,
         )
 
+        # Get the inventory product's data
+        inv_product = self._inv_product(kitchen_id, product_id)
+
+        if expiry_date is None:
+            # TODO: Set this to inv_product.non_expirables
+            inital_inv_amt = 0
+        else:
+            inital_inv_amt = inv_product.expiries.get(expiry_date, 0)
+
         # Add it to the inventory list
-        self._set_inventory_product(
+        self._set_inv_product_count(
             kitchen_id,
             product_id,
-            expiry_unix_timestamp,
+            expiry_date,
             inital_inv_amt + amount,
         )
 
@@ -500,6 +537,11 @@ class DatabaseClient:
 
         return dataclasses.asdict(user)
 
+    def _user(self, email: str) -> User:
+        """Gets the `User` with the specified email address."""
+        username = self._rj.get(f"user:{email}", "$.name")[0]
+        return User(email=email, username=username)
+
     def _get_kitchen_data_as_dict(self, kitchen_id: str) -> dict:
         """
         Returns a dictionary version of the `Kitchen` with the
@@ -513,6 +555,14 @@ class DatabaseClient:
         )
 
         return dataclasses.asdict(kitchen)
+
+    def _kitchen(self, kitchen_id: str) -> Kitchen:
+        """Gets the `Kitchen` with the specified ID."""
+        kitchen_name = self._rj.get("kitchens", f"$.{kitchen_id}.name")[0]
+        return Kitchen(
+            kitchen_id=kitchen_id,
+            kitchen_name=kitchen_name,
+        )
 
     def get_kitchens_page_data(self, email: str) -> KitchensPageData:
         """Returns the data necessary to render the kitchen list page."""
@@ -550,44 +600,12 @@ class DatabaseClient:
         # Get the IDs of all the products on the
         # inventory page that match the search query
         product_ids = self._search.search_inventory_products(kitchen_id, search_query)
+        # Maps product category names to products in that category
         products: dict[str, list[InventoryProduct]] = {}
 
         for p_id in product_ids:
-            # Get the product's name and category
-            p = self._get_product_from_kitchen(kitchen_id, p_id)
-
-            # Calculate the total amount of this product in the inventory list
-            total_amount = sum(
-                self._rj.get(
-                    "kitchens",
-                    f"$.{kitchen_id}.inventory.{p_id}.*",
-                )
-            )
-
-            # Get the expiry date of the product that's expiring the soonest
-            earliest_expiry_date = (
-                min(
-                    int(x)
-                    # Iterate over all the expiry dates
-                    for x in self._rj.objkeys(
-                        "kitchens",
-                        f"$.{kitchen_id}.inventory.{p_id}",
-                    )[0]
-                    # The lack of an expiry date is
-                    # indicated as -1 in the JSON document
-                    if int(x) != -1
-                )
-                # If there are no expiry dates for this product, min() would
-                # be called with an empty iterator, resulting in a return
-                # value of 0. We set expiry_date to -1 to indicate this.
-                or -1
-            )
-
-            # Get the amount of the product that's expiring the soonest
-            earliest_expiry_amount = self._rj.get(
-                "kitchens",
-                f"$.{kitchen_id}.inventory.{p_id}.{earliest_expiry_date}",
-            )[0]
+            # Get the inventory product's data
+            p = self._inv_product(kitchen_id, p_id)
 
             # Create an empty list in `products`
             # if the key doesn't already exist
@@ -595,33 +613,38 @@ class DatabaseClient:
                 products[p.category] = []
 
             # Add the inventory item to its corresponding list
-            products[p.category].append(
-                InventoryProduct(
-                    id=p.id,
-                    name=p.name,
-                    category=p.category,
-                    amount=total_amount,
-                    closest_expiry_date=earliest_expiry_date,
-                    amount_expiring=earliest_expiry_amount,
-                )
-            )
-
-        sorted_products: dict[str, list[InventoryProduct]] = {}
+            products[p.category].append(p)
 
         # Insert product categories in the order we want
         # them to be iterated in. This works in Python 3.7+
         # because dictionaries iterate in insertion order.
-        for cat in sorted(products.keys()):
-            sorted_products[cat] = sorted(
+        products = {
+            # Within each category, sort the products in alphabetical order
+            cat: sorted(
                 products[cat],
-                # Within the category, sort the products alphabetically
                 key=lambda x: x.name,
             )
+            # Iterate through the product categories in alphabetical order
+            for cat in sorted(products.keys())
+        }
 
         return InventoryPageData(
-            products=sorted_products,
+            products=products,
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
+        )
+
+    def get_inventory_product_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+        product_id: str,
+    ) -> InventoryProductPage:
+        """Returns the data required to render the inventory product page."""
+        return InventoryProductPage(
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
+            product=self._inv_product(kitchen_id, product_id),
         )
 
     def get_grocery_page_data(
@@ -645,12 +668,11 @@ class DatabaseClient:
 
         # Loop through the grocery list products to fill up `grocery_products`
         for p_id in product_ids:
-            amount_matches = self._rj.get("kitchens", f"$.{kitchen_id}.grocery.{p_id}")
-            amount = amount_matches[0] if amount_matches else 0
-            product = self._get_product_from_kitchen(kitchen_id, p_id)
+            # Get the grocery product's data
+            product = self._groc_product(kitchen_id, p_id)
 
             # Overwrite the product category if the product isn't in the grocery list
-            if amount == 0:
+            if product.amount == 0:
                 product.category = "Unowned products"
 
             # Create an empty list in `grocery_products`
@@ -659,14 +681,7 @@ class DatabaseClient:
                 grocery_products[product.category] = []
 
             # Add the grocery item to its corresponding list
-            grocery_products[product.category].append(
-                GroceryProduct(
-                    id=product.id,
-                    name=product.name,
-                    category=product.category,
-                    amount=amount,
-                )
-            )
+            grocery_products[product.category].append(product)
 
         # Sort the product categories alphabetically, except
         # for "Unowned products", which goes at the end
@@ -677,20 +692,20 @@ class DatabaseClient:
         if "Unowned products" in grocery_products:
             sorted_product_categories.append("Unowned products")
 
-        sorted_grocery_products = {}
-
         # Insert product categories in the order we want
         # them to be iterated in. This works in Python 3.7+
         # because dictionaries iterate in insertion order.
-        for cat in sorted_product_categories:
-            sorted_grocery_products[cat] = sorted(
+        grocery_products = {
+            # Within the category, sort the products alphabetically
+            cat: sorted(
                 grocery_products[cat],
-                # Within the category, sort the products alphabetically
                 key=lambda p: p.name,
             )
+            for cat in sorted_product_categories
+        }
 
         return GroceryPageData(
-            products=sorted_grocery_products,
+            products=grocery_products,
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
         )
@@ -702,21 +717,9 @@ class DatabaseClient:
         product_id: str,
     ) -> GroceryProductPageData:
         """Returns the data required to render the grocery product page."""
-        # Get the grocery product's information
-        p = self._get_product_from_kitchen(kitchen_id, product_id)
-        amount = self.get_grocery_product_amount(kitchen_id, product_id)
-
-        # Construct the `GroceryProduct`
-        grocery_product = GroceryProduct(
-            name=p.name,
-            category=p.category,
-            id=p.id,
-            amount=amount,
-        )
-
         return GroceryProductPageData(
-            product=grocery_product,
-            has_expiry_date=False,
+            product=self._groc_product(kitchen_id, product_id),
+            has_expiry_date=False,  # TODO: Remove this
             **self._get_kitchen_data_as_dict(kitchen_id),
             **self._get_user_data_as_dict(email),
         )
