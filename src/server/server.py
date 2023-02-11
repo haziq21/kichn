@@ -32,8 +32,8 @@ def extract_request_owner(request: web.Request) -> Optional[str]:
     Returns the email address of the user who submitted the request,
     or `None` if the request's session token is missing or invalid.
     """
-    if "session_token" in request.cookies:
-        return db.get_session_owner(request.cookies["session_token"])
+    if "auth_token" in request.cookies:
+        return db.get_session_owner(request.cookies["auth_token"])
     return None
 
 
@@ -46,11 +46,11 @@ def is_htmx_request(request: web.Request) -> bool:
 
 
 async def login_page(_):
-    return html_response(templator.login())
+    return html_response(renderer.login())
 
 
 async def signup_page(_):
-    return html_response(templator.signup())
+    return html_response(renderer.signup())
 
 
 async def login(request: web.Request):
@@ -65,12 +65,12 @@ async def login(request: web.Request):
 
     if not db.login_is_valid(email, password):
         # Runs if the login credentials are invalid.
-        return html_response(body=templator.login_failed())
+        return html_response(body=renderer.login_failed())
     else:
         # Runs if returned otherwise [code is good to go]
         ses_create = db.create_session(email)
         res = htmx_redirect_response("/kitchens")
-        res.set_cookie("session_token", ses_create)
+        res.set_cookie("auth_token", ses_create)
 
         return res
 
@@ -89,12 +89,12 @@ async def signup(request: web.Request):
 
     if not db.create_user(username, email, password):
         # Runs if the email already exists in the user database.
-        return html_response(body=templator.signup_failed())
+        return html_response(body=renderer.signup_failed())
 
-    # Runs if returned otherwise [code is good to go]
-    session_token = db.create_session(email)
+    # Run if returned otherwise [code is good to go]
+    auth_token = db.create_session(email)
     res = htmx_redirect_response("/kitchens")
-    res.set_cookie("session_token", session_token)
+    res.set_cookie("auth_token", auth_token)
 
     return res
 
@@ -113,6 +113,9 @@ async def index(request: web.Request):
     raise web.HTTPFound("/kitchens")
 
 
+#### KITCHEN ####
+
+
 async def kitchens_page(request: web.Request):
     email = extract_request_owner(request)
 
@@ -122,7 +125,7 @@ async def kitchens_page(request: web.Request):
 
     # Render and return the HTML response
     page_data = db.get_kitchens_page_data(email)
-    return html_response(templator.kitchens_page(page_data))
+    return html_response(renderer.kitchens_page(page_data))
 
 
 async def new_kitchen(request: web.Request):
@@ -145,13 +148,27 @@ async def new_kitchen(request: web.Request):
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
 
+async def kitchen_share(request: web.Request):
+    return web.Response(status=200)
+
+
+async def kitchen_unshare(request: web.Request):
+    return web.Response(status=200)
+
+
+async def kitchen_leave(request: web.Request):
+    return web.Response(status=200)
+
+
 async def kitchen_index(request: web.Request):
     kitchen_id_url = request.match_info["kitchen_id"]
+    # Redirect any /kitchens/{kitchen_id} request to /kitchens/{kitchen_id}/inventory
     direct_url = f"/kitchens/{kitchen_id_url}/inventory"
     raise web.HTTPFound(direct_url)
 
 
-#### KITCHEN INVENTORY ####
+async def kitchen_settings(request: web.Request):
+    return web.Response(status=200)
 
 
 #### MISC ####
@@ -166,12 +183,14 @@ async def static_asset(request: web.Request):
     if file is None:
         raise web.HTTPUnauthorized()
 
+    # Define content type
     content_types = {
         "css": "text/css",
         "js": "text/javascript",
         "svg": "image/svg+xml",
     }
 
+    # Take filepath's content type (e.g. picture.jpg, will extract jpg)
     file_ext = filepath.split(".")[-1]
     return web.Response(body=file, content_type=content_types[file_ext])
 
@@ -214,7 +233,7 @@ async def grocery_page(request: web.Request):
 
     # Render and return the HTML response
     page_data = db.get_grocery_page_data(email, kitchen_id)
-    return html_response(templator.grocery_page(page_data))
+    return html_response(renderer.grocery_page(page_data))
 
 
 async def search_grocery(request: web.Request):
@@ -223,12 +242,13 @@ async def search_grocery(request: web.Request):
     email = extract_request_owner(request)
     kitchen_id = request.match_info["kitchen_id"]
 
+    # To make the checker happy...
     assert isinstance(email, str)
     assert isinstance(search_query, str)
 
     # Render and return the HTML response
     page_data = db.get_grocery_page_data(email, kitchen_id, search_query)
-    return html_response(templator.grocery_partial(page_data))
+    return html_response(renderer.grocery_partial(page_data))
 
 
 async def grocery_scan_get(request: web.Request):
@@ -249,7 +269,7 @@ async def grocery_product_page(request: web.Request):
         raise web.HTTPFound("/login")
 
     page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
-    return html_response(templator.grocery_product_page(page_data))
+    return html_response(renderer.grocery_product_page(page_data))
 
 
 async def set_product(request: web.Request):
@@ -264,7 +284,7 @@ async def set_product(request: web.Request):
     assert isinstance(email, str)
     page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
 
-    return html_response(templator.grocery_product_amount_partial(page_data))
+    return html_response(renderer.grocery_product_amount_partial(page_data))
 
 
 async def buy_grocery_product(request: web.Request):
@@ -280,6 +300,7 @@ async def buy_grocery_product(request: web.Request):
 
     # Assert that expiry and amount should be strings
     # and not integers, otherwise string values will be left out
+    # And also to make the checker happy...
     assert isinstance(exp_year, str)
     assert isinstance(exp_month, str)
     assert isinstance(exp_day, str)
@@ -308,14 +329,28 @@ async def inventory_page(request: web.Request):
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
 
     # Render and return the HTML response
-    page_data = db.get_inventory_page_data(user_email, kitchen_id)
-    return html_response(templator.inventory_page(page_data))
+    page_data = db.get_inventory_product_page_data(user_email, kitchen_id, product_id)
+    return html_response(renderer.inventory_product_page(page_data))
 
 
-async def inventory_product(request: web.Request):
-    return web.Response(status=200)
+async def inventory_product_page(request: web.Request):
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+    body = await request.post()
+    search_query = body["query"]
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    # To make the checker happy...
+    assert isinstance(search_query, str)
+
+    page_data = db.get_inventory_page_data(email, kitchen_id, search_query)
+    return html_response(renderer.inventory_page(page_data))
 
 
 async def inventory_use(request: web.Request):
@@ -327,7 +362,7 @@ async def inventory_search(request: web.Request):
 
 
 db = DatabaseClient("src/client/static", "server-store")
-templator = Renderer("src/client/templates")
+renderer = Renderer("src/client/templates")
 
 app = web.Application()
 app.add_routes(
@@ -338,10 +373,15 @@ app.add_routes(
         web.post("/login", login),
         web.get("/signup", signup_page),
         web.post("/signup", signup),
+        #### KITCHEN ####
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
-        #### GROCERY ####
+        web.get("/kitchens/{kitchen_id}/settings", kitchen_settings),
+        web.post("/kitchens/{kitchen_id}/settings/share", kitchen_share),
+        web.post("/kitchens/{kitchen_id}/settings/unshare", kitchen_unshare),
+        web.post("/kitchens/{kitchen_id}/settings/leave", kitchen_leave),
         web.get("/kitchens/{kitchen_id}", kitchen_index),
+        #### GROCERY ####
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
@@ -350,11 +390,14 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
-            "/kitchens/{kitchen_id}/grocery/{product_id}/buy", buy_grocery_product
+            "/kitchens/{kitchen_id}/grocery/{product_id}/buy",
+            buy_grocery_product,
         ),
         #### INVENTORY ####
         web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
-        web.get("/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product),
+        web.get(
+            "/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product_page
+        ),
         web.post("/kitchens/{kitchen_id}/inventory/{product_id}/use", inventory_use),
         web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
     ]
