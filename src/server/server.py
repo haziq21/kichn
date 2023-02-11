@@ -332,25 +332,27 @@ async def inventory_page(request: web.Request):
     product_id = request.match_info["product_id"]
 
     # Render and return the HTML response
-    page_data = db.get_inventory_product_page_data(user_email, kitchen_id, product_id)
-    return html_response(renderer.inventory_product_page(page_data))
+    page_data = db.get_inventory_page_data(user_email, kitchen_id, product_id)
+    return html_response(renderer.inventory_page(page_data))
 
 
 async def inventory_product_page(request: web.Request):
     email = extract_request_owner(request)
-    kitchen_id = request.match_info["kitchen_id"]
-    body = await request.post()
-    search_query = body["query"]
 
     if email is None:
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+    body = await request.post()
+    search_query = body["query"]
+
     # To make the checker happy...
     assert isinstance(search_query, str)
 
-    page_data = db.get_inventory_page_data(email, kitchen_id, search_query)
-    return html_response(renderer.inventory_page(page_data))
+    page_data = db.get_inventory_product_page_data(email, kitchen_id, product_id)
+    return html_response(renderer.inventory_product_page(page_data))
 
 
 async def inventory_use(request: web.Request):
