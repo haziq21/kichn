@@ -6,11 +6,11 @@ Authored by Haziq Hairil.
 
 import jinja2
 from .models import (
-    InventoryPageData,
     KitchensPageData,
+    InventoryPageData,
+    InventoryProductPage,
     GroceryPageData,
     GroceryProductPageData,
-    InventoryProductPage,
 )
 
 
@@ -50,18 +50,23 @@ class Renderer:
         """Returns the HTML fragment for when a signup request fails."""
         return "An account with this email address already exists."
 
-    #### KITCHENS ####
+    #### KITCHENS LIST ####
 
     def kitchens_page(self, page_data: KitchensPageData) -> str:
         """Returns the HTML of the kitchen list page."""
         return self._render("kitchens.html", data=page_data)
 
+    #### INVENTORY LIST ####
+
     def inventory_page(self, page_data: InventoryPageData) -> str:
         """Returns the HTML of the inventory page."""
         return self._render("inventory/index.html", data=page_data)
 
-    def inventory_product_page(self, page_data: InventoryProductPage):
-        pass
+    def inventory_product_page(self, page_data: InventoryProductPage) -> str:
+        """Returns the HTML of an inventory product's page."""
+        return self._render("inventory/product.html", data=page_data)
+
+    #### GROCERY LIST ####
 
     def grocery_page(self, page_data: GroceryPageData) -> str:
         """Returns the HTML of the grocery page."""
