@@ -76,7 +76,7 @@ class CustomPageData(User):
 
 @dataclass
 class GroceryProductPageData(User, Kitchen):
-    """Data model for the page on `/kitchens/{kitchen_id}/grocery/{product_id}`"""
+    """Data model for the page on '/kitchens/{kitchen_id}/grocery/{product_id}'"""
 
     product: GroceryProduct
 
