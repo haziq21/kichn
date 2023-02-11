@@ -331,10 +331,17 @@ class DatabaseClient:
     def _inv_product(self, kitchen_id: str, product_id: str) -> InventoryProduct:
         """Returns the specified `InventoryProduct`."""
         # Get the raw expiry data from the database
-        raw_expiry_data: dict[str, int] = self._rj.get(
+        expiry_data_matches = self._rj.get(
             "kitchens",
             f"$.{kitchen_id}.inventory.{product_id}",
-        )[0]
+        )
+        raw_expiry_data: dict[str, int] = (
+            # If there is no database entry for this product in the
+            # inventory list, we assign raw_expiry_data to an empty dict
+            expiry_data_matches[0]
+            if expiry_data_matches
+            else {}
+        )
 
         # Maps expiry timestamps to the amount of the product expiring on the date
         expiries: dict[date, int] = {
@@ -404,7 +411,7 @@ class DatabaseClient:
     ):
         """Updates the inventory list to have `amount` of the product."""
         if expiry:
-            expiry_timestamp = time.mktime(expiry.timetuple())
+            expiry_timestamp = int(time.mktime(expiry.timetuple()))
         else:
             # Store non-expirables as products with a -1 expiry date
             expiry_timestamp = -1
