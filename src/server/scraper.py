@@ -1,5 +1,7 @@
 """
 This module scrapes data from FairPrice's internal API.
+
+Authored by Lohith Tanuku
 """
 
 import asyncio
