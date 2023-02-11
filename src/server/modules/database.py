@@ -395,16 +395,6 @@ class DatabaseClient:
             amount=amount,
         )
 
-    def _total_inv_product_count(self, kitchen_id: str, product_id: str) -> int:
-        """
-        Returns the amount of the product present in the kitchen's inventory
-        list, regardless of expiry date.
-        """
-        amount_matches = self._rj.get(
-            "kitchens", f"$.{kitchen_id}.inventory.{product_id}.*"
-        )
-        return sum(amount_matches)
-
     def _set_inv_product_count(
         self,
         kitchen_id: str,
@@ -455,7 +445,7 @@ class DatabaseClient:
             amount,
         )
 
-    def set_grocery_product(self, kitchen_id: str, product_id: str, amount: int):
+    def set_groc_product_count(self, kitchen_id: str, product_id: str, amount: int):
         """
         Updates the grocery list to have `amount` of the specified
         product. If `amount` is negative, it will be treated as 0.
@@ -504,7 +494,7 @@ class DatabaseClient:
         groc_product = self._groc_product(kitchen_id, product_id)
 
         # Remove the product from the grocery list
-        self.set_grocery_product(
+        self.set_groc_product_count(
             kitchen_id,
             product_id,
             groc_product.amount - amount,
