@@ -12,8 +12,8 @@ from datetime import date
 
 @dataclass
 class Kitchen:
-    kitchen_name: str
-    kitchen_id: str
+    name: str
+    id: str
 
 
 @dataclass
@@ -44,40 +44,50 @@ class InventoryProduct(GroceryProduct):
 
 
 @dataclass
-class SortedInventoryPage(User, Kitchen):
+class SortedInventoryPage:
+    user: User
+    kitchen: Kitchen
     products: list[InventoryProduct]
 
 
 @dataclass
-class InventoryPage(User, Kitchen):
+class InventoryPage:
     """Page model for '/kitchens/{kitchen_id}/inventory'"""
 
+    user: User
+    kitchen: Kitchen
     products: dict[str, list[InventoryProduct]]
 
 
 @dataclass
-class GroceryPage(User, Kitchen):
+class GroceryPage:
     """Page model for '/kitchens/{kitchen_id}/grocery'"""
 
+    user: User
+    kitchen: Kitchen
     products: dict[str, list[GroceryProduct]]
 
 
 @dataclass
-class KitchensPage(User):
+class KitchensPage:
     """Page model for '/kitchens'"""
 
+    user: User
     kitchens: list[Kitchen]
 
 
 @dataclass
-class CustomPage(User):
+class CustomPage:
+    user: User
     products: list[Product]
 
 
 @dataclass
-class GroceryProductPage(User, Kitchen):
+class GroceryProductPage:
     """Data model for the page on '/kitchens/{kitchen_id}/grocery/{product_id}'"""
 
+    user: User
+    kitchen: Kitchen
     product: GroceryProduct
 
 
