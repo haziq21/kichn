@@ -236,6 +236,16 @@ class DatabaseClient:
 
         return is_owned or is_shared
 
+    def user_owns_kitchen(self, email: str, kitchen_id: str) -> bool:
+        # Get the index of the kitchen_id in the user's list of owned kitchens
+        index: int = self._rj.arrindex(
+            f"user:{email}",
+            "$.owned-kitchens",
+            kitchen_id,
+        )[0]
+        # The index would be -1 if the kitchen_id isn't in the list
+        return index != -1
+
     #### SESSION MANAGEMENT ####
 
     def create_session(self, email: str) -> str:
