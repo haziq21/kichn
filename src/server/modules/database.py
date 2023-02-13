@@ -20,10 +20,10 @@ from .models import (
     Product,
     InventoryProduct,
     GroceryProduct,
-    KitchensPageData,
-    InventoryPageData,
-    GroceryPageData,
-    GroceryProductPageData,
+    KitchensPage,
+    InventoryPage,
+    GroceryPage,
+    GroceryProductPage,
     InventoryProductPage,
 )
 
@@ -574,7 +574,7 @@ class DatabaseClient:
             kitchen_name=kitchen_name,
         )
 
-    def get_kitchens_page_data(self, email: str) -> KitchensPageData:
+    def get_kitchens_page_data(self, email: str) -> KitchensPage:
         """Returns the data necessary to render the kitchen list page."""
         # Get the IDs of all the kitchens that the user is in
 
@@ -595,7 +595,7 @@ class DatabaseClient:
                 )
             )
 
-        return KitchensPageData(
+        return KitchensPage(
             kitchens=kitchens,
             **self._get_user_data_as_dict(email),
         )
@@ -605,7 +605,7 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
         search_query="",
-    ) -> InventoryPageData:
+    ) -> InventoryPage:
         """Returns the data necessary to render the inventory list page."""
         # Get the IDs of all the products on the
         # inventory page that match the search query
@@ -638,7 +638,7 @@ class DatabaseClient:
             for cat in sorted(products.keys())
         }
 
-        return InventoryPageData(
+        return InventoryPage(
             products=products,
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
@@ -662,7 +662,7 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
         search_query="",
-    ) -> GroceryPageData:
+    ) -> GroceryPage:
         """Returns the data required to render the grocery list page."""
 
         # Maps category names to lists of grocery items
@@ -714,7 +714,7 @@ class DatabaseClient:
             for cat in sorted_product_categories
         }
 
-        return GroceryPageData(
+        return GroceryPage(
             products=grocery_products,
             **self._get_user_data_as_dict(email),
             **self._get_kitchen_data_as_dict(kitchen_id),
@@ -725,9 +725,9 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
         product_id: str,
-    ) -> GroceryProductPageData:
+    ) -> GroceryProductPage:
         """Returns the data required to render the grocery product page."""
-        return GroceryProductPageData(
+        return GroceryProductPage(
             product=self._groc_product(kitchen_id, product_id),
             **self._get_kitchen_data_as_dict(kitchen_id),
             **self._get_user_data_as_dict(email),
