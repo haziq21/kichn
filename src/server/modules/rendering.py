@@ -6,11 +6,11 @@ Authored by Haziq Hairil.
 
 import jinja2
 from .models import (
-    KitchensPageData,
-    InventoryPageData,
+    KitchensPage,
+    InventoryPage,
     InventoryProductPage,
-    GroceryPageData,
-    GroceryProductPageData,
+    GroceryPage,
+    GroceryProductPage,
 )
 
 
@@ -52,13 +52,13 @@ class Renderer:
 
     #### KITCHENS LIST ####
 
-    def kitchens_page(self, page_data: KitchensPageData) -> str:
+    def kitchens_page(self, page_data: KitchensPage) -> str:
         """Returns the HTML of the kitchen list page."""
         return self._render("kitchens.html", data=page_data)
 
     #### INVENTORY LIST ####
 
-    def inventory_page(self, page_data: InventoryPageData) -> str:
+    def inventory_page(self, page_data: InventoryPage) -> str:
         """Returns the HTML of the inventory page."""
         return self._render("inventory/index.html", data=page_data)
 
@@ -68,18 +68,18 @@ class Renderer:
 
     #### GROCERY LIST ####
 
-    def grocery_page(self, page_data: GroceryPageData) -> str:
+    def grocery_page(self, page_data: GroceryPage) -> str:
         """Returns the HTML of the grocery page."""
         return self._render("grocery/index.html", data=page_data)
 
-    def grocery_partial(self, page_data: GroceryPageData) -> str:
+    def grocery_partial(self, page_data: GroceryPage) -> str:
         """Returns the HTML partial of the grocery list."""
         return self._render("grocery/list.partial.html", data=page_data)
 
-    def grocery_product_page(self, page_data: GroceryProductPageData) -> str:
+    def grocery_product_page(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML of a grocery product's page."""
         return self._render("grocery/product.html", data=page_data)
 
-    def grocery_product_amount_partial(self, page_data: GroceryProductPageData) -> str:
+    def grocery_product_amount_partial(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML partial of a grocery product's amount adjuster"""
         return self._render("grocery/amount.partial.html", data=page_data)
