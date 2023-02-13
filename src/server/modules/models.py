@@ -44,38 +44,38 @@ class InventoryProduct(GroceryProduct):
 
 
 @dataclass
-class SortedInventoryPageData(User, Kitchen):
+class SortedInventoryPage(User, Kitchen):
     products: list[InventoryProduct]
 
 
 @dataclass
-class InventoryPageData(User, Kitchen):
+class InventoryPage(User, Kitchen):
     """Page model for '/kitchens/{kitchen_id}/inventory'"""
 
     products: dict[str, list[InventoryProduct]]
 
 
 @dataclass
-class GroceryPageData(User, Kitchen):
+class GroceryPage(User, Kitchen):
     """Page model for '/kitchens/{kitchen_id}/grocery'"""
 
     products: dict[str, list[GroceryProduct]]
 
 
 @dataclass
-class KitchensPageData(User):
+class KitchensPage(User):
     """Page model for '/kitchens'"""
 
     kitchens: list[Kitchen]
 
 
 @dataclass
-class CustomPageData(User):
+class CustomPage(User):
     products: list[Product]
 
 
 @dataclass
-class GroceryProductPageData(User, Kitchen):
+class GroceryProductPage(User, Kitchen):
     """Data model for the page on '/kitchens/{kitchen_id}/grocery/{product_id}'"""
 
     product: GroceryProduct
