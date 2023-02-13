@@ -359,7 +359,6 @@ class DatabaseClient:
         expiries = {k: expiries[k] for k in sorted(expiries.keys())}
 
         # Get the amount of non-expirables
-        # TODO: Use this
         non_expiries: int = raw_expiry_data.get("-1", 0)
 
         # Get the product's name and category
@@ -380,6 +379,7 @@ class DatabaseClient:
             category=p.category,
             amount=amount,
             expiries=expiries,
+            non_expirables=non_expiries,
         )
 
     def _groc_product(self, kitchen_id: str, product_id: str) -> GroceryProduct:
@@ -719,7 +719,6 @@ class DatabaseClient:
         """Returns the data required to render the grocery product page."""
         return GroceryProductPageData(
             product=self._groc_product(kitchen_id, product_id),
-            has_expiry_date=False,  # TODO: Remove this
             **self._get_kitchen_data_as_dict(kitchen_id),
             **self._get_user_data_as_dict(email),
         )
