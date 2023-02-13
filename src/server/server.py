@@ -329,10 +329,9 @@ async def inventory_page(request: web.Request):
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
-    product_id = request.match_info["product_id"]
 
     # Render and return the HTML response
-    page_data = db.get_inventory_page_data(email, kitchen_id, product_id)
+    page_data = db.get_inventory_page_data(email, kitchen_id)
     return html_response(renderer.inventory_page(page_data))
 
 
