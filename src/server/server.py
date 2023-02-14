@@ -6,7 +6,6 @@ Authored by Haziq. Typed by Evan.
 """
 
 from aiohttp import web
-from datetime import date
 from typing import Optional
 from modules.database import DatabaseClient
 from modules.rendering import Renderer
@@ -33,7 +32,7 @@ def extract_request_owner(request: web.Request) -> Optional[str]:
     or `None` if the request's session token is missing or invalid.
     """
     if "auth_token" in request.cookies:
-        return db.get_session_owner(request.cookies["auth_token"])
+        return db.get_auth_token_owner(request.cookies["auth_token"])
     return None
 
 
@@ -68,7 +67,7 @@ async def login(request: web.Request):
         return html_response(body=renderer.login_failed())
     else:
         # Runs if returned otherwise [code is good to go]
-        ses_create = db.create_session(email)
+        ses_create = db.generate_auth_token(email)
         res = htmx_redirect_response("/kitchens")
         res.set_cookie("auth_token", ses_create)
 
@@ -92,7 +91,7 @@ async def signup(request: web.Request):
         return html_response(body=renderer.signup_failed())
 
     # Run if returned otherwise [code is good to go]
-    auth_token = db.create_session(email)
+    auth_token = db.generate_auth_token(email)
     res = htmx_redirect_response("/kitchens")
     res.set_cookie("auth_token", auth_token)
 

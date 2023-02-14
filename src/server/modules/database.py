@@ -202,12 +202,6 @@ class DatabaseClient:
 
         return True
 
-    def get_user(self, email: str) -> User:
-        """Returns the `User` with the specified email address."""
-        username = self._rj.get(f"user:{email}", "$.name")[0]
-
-        return User(email=email, username=username)
-
     def user_has_access_to_kitchen(self, email: str, kitchen_id: str) -> bool:
         """Returns whether the user has access to the specified kitchen."""
         # Whether the kitchen is owned by the user
@@ -246,27 +240,27 @@ class DatabaseClient:
         # The index would be -1 if the kitchen_id isn't in the list
         return index != -1
 
-    #### SESSION MANAGEMENT ####
+    #### AUTHENTICATION TOKENS ####
 
-    def create_session(self, email: str) -> str:
-        """Creates and returns a session token for the specified user."""
-        session_token = _gen_random_id()
-        # Store the session in the database
-        self._r.hset("sessions", session_token, email)
+    def generate_auth_token(self, email: str) -> str:
+        """Creates and returns an authentication token for the user."""
+        auth_token = _gen_random_id()
+        # Store the auth token in the database
+        self._r.hset("auth-tokens", auth_token, email)
 
-        return session_token
+        return auth_token
 
-    def delete_session(self, session_token: str):
-        """Removes the session token from the database."""
-        self._r.hdel("sessions", session_token)
+    def delete_auth_token(self, auth_token: str):
+        """Removes the authentication token from the database."""
+        self._r.hdel("auth-tokens", auth_token)
 
-    def get_session_owner(self, session_token: str) -> Optional[str]:
+    def get_auth_token_owner(self, auth_token: str) -> Optional[str]:
         """
         Returns the email address of the user who owns the specified
-        session token, or `None` if the session token is invalid.
+        authentication token, or `None` if the token is invalid.
         """
-        # Email address of the session's owner
-        email_bytes = self._r.hget("sessions", session_token)
+        # Email address of the token's owner
+        email_bytes = self._r.hget("auth-tokens", auth_token)
 
         if email_bytes is None:
             # The session token doesn't exist (it is invalid)
@@ -303,12 +297,15 @@ class DatabaseClient:
         """Sets the name of the kitchen to `new_name`."""
         self._rj.set("kitchens", f"$.{kitchen_id}.name", new_name)
 
-    def delete_kitchen(self, kitchen_id: str):
-        """Deletes the kitchen from the database."""
-        # TODO: Remember to delete the kitchen ID from users' owned-kitchens and shared-kitchens
-        self._rj.delete("kitchens", f"$.{kitchen_id}")
+    def share_kitchen(self, kitchen_id: str, email: str):
+        """Adds the user as a member of the kitchen."""
+        # Add the kitchen to the user's list of kitchens that have been shared with the user
+        self._rj.arrappend(f"user:{email}", "$.shared-kitchens", kitchen_id)
 
-    #### PRODUCT GETTERS & SETTERS ####
+        # Add the user to the kitchen's list of non-admin members
+        self._rj.arrappend("kitchens", f"$.{kitchen_id}.nonAdmins", email)
+
+    #### PRODUCT LIST MANAGEMENT ####
 
     def _product(self, kitchen_id: str, product_id: str) -> Product:
         """
@@ -346,28 +343,30 @@ class DatabaseClient:
             "kitchens",
             f"$.{kitchen_id}.inventory.{product_id}",
         )
-        raw_expiry_data: dict[str, int] = (
+        raw_expiry_data: dict[str, int]
+
+        if expiry_data_matches:
+            raw_expiry_data = expiry_data_matches[0]
+        else:
             # If there is no database entry for this product in the
             # inventory list, we assign raw_expiry_data to an empty dict
-            expiry_data_matches[0]
-            if expiry_data_matches
-            else {}
-        )
+            raw_expiry_data = {}
 
-        # Maps expiry timestamps to the amount of the product expiring on the date
+        # Maps expiry dates to the amount of the product expiring on the date
         expiries: dict[date, int] = {
-            # Cast the expiry timestamp from a str into a date
-            date.fromtimestamp(float(k)): v
+            # Cast the expiry timestamp from a str
+            # (in unix timestamp format) into a date
+            date.fromtimestamp(float(exp)): amt
             # Iterate through the key-value pairs of the expiry data
-            for k, v in raw_expiry_data.items()
+            for exp, amt in raw_expiry_data.items()
             # Skip non-expirables (indicated with a -1 expiry date)
-            if k != "-1"
+            if exp != "-1"
         }
 
         # Insert products in the order we want to iterate over them
         # (in order of their expiry date). This works in Python 3.7+
         # because dictionaries iterate in insertion order.
-        expiries = {k: expiries[k] for k in sorted(expiries.keys())}
+        expiries = {exp: expiries[exp] for exp in sorted(expiries.keys())}
 
         # Get the amount of non-expirables
         non_expiries: int = raw_expiry_data.get("-1", 0)
@@ -505,7 +504,7 @@ class DatabaseClient:
         `expiry` is a tuple in the form of `(year, month, date)`.
         """
 
-        # Convert the (year, month, date) tuple to a date
+        # Convert the (year, month, date) tuple to a date object
         expiry_date = date(*expiry) if expiry else None
 
         # Get the grocery product's data
@@ -535,7 +534,7 @@ class DatabaseClient:
             inital_inv_amt + amount,
         )
 
-    #### PAGE DATA METHODS ####
+    #### PAGE MODEL GETTERS ####
 
     def _user(self, email: str) -> User:
         """Gets the `User` with the specified email address."""
