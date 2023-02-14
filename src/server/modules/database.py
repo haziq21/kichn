@@ -289,6 +289,7 @@ class DatabaseClient:
             f"$.{kitchen_id}",
             {
                 "name": kitchen_name,
+                "nonAdmins": [],
                 "grocery": {},
                 "inventory": {},
                 "customProducts": {},
@@ -713,10 +714,14 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
     ) -> SharingSettingsPage:
-    # TODO: 
-        # self._rj(f"user:{email}", f"$.")
+        # Get the emails of all the non-admin members of the kitchen
+        member_emails: list[str] = self._rj.get(
+            f"kitchens",
+            f"$.{kitchen_id}.nonAdmins",
+        )[0]
+
         return SharingSettingsPage(
             user=self._user(email),
             kitchen=self._kitchen(kitchen_id),
-            members=[],
+            members=[self._user(e) for e in member_emails],
         )

@@ -11,6 +11,7 @@ from .models import (
     InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
+    SharingSettingsPage,
 )
 
 
@@ -83,3 +84,9 @@ class Renderer:
     def grocery_product_amount_partial(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML partial of a grocery product's amount adjuster"""
         return self._render("grocery/amount.partial.html", data=page_data)
+
+    #### KITCHEN SETTINGS ####
+
+    def sharing_settings(self, page_data: SharingSettingsPage) -> str:
+        """Returns the HTML of the admin kitchen settings page."""
+        return self._render("settings/admin.html", data=page_data)
