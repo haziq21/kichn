@@ -1,28 +1,4 @@
-{% extends "_layout.html" %} {% block title %} {{data.kitchen.name}} | Kichn {%
-endblock %} {% block header_title %} {{data.kitchen.name}} {% endblock %} {%
-block nav_items %}
-<li p="x-2 b-1.5">
-  <a href="/kitchens">
-    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
-  </a>
-</li>
-<li p="x-2 b-2" border="b-3 transparent">
-  <a
-    href="/kitchens/{{data.kitchen.id}}/inventory"
-    text="gray-500 hover:inherit"
-  >
-    Inventory
-  </a>
-</li>
-<li p="x-2 b-2" border="b-3 gray-800">
-  <a href="/kitchens/{{data.kitchen.id}}/grocery">Grocery</a>
-</li>
-<li p="x-2 b-2" border="b-3 transparent">
-  <a href="/kitchens/{{data.kitchen.id}}/custom" text="gray-500 hover:inherit">
-    Custom products
-  </a>
-</li>
-{% endblock %} {% block main %}
+{% extends "_kitchen_layout.html" %} {% block main %}
 
 <!-- Product image -->
 <div pos="relative" m="b-4">
@@ -51,12 +27,15 @@ block nav_items %}
     Alpine.data("date_input", (max) => ({
       newValue(currVal, newChar) {
         if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
-          num = parseFloat(currVal.slice(1) + newChar);
-          return num > max
-            ? "0".repeat(max.toString().length - 1) + newChar
-            : num == 0
-            ? currVal
-            : currVal.slice(1) + newChar;
+          newNum = parseFloat(currVal.slice(1) + newChar);
+          return newNum == 0 || (newNum > max && newChar == "0")
+            ? // Don't change the value
+              currVal
+            : newNum > max && newChar != "0"
+            ? // Set the new character to be the single digit
+              "0".repeat(max.toString().length - 1) + newChar
+            : // Shift everything left
+              currVal.slice(1) + newChar;
         }
         return newChar == "Tab" ? null : currVal;
       },
@@ -139,7 +118,7 @@ block nav_items %}
     m="x-auto b-6"
   >
     <button
-      @click="amount = amount == 1 ? 1 : amount - 1"
+      @click.prevent="amount = amount == 1 ? 1 : amount - 1"
       rounded="full"
       bg="gray-100 hover:gray-200"
       p="2"
@@ -162,7 +141,7 @@ block nav_items %}
     <input type="hidden" name="amount" :value="amount" />
 
     <button
-      @click="amount += 1"
+      @click.prevent="amount += 1"
       rounded="full"
       bg="gray-100 hover:gray-200"
       p="2"

@@ -1,0 +1,46 @@
+{% extends "_layout.html" %} {% block title %} {{data.kitchen.name}} | Kichn {%
+endblock %} {% block header_title %} {{data.kitchen.name}} {% endblock %} {%
+block nav_items %}
+<li p="x-2 b-1.5">
+  <a href="/kitchens">
+    <img src="/static/home-icon.svg" alt="Home" h="8" w="8" />
+  </a>
+</li>
+
+{% if page_type == "inventory" %}
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen.id}}/inventory">Inventory</a>
+</li>
+{% else %}
+<li p="x-2 b-2" border="b-3 transparent">
+  <a
+    href="/kitchens/{{data.kitchen.id}}/inventory"
+    text="gray-500 hover:inherit"
+  >
+    Inventory
+  </a>
+</li>
+{% endif %} {% if page_type == "grocery" %}
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen.id}}/grocery">Grocery</a>
+</li>
+{% else %}
+<li p="x-2 b-2" border="b-3 transparent">
+  <a href="/kitchens/{{data.kitchen.id}}/grocery" text="gray-500 hover:inherit">
+    Grocery
+  </a>
+</li>
+{% endif %} {% if page_type == "settings" %}
+<li p="x-2 b-2" border="b-3 gray-800">
+  <a href="/kitchens/{{data.kitchen.id}}/settings">Kitchen settings</a>
+</li>
+{% else %}
+<li p="x-2 b-2" border="b-3 transparent">
+  <a
+    href="/kitchens/{{data.kitchen.id}}/settings"
+    text="gray-500 hover:inherit"
+  >
+    Kitchen settings
+  </a>
+</li>
+{% endif %} {% endblock %} {% block main %} {% endblock %}
