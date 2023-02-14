@@ -8,23 +8,23 @@ import redis
 import argon2
 import string
 import random
-import dataclasses  # TODO: Remove this
 import time
 from datetime import date
 from pathlib import Path
 from typing import Optional
 from .search import SearchClient
 from .models import (
-    Kitchen,
     User,
+    Kitchen,
     Product,
     InventoryProduct,
     GroceryProduct,
     KitchensPage,
     InventoryPage,
+    InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
-    InventoryProductPage,
+    SharingSettingsPage,
 )
 
 
@@ -536,42 +536,17 @@ class DatabaseClient:
 
     #### PAGE DATA METHODS ####
 
-    def _get_user_data_as_dict(self, email: str) -> dict:
-        """
-        Returns a dictionary version of the `User` with the
-        specified `email`, to be unpacked into another dataclass.
-        """
-        # Construct the `User` object
-        username = self._rj.get(f"user:{email}", "$.name")[0]
-        user = User(email=email, username=username)
-
-        return dataclasses.asdict(user)
-
     def _user(self, email: str) -> User:
         """Gets the `User` with the specified email address."""
         username = self._rj.get(f"user:{email}", "$.name")[0]
         return User(email=email, username=username)
 
-    def _get_kitchen_data_as_dict(self, kitchen_id: str) -> dict:
-        """
-        Returns a dictionary version of the `Kitchen` with the
-        specified `kitchen_id`, to be unpacked into another dataclass.
-        """
-        # Construct the `Kitchen` object
-        kitchen_name = self._rj.get("kitchens", f"$.{kitchen_id}.name")[0]
-        kitchen = Kitchen(
-            kitchen_id=kitchen_id,
-            kitchen_name=kitchen_name,
-        )
-
-        return dataclasses.asdict(kitchen)
-
     def _kitchen(self, kitchen_id: str) -> Kitchen:
         """Gets the `Kitchen` with the specified ID."""
         kitchen_name = self._rj.get("kitchens", f"$.{kitchen_id}.name")[0]
         return Kitchen(
-            kitchen_id=kitchen_id,
-            kitchen_name=kitchen_name,
+            id=kitchen_id,
+            name=kitchen_name,
         )
 
     def get_kitchens_page_data(self, email: str) -> KitchensPage:
@@ -590,14 +565,14 @@ class DatabaseClient:
 
             kitchens.append(
                 Kitchen(
-                    kitchen_id=k_id,
-                    kitchen_name=kitchen_name,
+                    id=k_id,
+                    name=kitchen_name,
                 )
             )
 
         return KitchensPage(
             kitchens=kitchens,
-            **self._get_user_data_as_dict(email),
+            user=self._user(email),
         )
 
     def get_inventory_page_data(
@@ -640,8 +615,8 @@ class DatabaseClient:
 
         return InventoryPage(
             products=products,
-            **self._get_user_data_as_dict(email),
-            **self._get_kitchen_data_as_dict(kitchen_id),
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
         )
 
     def get_inventory_product_page_data(
@@ -716,8 +691,8 @@ class DatabaseClient:
 
         return GroceryPage(
             products=grocery_products,
-            **self._get_user_data_as_dict(email),
-            **self._get_kitchen_data_as_dict(kitchen_id),
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
         )
 
     def get_grocery_product_page_data(
@@ -729,6 +704,19 @@ class DatabaseClient:
         """Returns the data required to render the grocery product page."""
         return GroceryProductPage(
             product=self._groc_product(kitchen_id, product_id),
-            **self._get_kitchen_data_as_dict(kitchen_id),
-            **self._get_user_data_as_dict(email),
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
+        )
+
+    def get_sharing_settings_page_data(
+        self,
+        email: str,
+        kitchen_id: str,
+    ) -> SharingSettingsPage:
+    # TODO: 
+        # self._rj(f"user:{email}", f"$.")
+        return SharingSettingsPage(
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
+            members=[],
         )

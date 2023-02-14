@@ -1,5 +1,5 @@
-{% extends "_layout.html" %} {% block title %} {{data.kitchen_name}} | Kichn {%
-endblock %} {% block header_title %} {{data.kitchen_name}} {% endblock %} {%
+{% extends "_layout.html" %} {% block title %} {{data.kitchen.name}} | Kichn {%
+endblock %} {% block header_title %} {{data.kitchen.name}} {% endblock %} {%
 block nav_items %}
 <li p="x-2 b-1.5">
   <a href="/kitchens">
@@ -8,17 +8,17 @@ block nav_items %}
 </li>
 <li p="x-2 b-2" border="b-3 transparent">
   <a
-    href="/kitchens/{{data.kitchen_id}}/inventory"
+    href="/kitchens/{{data.kitchen.id}}/inventory"
     text="gray-500 hover:inherit"
   >
     Inventory
   </a>
 </li>
 <li p="x-2 b-2" border="b-3 gray-800">
-  <a href="/kitchens/{{data.kitchen_id}}/grocery">Grocery</a>
+  <a href="/kitchens/{{data.kitchen.id}}/grocery">Grocery</a>
 </li>
 <li p="x-2 b-2" border="b-3 transparent">
-  <a href="/kitchens/{{data.kitchen_id}}/custom" text="gray-500 hover:inherit">
+  <a href="/kitchens/{{data.kitchen.id}}/custom" text="gray-500 hover:inherit">
     Custom products
   </a>
 </li>

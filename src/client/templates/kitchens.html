@@ -43,7 +43,7 @@ endblock %} {% block nav_items %}
   {% for kitchen in data.kitchens %}
   <li>
     <a
-      href="/kitchens/{{kitchen.kitchen_id}}/inventory"
+      href="/kitchens/{{kitchen.id}}/inventory"
       text="lg"
       m="b-2"
       p="x-4 y-2"
@@ -52,7 +52,7 @@ endblock %} {% block nav_items %}
       bg="hover:gray-50"
       display="block"
     >
-      {{kitchen.kitchen_name}}
+      {{kitchen.name}}
     </a>
   </li>
   {% endfor %}
