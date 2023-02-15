@@ -713,6 +713,7 @@ class DatabaseClient:
         email: str,
         kitchen_id: str,
     ) -> SharingSettingsPage:
+        """Returns the data required to render the sharing settings page."""
         # Get the emails of all the non-admin members of the kitchen
         member_emails: list[str] = self._rj.get(
             f"kitchens",
