@@ -20,12 +20,12 @@ from .models import (
     InventoryProduct,
     GroceryProduct,
     GenericKitchenPage,
-    KitchensPage,
+    KitchenListPage,
     InventoryPage,
     InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
-    SharingSettingsPage,
+    AdminSettingsPage,
 )
 
 
@@ -550,7 +550,7 @@ class DatabaseClient:
             name=kitchen_name,
         )
 
-    def kitchens_page_model(self, email: str) -> KitchensPage:
+    def kitchens_page_model(self, email: str) -> KitchenListPage:
         """Returns the data necessary to render the kitchen list page."""
         # Get the IDs of all the kitchens that the user is in
 
@@ -571,7 +571,7 @@ class DatabaseClient:
                 )
             )
 
-        return KitchensPage(
+        return KitchenListPage(
             kitchens=kitchens,
             user=self._user(email),
         )
@@ -713,7 +713,7 @@ class DatabaseClient:
         self,
         email: str,
         kitchen_id: str,
-    ) -> SharingSettingsPage:
+    ) -> AdminSettingsPage:
         """
         Returns the data required to render
         the settings page for kitchen admins.
@@ -724,7 +724,7 @@ class DatabaseClient:
             f"$.{kitchen_id}.nonAdmins",
         )[0]
 
-        return SharingSettingsPage(
+        return AdminSettingsPage(
             user=self._user(email),
             kitchen=self._kitchen(kitchen_id),
             members=[self._user(e) for e in member_emails],

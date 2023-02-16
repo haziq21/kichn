@@ -7,12 +7,12 @@ Authored by Haziq Hairil.
 import jinja2
 from .models import (
     GenericKitchenPage,
-    KitchensPage,
+    KitchenListPage,
     InventoryPage,
     InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
-    SharingSettingsPage,
+    AdminSettingsPage,
 )
 
 
@@ -57,7 +57,7 @@ class Renderer:
 
     #### KITCHENS LIST ####
 
-    def kitchens_page(self, page_data: KitchensPage) -> str:
+    def kitchens_page(self, page_data: KitchenListPage) -> str:
         """Returns the HTML of the kitchen list page."""
         return self._render("kitchens.html", data=page_data)
 
@@ -115,7 +115,7 @@ class Renderer:
 
     #### KITCHEN SETTINGS ####
 
-    def admin_settings(self, page_data: SharingSettingsPage) -> str:
+    def admin_settings(self, page_data: AdminSettingsPage) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
             "settings/admin.html",

@@ -44,7 +44,7 @@ class InventoryProduct(GroceryProduct):
 
 
 @dataclass
-class KitchensPage:
+class KitchenListPage:
     """Page model for `/kitchens`."""
 
     user: User
@@ -96,7 +96,7 @@ class InventoryProductPage(GenericKitchenPage):
 
 
 @dataclass
-class SharingSettingsPage(GenericKitchenPage):
+class AdminSettingsPage(GenericKitchenPage):
     """
     Page model for the page on `/kitchens/{kitchen_id}/settings`.
     This page is only seen by admins of the kitchen.
