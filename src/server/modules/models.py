@@ -44,62 +44,62 @@ class InventoryProduct(GroceryProduct):
 
 
 @dataclass
-class SortedInventoryPage:
-    user: User
-    kitchen: Kitchen
-    products: list[InventoryProduct]
-
-
-@dataclass
-class InventoryPage:
-    """Page model for '/kitchens/{kitchen_id}/inventory'"""
-
-    user: User
-    kitchen: Kitchen
-    products: dict[str, list[InventoryProduct]]
-
-
-@dataclass
-class GroceryPage:
-    """Page model for '/kitchens/{kitchen_id}/grocery'"""
-
-    user: User
-    kitchen: Kitchen
-    products: dict[str, list[GroceryProduct]]
-
-
-@dataclass
 class KitchensPage:
-    """Page model for '/kitchens'"""
+    """Page model for `/kitchens`."""
 
     user: User
     kitchens: list[Kitchen]
 
 
 @dataclass
-class CustomPage:
-    user: User
-    products: list[Product]
-
-
-@dataclass
-class GroceryProductPage:
-    """Data model for the page on '/kitchens/{kitchen_id}/grocery/{product_id}'"""
+class GenericKitchenPage:
+    """
+    Serves as a base class for all the page models
+    that represent a route under `kitchens/{kitchen_id}/`.
+    """
 
     user: User
     kitchen: Kitchen
+
+
+@dataclass
+class SortedInventoryPage(GenericKitchenPage):
+    products: list[InventoryProduct]
+
+
+@dataclass
+class InventoryPage(GenericKitchenPage):
+    """Page model for `/kitchens/{kitchen_id}/inventory`."""
+
+    products: dict[str, list[InventoryProduct]]
+
+
+@dataclass
+class GroceryPage(GenericKitchenPage):
+    """Page model for `/kitchens/{kitchen_id}/grocery`."""
+
+    products: dict[str, list[GroceryProduct]]
+
+
+@dataclass
+class GroceryProductPage(GenericKitchenPage):
+    """Page model for the page on `/kitchens/{kitchen_id}/grocery/{product_id}`."""
+
     product: GroceryProduct
 
 
 @dataclass
-class InventoryProductPage:
-    user: User
-    kitchen: Kitchen
+class InventoryProductPage(GenericKitchenPage):
+    """Page model for the page on `/kitchens/{kitchen_id}/inventory/{product_id}`."""
+
     product: InventoryProduct
 
 
 @dataclass
-class SharingSettingsPage:
-    user: User
-    kitchen: Kitchen
+class SharingSettingsPage(GenericKitchenPage):
+    """
+    Page model for the page on `/kitchens/{kitchen_id}/settings`.
+    This page is only seen by admins of the kitchen.
+    """
+
     members: list[User]
