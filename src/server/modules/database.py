@@ -19,6 +19,7 @@ from .models import (
     Product,
     InventoryProduct,
     GroceryProduct,
+    GenericKitchenPage,
     KitchensPage,
     InventoryPage,
     InventoryProductPage,
@@ -549,7 +550,7 @@ class DatabaseClient:
             name=kitchen_name,
         )
 
-    def get_kitchens_page_data(self, email: str) -> KitchensPage:
+    def kitchens_page_model(self, email: str) -> KitchensPage:
         """Returns the data necessary to render the kitchen list page."""
         # Get the IDs of all the kitchens that the user is in
 
@@ -575,7 +576,7 @@ class DatabaseClient:
             user=self._user(email),
         )
 
-    def get_inventory_page_data(
+    def inventory_page_model(
         self,
         email: str,
         kitchen_id: str,
@@ -619,7 +620,7 @@ class DatabaseClient:
             kitchen=self._kitchen(kitchen_id),
         )
 
-    def get_inventory_product_page_data(
+    def inventory_product_page_model(
         self,
         email: str,
         kitchen_id: str,
@@ -632,7 +633,7 @@ class DatabaseClient:
             product=self._inv_product(kitchen_id, product_id),
         )
 
-    def get_grocery_page_data(
+    def grocery_page_model(
         self,
         email: str,
         kitchen_id: str,
@@ -695,7 +696,7 @@ class DatabaseClient:
             kitchen=self._kitchen(kitchen_id),
         )
 
-    def get_grocery_product_page_data(
+    def grocery_product_page_model(
         self,
         email: str,
         kitchen_id: str,
@@ -708,12 +709,15 @@ class DatabaseClient:
             kitchen=self._kitchen(kitchen_id),
         )
 
-    def get_sharing_settings_page_data(
+    def admin_settings_page_model(
         self,
         email: str,
         kitchen_id: str,
     ) -> SharingSettingsPage:
-        """Returns the data required to render the sharing settings page."""
+        """
+        Returns the data required to render
+        the settings page for kitchen admins.
+        """
         # Get the emails of all the non-admin members of the kitchen
         member_emails: list[str] = self._rj.get(
             f"kitchens",
@@ -724,4 +728,20 @@ class DatabaseClient:
             user=self._user(email),
             kitchen=self._kitchen(kitchen_id),
             members=[self._user(e) for e in member_emails],
+        )
+
+    def nonadmin_settings_page_model(
+        self,
+        email: str,
+        kitchen_id: str,
+    ) -> GenericKitchenPage:
+        """
+        Returns the data required to render the
+        settings page for kitchen non-admins.
+        """
+        # Return a generic kitchen page model
+        # The non-admin kitchen settings page doesn't require much data
+        return GenericKitchenPage(
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
         )

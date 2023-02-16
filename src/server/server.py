@@ -123,7 +123,7 @@ async def kitchens_page(request: web.Request):
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
-    page_data = db.get_kitchens_page_data(email)
+    page_data = db.kitchens_page_model(email)
     return html_response(renderer.kitchens_page(page_data))
 
 
@@ -231,7 +231,7 @@ async def grocery_page(request: web.Request):
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
-    page_data = db.get_grocery_page_data(email, kitchen_id)
+    page_data = db.grocery_page_model(email, kitchen_id)
     return html_response(renderer.grocery_page(page_data))
 
 
@@ -246,7 +246,7 @@ async def search_grocery(request: web.Request):
     assert isinstance(search_query, str)
 
     # Render and return the HTML response
-    page_data = db.get_grocery_page_data(email, kitchen_id, search_query)
+    page_data = db.grocery_page_model(email, kitchen_id, search_query)
     return html_response(renderer.grocery_partial(page_data))
 
 
@@ -267,7 +267,7 @@ async def grocery_product_page(request: web.Request):
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
-    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
+    page_data = db.grocery_product_page_model(email, kitchen_id, product_id)
     return html_response(renderer.grocery_product_page(page_data))
 
 
@@ -281,7 +281,7 @@ async def set_product(request: web.Request):
     # Set product amount to the product (if user changes it)
     db.set_groc_product_count(kitchen_id, product_id, amount)
     assert isinstance(email, str)
-    page_data = db.get_grocery_product_page_data(email, kitchen_id, product_id)
+    page_data = db.grocery_product_page_model(email, kitchen_id, product_id)
 
     return html_response(renderer.grocery_product_amount_partial(page_data))
 
@@ -330,7 +330,7 @@ async def inventory_page(request: web.Request):
     kitchen_id = request.match_info["kitchen_id"]
 
     # Render and return the HTML response
-    page_data = db.get_inventory_page_data(email, kitchen_id)
+    page_data = db.inventory_page_model(email, kitchen_id)
     return html_response(renderer.inventory_page(page_data))
 
 
@@ -346,7 +346,7 @@ async def inventory_product_page(request: web.Request):
 
     # To make the checker happy...
 
-    page_data = db.get_inventory_product_page_data(email, kitchen_id, product_id)
+    page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
     return html_response(renderer.inventory_product_page(page_data))
 
 
