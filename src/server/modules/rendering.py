@@ -6,6 +6,7 @@ Authored by Haziq Hairil.
 
 import jinja2
 from .models import (
+    GenericKitchenPage,
     KitchensPage,
     InventoryPage,
     InventoryProductPage,
@@ -30,7 +31,10 @@ class Renderer:
         )
 
     def _render(self, filepath: str, **kwargs) -> str:
-        """Returns the rendered Jinja template from the specified filepath."""
+        """
+        Returns the rendered Jinja template from the specified filepath.
+        Uses keyword arguments as Jinja variables.
+        """
         return self._env.get_template(filepath).render(**kwargs)
 
     #### AUTHENTICATION ####
@@ -61,32 +65,68 @@ class Renderer:
 
     def inventory_page(self, page_data: InventoryPage) -> str:
         """Returns the HTML of the inventory page."""
-        return self._render("inventory/index.html", data=page_data, page_type="inventory")
+        return self._render(
+            "inventory/index.html",
+            data=page_data,
+            page_type="inventory",
+        )
 
     def inventory_product_page(self, page_data: InventoryProductPage) -> str:
         """Returns the HTML of an inventory product's page."""
-        return self._render("inventory/product.html", data=page_data, page_type="inventory")
+        return self._render(
+            "inventory/product.html",
+            data=page_data,
+            page_type="inventory",
+        )
 
     #### GROCERY LIST ####
 
     def grocery_page(self, page_data: GroceryPage) -> str:
         """Returns the HTML of the grocery page."""
-        return self._render("grocery/index.html", data=page_data, page_type="grocery")
+        return self._render(
+            "grocery/index.html",
+            data=page_data,
+            page_type="grocery",
+        )
 
     def grocery_partial(self, page_data: GroceryPage) -> str:
         """Returns the HTML partial of the grocery list."""
-        return self._render("grocery/list.partial.html", data=page_data, page_type="grocery")
+        return self._render(
+            "grocery/list.partial.html",
+            data=page_data,
+            page_type="grocery",
+        )
 
     def grocery_product_page(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML of a grocery product's page."""
-        return self._render("grocery/product.html", data=page_data, page_type="grocery")
+        return self._render(
+            "grocery/product.html",
+            data=page_data,
+            page_type="grocery",
+        )
 
     def grocery_product_amount_partial(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML partial of a grocery product's amount adjuster"""
-        return self._render("grocery/amount.partial.html", data=page_data, page_type="grocery")
+        return self._render(
+            "grocery/amount.partial.html",
+            data=page_data,
+            page_type="grocery",
+        )
 
     #### KITCHEN SETTINGS ####
 
-    def sharing_settings(self, page_data: SharingSettingsPage) -> str:
-        """Returns the HTML of the admin kitchen settings page."""
-        return self._render("settings/admin.html", data=page_data, page_type="settings")
+    def admin_settings(self, page_data: SharingSettingsPage) -> str:
+        """Returns the HTML of the kitchen settings page for kitchen admins."""
+        return self._render(
+            "settings/admin.html",
+            data=page_data,
+            page_type="settings",
+        )
+
+    def nonadmin_settings(self, page_data: GenericKitchenPage) -> str:
+        """Returns the HTML of the kitchen settings page for kitchen admins."""
+        return self._render(
+            "settings/nonadmin.html",
+            data=page_data,
+            page_type="settings",
+        )
