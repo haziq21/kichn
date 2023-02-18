@@ -731,17 +731,16 @@ class DatabaseClient:
             members=[self._user(e) for e in member_emails],
         )
 
-    def nonadmin_settings_page_model(
+    def generic_kitchen_page_model(
         self,
         email: str,
         kitchen_id: str,
     ) -> GenericKitchenPage:
         """
-        Returns the data required to render the
-        settings page for kitchen non-admins.
+        Returns the data required to render a generic page in a kitchen. 
+        This is used when the page doesn't require any specific data to 
+        be rendered (aside from user and kitchen metadata).
         """
-        # Return a generic kitchen page model
-        # The non-admin kitchen settings page doesn't require much data
         return GenericKitchenPage(
             user=self._user(email),
             kitchen=self._kitchen(kitchen_id),
