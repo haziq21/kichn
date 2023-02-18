@@ -17,7 +17,7 @@ from .models import (
 
 
 class Renderer:
-    """Renders Jinja templates from page data objects."""
+    """Renders Jinja templates from page models."""
 
     def __init__(self, templates_dir: str):
         """
@@ -33,7 +33,7 @@ class Renderer:
     def _render(self, filepath: str, **kwargs) -> str:
         """
         Returns the rendered Jinja template from the specified filepath.
-        Uses keyword arguments as Jinja variables.
+        Passes keyword arguments as Jinja variables.
         """
         return self._env.get_template(filepath).render(**kwargs)
 
@@ -79,6 +79,13 @@ class Renderer:
             page_type="inventory",
         )
 
+    def inventory_product_confirmation_partial(self) -> str:
+        """Returns the HTML partial of the "Move to grocery list?" UI."""
+        return self._render(
+            "inventory/move_to_grocery.partial.html",
+            page_type="inventory",
+        )
+
     #### GROCERY LIST ####
 
     def grocery_page(self, page_data: GroceryPage) -> str:
@@ -109,6 +116,14 @@ class Renderer:
         """Returns the HTML partial of a grocery product's amount adjuster"""
         return self._render(
             "grocery/amount.partial.html",
+            data=page_data,
+            page_type="grocery",
+        )
+
+    def barcode_scanner_page(self, page_data: GenericKitchenPage) -> str:
+        """Returns the HTML of the barcode scanner page."""
+        return self._render(
+            "grocery/scan.html",
             data=page_data,
             page_type="grocery",
         )
