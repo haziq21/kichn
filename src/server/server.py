@@ -344,14 +344,26 @@ async def inventory_product_page(request: web.Request):
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
-    # To make the checker happy...
-
     page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
     return html_response(renderer.inventory_product_page(page_data))
 
 
 async def inventory_use(request: web.Request):
-    return web.Response(status=200)
+    # POST /kitchens/k_id/inventory/p_id/use
+    # POST /kitchens/k_id/inventory/p_id/use?add-to-grocery=true
+    body = await request.post()
+    used = body["use"]
+    email = extract_request_owner(request)
+    kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
+
+    if "add-to-grocery" in request.query:
+        # TODO: placeholder db stuff
+
+        # Redirect to inventory page
+        return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
+    else:
+        return web.Response(status=200)
 
 
 async def inventory_search(request: web.Request):
@@ -375,7 +387,6 @@ app.add_routes(
         web.post("/kitchens", new_kitchen),
         web.get("/kitchens/{kitchen_id}/settings", kitchen_settings),
         web.post("/kitchens/{kitchen_id}/settings/share", kitchen_share),
-        web.post("/kitchens/{kitchen_id}/settings/unshare", kitchen_unshare),
         web.post("/kitchens/{kitchen_id}/settings/leave", kitchen_leave),
         web.get("/kitchens/{kitchen_id}", kitchen_index),
         #### GROCERY ####
