@@ -1,3 +1,42 @@
 {% extends "_kitchen_layout.html" %} {% block main %}
-<div>admin settings page</div>
-{% endblock %}
+
+<form hx-post="settings/share" m="b-12">
+  <label for="name" text="xs gray-400">Share this kitchen</label>
+  <div flex="~" space="x-2">
+    <input
+      type="text"
+      id="name"
+      placeholder="john@gmail.com"
+      name="name"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      w="full"
+    />
+    <button
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="x-4 y-2"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      whitespace="nowrap"
+      transition="duration-100"
+    >
+      Share
+    </button>
+  </div>
+</form>
+
+{% if data.members %}
+<h1 font="medium" text="2xl" m="b-4">Kitchen members</h1>
+<ul p="x-2">
+  {% for member in data.members %}
+  <li m="b-2" p="x-4 y-2" rounded="md" border="~ gray-300" display="block">
+    <span text="lg" font="semibold" m="r-4">{{member.username}}</span>
+    <span text="gray-500">{{member.email}}</span>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %} {% endblock %}
