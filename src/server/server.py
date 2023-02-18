@@ -132,9 +132,9 @@ async def new_kitchen(request: web.Request):
     Creates a new kitchen with the `name` specified in the
     request body, then redirects to the newly created kitchen.
     """
-    user_email = extract_request_owner(request)
+    email = extract_request_owner(request)
 
-    if user_email is None:
+    if email is None:
         raise web.HTTPUnauthorized()
 
     body = await request.post()
@@ -143,7 +143,7 @@ async def new_kitchen(request: web.Request):
     # To make the type checker happy...
     assert isinstance(kitchen_name, str)
 
-    kitchen_id = db.create_kitchen(user_email, kitchen_name)
+    kitchen_id = db.create_kitchen(email, kitchen_name)
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
 
@@ -167,7 +167,20 @@ async def kitchen_index(request: web.Request):
 
 
 async def kitchen_settings(request: web.Request):
-    return web.Response(status=200)
+    email = extract_request_owner(request)
+
+    if email is None:
+        raise web.HTTPUnauthorized()
+
+    kitchen_id = request.match_info["kitchen_id"]
+    check_admin = db.user_owns_kitchen(email, kitchen_id)
+
+    if check_admin:
+        page_data = db.admin_settings_page_model(email, kitchen_id)
+        return html_response(renderer.admin_settings(page_data))
+
+    page_data = db.generic_kitchen_page_model(email, kitchen_id)
+    return html_response(renderer.nonadmin_settings(page_data))
 
 
 #### MISC ####
@@ -250,7 +263,16 @@ async def search_grocery(request: web.Request):
     return html_response(renderer.grocery_partial(page_data))
 
 
-async def grocery_scan_get(request: web.Request):
+async def barcode_scanner_page(request: web.Request):
+    email = extract_request_owner(request)
+
+    if email is None:
+        # Redirects user to login if no email is inputted
+        raise web.HTTPFound("/login")
+
+    # Extract kitchen id from URL
+    kitchen_id = request.match_info["kitchen_id"]
+    page_data = db.generic_kitchen_page_model(email, kitchen_id)
     return web.Response(status=200)
 
 
@@ -393,8 +415,7 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
-        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
-        web.post("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_post),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
