@@ -30,9 +30,7 @@ from .models import (
 
 
 def _gen_random_id(k=6) -> str:
-    """
-    Returns a randomly-generated string of k letters and digits.
-    """
+    """Returns a randomly-generated string of k letters and digits."""
     sample_chars = string.ascii_letters + string.digits
     return "".join(random.choices(sample_chars, k=k))
 
@@ -241,6 +239,13 @@ class DatabaseClient:
         # The index would be -1 if the kitchen_id isn't in the list
         return index != -1
 
+    def gen_session_token(self) -> str:
+        """
+        Generates and returns a session token. The session
+        token isn't used by or stored in the database.
+        """
+        return _gen_random_id()
+
     #### AUTHENTICATION TOKENS ####
 
     def generate_auth_token(self, email: str) -> str:
@@ -293,10 +298,6 @@ class DatabaseClient:
         self._rj.arrappend(f"user:{email}", "$.owned-kitchens", kitchen_id)
 
         return kitchen_id
-
-    def rename_kitchen(self, kitchen_id: str, new_name: str):
-        """Sets the name of the kitchen to `new_name`."""
-        self._rj.set("kitchens", f"$.{kitchen_id}.name", new_name)
 
     def share_kitchen(self, kitchen_id: str, email: str):
         """Adds the user as a member of the kitchen."""
