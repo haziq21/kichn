@@ -263,7 +263,7 @@ async def search_grocery(request: web.Request):
     return html_response(renderer.grocery_partial(page_data))
 
 
-async def barcode_scanner_page(request: web.Request):
+async def grocery_scan_get(request: web.Request):
     email = extract_request_owner(request)
 
     if email is None:
@@ -273,7 +273,7 @@ async def barcode_scanner_page(request: web.Request):
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
-    return web.Response(status=200)
+    return html_response(renderer.barcode_scanner_page(page_data))
 
 
 async def grocery_scan_post(request: web.Request):
@@ -415,7 +415,7 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
-        web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
