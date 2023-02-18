@@ -1,0 +1,33 @@
+<span m="r-8" text="lg gray-800" font="medium">Move to grocery list?</span>
+
+<button
+  hx-post="remove?move-to-grocery=true"
+  type="submit"
+  text="light-50 hover:gray-800"
+  font="medium"
+  rounded="md"
+  p="x-3 y-1"
+  m="r-2"
+  border="2 gray-800"
+  bg="gray-800 hover:light-50"
+  whitespace="nowrap"
+  transition="duration-100"
+>
+  Yes
+</button>
+
+<button
+  hx-post="remove?move-to-grocery=false"
+  type="submit"
+  text="gray-800"
+  font="medium"
+  rounded="md"
+  p="x-3 y-1"
+  m="r-2"
+  border="2 transparent hover:gray-800"
+  bg="light-50"
+  whitespace="nowrap"
+  transition="duration-100"
+>
+  No
+</button>

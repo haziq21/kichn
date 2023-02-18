@@ -2,9 +2,138 @@
 
 <!-- Product image -->
 <div pos="relative" m="b-4">
-  <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
+  <div w="30" h="min-30" bg="gray-200" rounded="md">
+    <img
+      src="/kitchens/{{data.kitchen.id}}/images/{{data.product.id}}"
+      alt=""
+    />
+  </div>
 </div>
 
-<h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
+<h2 text="2xl" font="medium" m="b-12">{{data.product.name}}</h2>
 
-this is the inventory product page {% endblock %}
+<form hx-target="#remover" flex="~ col" align="content-center">
+  <span text="xs gray-400" m="b-4">Select some products</span>
+
+  <ul m="b-8" w="max-90" m="x-auto">
+    {% if data.product.non_expirables %}
+    <li flex="~" justify="between" align="items-center" space="x-4" m="b-3">
+      <span text="gray-700">Non-expirables</span>
+      <div flex="grow" h="0.25" bg="gray-300"></div>
+      <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
+        <button
+          @click="count -= count == 0 ? 0 : 1"
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M242 605.999q-12.75 0-22.374-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.374-9.615h476q12.75 0 22.375 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.375 9.615H242Z"
+            />
+          </svg>
+        </button>
+        <div w="min-10" flex="~" space="x-1" justify="center">
+          <span x-text="count">0</span>
+          <span text="gray-400">/</span>
+          <span text="gray-400" font="semibold">
+            {{data.product.non_expirables}}
+          </span>
+          <input type="hidden" name="non_expirables" :value="count" />
+        </div>
+        <button
+          @click="count += count == {{data.product.non_expirables}} ? 0 : 1 "
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M479.987 845.999q-12.756 0-22.371-9.624-9.615-9.625-9.615-22.062V607.999H241.687q-12.437 0-22.061-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.061-9.615h206.314V337.687q0-12.437 9.628-22.062 9.629-9.624 22.384-9.624 12.756 0 22.371 9.624 9.615 9.625 9.615 22.062v206.314h206.314q12.437 0 22.062 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.062 9.615H511.999v206.314q0 12.437-9.628 22.062-9.629 9.624-22.384 9.624Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </li>
+    {% endif %} {% for exp in data.product.expiries %}
+    <li flex="~" justify="between" align="items-center" space="x-4" m="b-3">
+      <span font="mono" text="gray-700">{{exp}}</span>
+      <div flex="grow" h="0.25" bg="gray-300"></div>
+      <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
+        <button
+          @click="count -= count == 0 ? 0 : 1"
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M242 605.999q-12.75 0-22.374-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.374-9.615h476q12.75 0 22.375 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.375 9.615H242Z"
+            />
+          </svg>
+        </button>
+        <div w="min-10" flex="~" space="x-1" justify="center">
+          <span x-text="count">0</span>
+          <span text="gray-400">/</span>
+          <span text="gray-400" font="semibold">
+            {{data.product.expiries[exp]}}
+          </span>
+          <input type="hidden" name="{{exp}}" :value="count" />
+        </div>
+        <button
+          @click="count += count == {{data.product.expiries[exp]}} ? 0 : 1 "
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M479.987 845.999q-12.756 0-22.371-9.624-9.615-9.625-9.615-22.062V607.999H241.687q-12.437 0-22.061-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.061-9.615h206.314V337.687q0-12.437 9.628-22.062 9.629-9.624 22.384-9.624 12.756 0 22.371 9.624 9.615 9.625 9.615 22.062v206.314h206.314q12.437 0 22.062 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.062 9.615H511.999v206.314q0 12.437-9.628 22.062-9.629 9.624-22.384 9.624Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div id="remover" flex="~" align="items-center" m="x-auto">
+    <button
+      hx-post="remove"
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="x-4 y-2"
+      m="x-auto"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      whitespace="nowrap"
+      transition="duration-100"
+    >
+      Remove from inventory
+    </button>
+  </div>
+</form>
+
+{% endblock %}
