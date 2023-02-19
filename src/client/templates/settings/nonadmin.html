@@ -1,3 +1,20 @@
 {% extends "_kitchen_layout.html" %} {% block main %}
-<div>non-admin settings page</div>
+
+<div text="gray-500 center" m="b-4">Be careful...</div>
+<button
+  hx-post="settings/leave"
+  text="light-50 hover:gray-800"
+  font="medium"
+  rounded="md"
+  display="block"
+  p="x-4 y-2"
+  m="x-auto"
+  border="2 gray-800"
+  bg="gray-800 hover:light-50"
+  whitespace="nowrap"
+  transition="duration-100"
+>
+  Leave this kitchen
+</button>
+
 {% endblock %}
