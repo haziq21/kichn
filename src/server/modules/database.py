@@ -398,7 +398,7 @@ class DatabaseClient:
             amount=amount,
         )
 
-    def set_inv_product_count(
+    def _set_inv_product_count(
         self,
         kitchen_id: str,
         product_id: str,
@@ -513,12 +513,59 @@ class DatabaseClient:
             inital_inv_amt = inv_product.expiries.get(expiry_date, 0)
 
         # Add it to the inventory list
-        self.set_inv_product_count(
+        self._set_inv_product_count(
             kitchen_id,
             product_id,
             expiry_date,
             inital_inv_amt + amount,
         )
+
+    def use_product(
+        self,
+        kitchen_id: str,
+        product_id: str,
+        expiry_amounts: dict[Optional[date], int],
+        move_to_grocery=False,
+    ):
+        """
+        Removes the specified amount of the product from the inventory list.
+
+        `expiry_amounts` maps optional expiry dates to the amounts of the
+        product - "optional" because an expiry date of `None` is used to
+        denote a non-expirable product. When `move_to_grocery=True`, this
+        will add the product to the grocery list.
+        """
+        # Get the inventory product's data
+        inv_prod = self._inv_product(kitchen_id, product_id)
+
+        for expiry in expiry_amounts:
+            # Save the inital amount of the product
+            if expiry:
+                initial_amount = inv_prod.expiries[expiry]
+            else:
+                initial_amount = inv_prod.non_expirables
+
+            # Update the amount in the inventory list
+            self._set_inv_product_count(
+                kitchen_id,
+                product_id,
+                expiry,
+                initial_amount - expiry_amounts[expiry],
+            )
+
+        if move_to_grocery:
+            # Count the total amount of products marked as 'used' (across all expiry dates)
+            total_amount_used = sum(expiry_amounts.values())
+
+            # Get the grocery product's data
+            groc_prod = self._groc_product(kitchen_id, product_id)
+
+            # Update the amount in the grocery list
+            self.set_groc_product_count(
+                kitchen_id,
+                product_id,
+                groc_prod.amount + total_amount_used,
+            )
 
     #### PAGE MODEL GETTERS ####
 
