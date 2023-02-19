@@ -1,6 +1,6 @@
 {% extends "_kitchen_layout.html" %} {% block main %}
 
-<form hx-post="settings/share" m="b-12">
+<form hx-post="settings/share" hx-target="#members-list" m="b-12">
   <label for="email" text="xs gray-400">Share this kitchen</label>
   <div flex="~" space="x-2">
     <input
@@ -29,14 +29,5 @@
   </div>
 </form>
 
-{% if data.members %}
-<h1 font="medium" text="2xl" m="b-4">Kitchen members</h1>
-<ul p="x-2">
-  {% for member in data.members %}
-  <li m="b-2" p="x-4 y-2" rounded="md" border="~ gray-300" display="block">
-    <span text="lg" font="semibold" m="r-4">{{member.username}}</span>
-    <span text="gray-500">{{member.email}}</span>
-  </li>
-  {% endfor %}
-</ul>
-{% endif %} {% endblock %}
+<div id="members-list">{% include "settings/admin.partial.html" %}</div>
+{% endblock %}

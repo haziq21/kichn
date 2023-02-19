@@ -188,10 +188,10 @@ async def kitchen_settings(request: web.Request):
 
     if check_admin:
         page_data = db.admin_settings_page_model(email, kitchen_id)
-        return html_response(renderer.admin_settings(page_data))
+        return html_response(renderer.admin_settings_page(page_data))
 
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
-    return html_response(renderer.nonadmin_settings(page_data))
+    return html_response(renderer.nonadmin_settings_page(page_data))
 
 
 #### MISC ####

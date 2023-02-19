@@ -283,13 +283,23 @@ class DatabaseClient:
 
         return kitchen_id
 
-    def share_kitchen(self, kitchen_id: str, email: str):
-        """Adds the user as a member of the kitchen."""
+    def share_kitchen(self, kitchen_id: str, email: str) -> bool:
+        """
+        Adds the user as a member of the kitchen. Returns `False` if there
+        is no account with the specified email, and `True` otherwise. A return
+        value of `True` can be taken to mean that the sharing was successful.
+        """
+        # Return False if the email doesn't exist in the database
+        if not self._r.exists(f"user:{email}"):
+            return False
+
         # Add the kitchen to the user's list of kitchens that have been shared with the user
         self._rj.arrappend(f"user:{email}", "$.sharedKitchens", kitchen_id)
 
         # Add the user to the kitchen's list of non-admin members
         self._rj.arrappend("kitchens", f"$.{kitchen_id}.nonAdmins", email)
+
+        return True
 
     #### PRODUCT LIST MANAGEMENT ####
 

@@ -1,0 +1,27 @@
+{% if data.members or failed_share %}
+<h1 font="medium" text="2xl" m="b-4">Kitchen members</h1>
+{% endif %} {% if failed_share %}
+<ul p="x-2">
+  <li
+    text="red-700 sm"
+    m="b-2"
+    p="x-4 y-2"
+    rounded="md"
+    bg="red-50"
+    border="~ red-300"
+    display="block"
+  >
+    <span font="medium">{{failed_share}}</span>
+    <span>doesn't have a Kichn account</span>
+  </li>
+</ul>
+{% endif %} {% if data.members %}
+<ul p="x-2">
+  {% for member in data.members %}
+  <li m="b-2" p="x-4 y-2" rounded="md" border="~ gray-300" display="block">
+    <span text="lg" font="semibold" m="r-4">{{member.username}}</span>
+    <span text="gray-500">{{member.email}}</span>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

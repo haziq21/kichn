@@ -5,6 +5,7 @@ Authored by Haziq Hairil.
 """
 
 import jinja2
+from typing import Optional
 from .models import (
     GenericKitchenPage,
     KitchenListPage,
@@ -165,7 +166,7 @@ class Renderer:
 
     #### KITCHEN SETTINGS ####
 
-    def admin_settings(self, page_data: AdminSettingsPage) -> str:
+    def admin_settings_page(self, page_data: AdminSettingsPage) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
             "settings/admin.html",
@@ -173,7 +174,22 @@ class Renderer:
             page_type="settings",
         )
 
-    def nonadmin_settings(self, page_data: GenericKitchenPage) -> str:
+    def members_list_partial(
+        self,
+        page_data: AdminSettingsPage,
+        failed_share_email: Optional[str] = None,
+    ) -> str:
+        """
+        Returns the HTML partial of the kitchen members list.
+        `failed_share_email` is used to display the sharing error message.
+        """
+        return self._render(
+            "settings/admin.partial.html",
+            data=page_data,
+            failed_share=failed_share_email,
+        )
+
+    def nonadmin_settings_page(self, page_data: GenericKitchenPage) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
             "settings/nonadmin.html",
