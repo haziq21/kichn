@@ -1,9 +1,45 @@
-<button hx-post="{{data.product.id}}/set?amount={{data.product.amount + 1}}">
-  <img src="/static/add-icon.svg" alt="Add one" />
-</button>
-<span text="lg gray-50" font="bold" select="none">
-  {{data.product.amount}}
-</span>
-<button hx-post="{{data.product.id}}/set?amount={{data.product.amount - 1}}">
-  <img src="/static/remove-icon.svg" alt="Remove one" />
-</button>
+<div text="xs gray-200" m="b-4">Adjust amount in grocery list</div>
+
+<div flex="~" p="x-6">
+  <button
+    hx-post="{{data.product.id}}/set?amount={{data.product.amount - 1}}"
+    bg="gray-800 hover:gray-600"
+    p="1"
+    rounded="full"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 96 960 960"
+      width="24"
+      fill="light-50"
+    >
+      <path
+        d="M240 616q-17 0-28.5-11.5T200 576q0-17 11.5-28.5T240 536h480q17 0 28.5 11.5T760 576q0 17-11.5 28.5T720 616H240Z"
+      />
+    </svg>
+  </button>
+
+  <span text="xl gray-50 center" font="bold" select="none" flex="grow">
+    {{data.product.amount}}
+  </span>
+
+  <button
+    hx-post="{{data.product.id}}/set?amount={{data.product.amount + 1}}"
+    bg="gray-800 hover:gray-600"
+    p="1"
+    rounded="full"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24"
+      viewBox="0 96 960 960"
+      width="24"
+      fill="light-50"
+    >
+      <path
+        d="M480 856q-17 0-28.5-11.5T440 816V616H240q-17 0-28.5-11.5T200 576q0-17 11.5-28.5T240 536h200V336q0-17 11.5-28.5T480 296q17 0 28.5 11.5T520 336v200h200q17 0 28.5 11.5T760 576q0 17-11.5 28.5T720 616H520v200q0 17-11.5 28.5T480 856Z"
+      />
+    </svg>
+  </button>
+</div>

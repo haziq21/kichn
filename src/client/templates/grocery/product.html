@@ -1,26 +1,29 @@
 {% extends "_kitchen_layout.html" %} {% block main %}
 
 <!-- Product image -->
-<div pos="relative" m="b-4">
-  <div w="full" h="min-80" bg="gray-200" rounded="md"></div>
+<div flex="~" align="items-center" m="b-4">
+  <div w="30" h="min-30" bg="gray-200" rounded="md">
+    <img
+      src="/kitchens/{{data.kitchen.id}}/images/{{data.product.id}}"
+      alt=""
+    />
+  </div>
 
   <!-- Grocery amount adjuster -->
   <div
-    id="amount-adjuster"
-    p="y-2 x-3"
-    rounded="full"
-    bg="gray-600"
-    flex="~ col"
-    align="items-center"
-    justify="center"
-    pos="absolute right-4 -bottom-5"
     hx-target="#amount-adjuster"
+    id="amount-adjuster"
+    p="t-2 b-4 x-4"
+    rounded="md"
+    bg="gray-900"
+    h="min-content"
+    m="x-auto"
   >
     {% include "grocery/amount.partial.html" %}
   </div>
 </div>
 
-<h2 text="2xl" font="medium" m="b-4">{{data.product.name}}</h2>
+<h2 text="2xl" font="medium" m="b-12">{{data.product.name}}</h2>
 
 <script>
   document.addEventListener("alpine:init", () =>
@@ -44,78 +47,14 @@
 </script>
 
 <form hx-post="{{data.product.id}}/buy">
-  <div space="x-1" m="b-10">
-    <input
-      x-data="date_input(31)"
-      @click="$el.select()"
-      @keydown="newVal = newValue($el.value, $event.key);
-      if (newVal) {
-        $el.value = newVal;
-        $event.preventDefault();
-      }"
-      type="text"
-      name="dd"
-      value="01"
-      w="12"
-      border="~ gray-400"
-      rounded="md"
-      p="x-2 y-1"
-      text="center"
-    />
-    <span text="xl gray-400">/</span>
-    <input
-      x-data="date_input(12)"
-      @click="$el.select()"
-      @keydown="newVal = newValue($el.value, $event.key);
-      if (newVal) {
-        $el.value = newVal;
-        $event.preventDefault();
-      }"
-      type="text"
-      name="mm"
-      value="01"
-      w="12"
-      border="~ gray-400"
-      rounded="md"
-      p="x-2 y-1"
-      text="center"
-    />
-    <span text="xl gray-400">/</span>
-    <input
-      x-data="date_input(9999)"
-      @click="$el.select()"
-      @keydown="newVal = newValue($el.value, $event.key);
-      if (newVal) {
-        $el.value = newVal;
-        $event.preventDefault();
-      }"
-      type="text"
-      name="yyyy"
-      value="2023"
-      w="18"
-      border="~ gray-400"
-      rounded="md"
-      p="x-2 y-1"
-      text="center"
-    />
-    <!-- <label>
-    <input type="checkbox" name="" id=""  />
-    Include expiry date
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
-      <path
-        d="M9.55 17.275q-.175 0-.337-.063-.163-.062-.288-.187L4.75 12.85q-.225-.225-.213-.538.013-.312.213-.537.225-.225.538-.225.312 0 .512.225l3.75 3.75 8.65-8.65q.2-.225.525-.225t.525.225q.225.225.225.537 0 .313-.225.538l-9.075 9.075q-.125.125-.287.187-.163.063-.338.063Z"
-      />
-    </svg>
-  </label> -->
-  </div>
-
   <!-- Cart adjuster -->
+  <div text="gray-400 xs center" m="b-2">Select an amount to buy</div>
   <div
     x-data="{ amount: {{data.product.amount or 1}} }"
     flex="~"
     justify="between"
     w="40"
-    m="x-auto b-6"
+    m="x-auto b-10"
   >
     <button
       @click.prevent="amount = amount == 1 ? 1 : amount - 1"
@@ -157,6 +96,93 @@
         />
       </svg>
     </button>
+  </div>
+
+  <div m="b-10 x-auto" w="min-content" x-data="{checked: true}">
+    <div text="xs gray-400" m="b-1">Enter an expiry date</div>
+    <div flex="~" space="x-1" m="b-4" p="2" border="~ gray-400" rounded="md">
+      <input
+        x-data="date_input(31)"
+        @click="$el.select()"
+        @keydown="newVal = newValue($el.value, $event.key);
+        if (newVal) {
+          $el.value = newVal;
+          $event.preventDefault();
+        }"
+        type="text"
+        name="dd"
+        value="01"
+        w="12"
+        outline="focus:transparent"
+        rounded="md"
+        text="center disabled:gray-400"
+        :disabled="!checked"
+      />
+      <span text="xl gray-400">/</span>
+      <input
+        x-data="date_input(12)"
+        @click="$el.select()"
+        @keydown="newVal = newValue($el.value, $event.key);
+        if (newVal) {
+          $el.value = newVal;
+          $event.preventDefault();
+        }"
+        type="text"
+        name="mm"
+        value="01"
+        w="12"
+        outline="focus:transparent"
+        rounded="md"
+        text="center disabled:gray-400"
+        :disabled="!checked"
+      />
+      <span text="xl gray-400">/</span>
+      <input
+        x-data="date_input(9999)"
+        @click="$el.select()"
+        @keydown="newVal = newValue($el.value, $event.key);
+        if (newVal) {
+          $el.value = newVal;
+          $event.preventDefault();
+        }"
+        type="text"
+        name="yyyy"
+        value="2023"
+        w="18"
+        outline="focus:transparent"
+        rounded="md"
+        text="center disabled:gray-400"
+        :disabled="!checked"
+      />
+    </div>
+    <label flex="~" space="x-2" p="l-2">
+      <div
+        rounded="full"
+        border="~ 0.5 gray-900"
+        :bg="checked ? 'gray-900' : 'light-50'"
+        bg="gray-900"
+        w="min-content"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="20"
+          viewBox="0 96 960 960"
+          width="20"
+          fill="light-50"
+        >
+          <path
+            d="M383 812.001q-10.261 0-20.305-4.131-10.043-4.13-18.739-12.826l-169-169q-15.957-15.957-15.457-39.544.5-23.587 16.457-39.544 15.957-15.957 39.609-15.957 23.653 0 39.609 15.957L385 676.782l320.826-320.826q15.956-15.957 38.544-16.239 22.587-.283 39.109 16.239 15.956 15.957 15.956 38.827 0 22.869-15.956 38.826L422.044 795.044q-8.696 8.696-18.739 12.826-10.044 4.131-20.305 4.131Z"
+          />
+        </svg>
+      </div>
+      <input
+        type="checkbox"
+        name="include_expiry"
+        x-model="checked"
+        display="hidden"
+      />
+      <span select="none" text="gray-700 sm">Include expiry date</span>
+    </label>
   </div>
 
   <!-- Buy button -->
