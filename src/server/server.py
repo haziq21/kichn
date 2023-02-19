@@ -6,7 +6,7 @@ Authored by Haziq. Typed by Evan.
 """
 
 from aiohttp import web
-from datetime import date, datetime
+from datetime import datetime
 from typing import Optional
 from modules.database import DatabaseClient
 from modules.rendering import Renderer
@@ -180,10 +180,11 @@ async def kitchen_leave(request: web.Request):
 
 
 async def kitchen_index(request: web.Request):
-    kitchen_id_url = request.match_info["kitchen_id"]
+    """Redirects the user to the kitchen's inventory page."""
+    # Extract the kitchen ID from the URL
+    kitchen_id = request.match_info["kitchen_id"]
     # Redirect any /kitchens/{kitchen_id} request to /kitchens/{kitchen_id}/inventory
-    direct_url = f"/kitchens/{kitchen_id_url}/inventory"
-    raise web.HTTPFound(direct_url)
+    raise web.HTTPFound(f"/kitchens/{kitchen_id}/inventory")
 
 
 async def kitchen_settings(request: web.Request):
@@ -448,39 +449,45 @@ renderer = Renderer("src/client/templates")
 app = web.Application()
 app.add_routes(
     [
+        #### REDIRECTS ####
         web.get("/", index),
+        web.get("/kitchens/{kitchen_id}", kitchen_index),
+        #### MISC ####
         web.get("/static/{filepath}", static_asset),
+        web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
+        #### LOGIN & SIGNUP ####
         web.get("/login", login_page),
         web.post("/login", login),
         web.get("/signup", signup_page),
         web.post("/signup", signup),
-        #### KITCHEN ####
+        #### KITCHEN LIST ####
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
+        #### KITCHEN SETTINGS ####
         web.get("/kitchens/{kitchen_id}/settings", kitchen_settings),
         web.post("/kitchens/{kitchen_id}/settings/share", kitchen_share),
         web.post("/kitchens/{kitchen_id}/settings/leave", kitchen_leave),
-        web.get("/kitchens/{kitchen_id}", kitchen_index),
-        #### GROCERY ####
+        #### GROCERY LIST ####
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
-        web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
         web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),
+        #### GROCERY PRODUCT ####
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
             "/kitchens/{kitchen_id}/grocery/{product_id}/buy",
             buy_grocery_product,
         ),
-        #### INVENTORY ####
+        #### INVENTORY LIST ####
         web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
+        web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
+        #### INVENTORY PRODUCT ####
         web.get(
             "/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product_page
         ),
         web.post(
             "/kitchens/{kitchen_id}/inventory/{product_id}/use", use_inventory_product
         ),
-        web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
     ]
 )
 
