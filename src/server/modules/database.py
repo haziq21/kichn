@@ -194,8 +194,8 @@ class DatabaseClient:
             {
                 "name": name,
                 "auth": self._ph.hash(password),
-                "owned-kitchens": [],
-                "shared-kitchens": [],
+                "ownedKitchens": [],
+                "sharedKitchens": [],
             },
         )
 
@@ -203,41 +203,24 @@ class DatabaseClient:
 
     def user_has_access_to_kitchen(self, email: str, kitchen_id: str) -> bool:
         """Returns whether the user has access to the specified kitchen."""
-        # Whether the kitchen is owned by the user
-        is_owned = (
-            self._rj.arrindex(
-                f"user:{email}",
-                "$.owned-kitchens",
-                kitchen_id,
-            )
-            # If the kitchen ID is present in the user's list
-            # of owned kitchens, then the index shouldn't be -1
-            != -1
-        )
+        # Get the IDs of the kitchens that the user isn't an admin of
+        shared_kitchens = self._rj.get(
+            f"user:{email}",
+            "$.sharedKitchens",
+        )[0]
+        # Check if the user is an admin of the kitchen
+        user_owns_kitchen = self.user_owns_kitchen(email, kitchen_id)
 
-        # Whether the kitchen has been shared to the user
-        is_shared = (
-            self._rj.arrindex(
-                f"user:{email}",
-                "$.shared-kitchens",
-                kitchen_id,
-            )
-            # If the kitchen ID is present in the user's list
-            # of shared kitchens, then the index shouldn't be -1
-            != -1
-        )
-
-        return is_owned or is_shared
+        return user_owns_kitchen or kitchen_id in shared_kitchens
 
     def user_owns_kitchen(self, email: str, kitchen_id: str) -> bool:
-        # Get the index of the kitchen_id in the user's list of owned kitchens
-        index: int = self._rj.arrindex(
+        # Get the IDs of the kitchens that the user is an admin of
+        owned_kitchens = self._rj.get(
             f"user:{email}",
-            "$.owned-kitchens",
-            kitchen_id,
+            "$.ownedKitchens",
         )[0]
-        # The index would be -1 if the kitchen_id isn't in the list
-        return index != -1
+
+        return kitchen_id in owned_kitchens
 
     def gen_session_token(self) -> str:
         """
@@ -295,14 +278,14 @@ class DatabaseClient:
                 "customProducts": {},
             },
         )
-        self._rj.arrappend(f"user:{email}", "$.owned-kitchens", kitchen_id)
+        self._rj.arrappend(f"user:{email}", "$.ownedKitchens", kitchen_id)
 
         return kitchen_id
 
     def share_kitchen(self, kitchen_id: str, email: str):
         """Adds the user as a member of the kitchen."""
         # Add the kitchen to the user's list of kitchens that have been shared with the user
-        self._rj.arrappend(f"user:{email}", "$.shared-kitchens", kitchen_id)
+        self._rj.arrappend(f"user:{email}", "$.sharedKitchens", kitchen_id)
 
         # Add the user to the kitchen's list of non-admin members
         self._rj.arrappend("kitchens", f"$.{kitchen_id}.nonAdmins", email)
@@ -555,8 +538,8 @@ class DatabaseClient:
         """Returns the data necessary to render the kitchen list page."""
         # Get the IDs of all the kitchens that the user is in
 
-        owned_kitchen_ids = self._rj.get(f"user:{email}", "$.owned-kitchens")[0]
-        shared_kitchen_ids = self._rj.get(f"user:{email}", "$.shared-kitchens")[0]
+        owned_kitchen_ids = self._rj.get(f"user:{email}", "$.ownedKitchens")[0]
+        shared_kitchen_ids = self._rj.get(f"user:{email}", "$.sharedKitchens")[0]
         kitchen_ids: list[str] = owned_kitchen_ids + shared_kitchen_ids
         kitchens: list[Kitchen] = []
 
@@ -737,8 +720,8 @@ class DatabaseClient:
         kitchen_id: str,
     ) -> GenericKitchenPage:
         """
-        Returns the data required to render a generic page in a kitchen. 
-        This is used when the page doesn't require any specific data to 
+        Returns the data required to render a generic page in a kitchen.
+        This is used when the page doesn't require any specific data to
         be rendered (aside from user and kitchen metadata).
         """
         return GenericKitchenPage(
