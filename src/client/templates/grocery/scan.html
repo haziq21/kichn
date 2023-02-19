@@ -1,3 +1,23 @@
-{% extends "_kitchen_layout.html" %} {% block main %} {% endblock %}
+{% extends "_kitchen_layout.html" %} {% block main %}
 
-<span>barcode scanning page</span>
+<div x-data="scanner">
+  <video
+    x-ref="video"
+    x-on:htmx:after-swap.camel.window.once="stopStream()"
+    @canplay="setDimensions()"
+    rounded="md"
+    w="full"
+    m="b-4"
+  >
+    Video stream not available
+  </video>
+  <div text="lg gray-700 center" font="medium">Looking for a barcode...</div>
+  <canvas
+    x-ref="canvas"
+    :width="width"
+    :height="height"
+    display="hidden"
+  ></canvas>
+</div>
+
+{% endblock %}

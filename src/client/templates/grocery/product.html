@@ -25,27 +25,6 @@
 
 <h2 text="2xl" font="medium" m="b-12">{{data.product.name}}</h2>
 
-<script>
-  document.addEventListener("alpine:init", () =>
-    Alpine.data("date_input", (max) => ({
-      newValue(currVal, newChar) {
-        if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
-          newNum = parseFloat(currVal.slice(1) + newChar);
-          return newNum == 0 || (newNum > max && newChar == "0")
-            ? // Don't change the value
-              currVal
-            : newNum > max && newChar != "0"
-            ? // Set the new character to be the single digit
-              "0".repeat(max.toString().length - 1) + newChar
-            : // Shift everything left
-              currVal.slice(1) + newChar;
-        }
-        return newChar == "Tab" ? null : currVal;
-      },
-    }))
-  );
-</script>
-
 <form hx-post="{{data.product.id}}/buy">
   <!-- Cart adjuster -->
   <div text="gray-400 xs center" m="b-2">Select an amount to buy</div>
