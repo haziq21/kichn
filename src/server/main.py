@@ -9,6 +9,17 @@ import shutil
 import time
 
 
+def shut_down_redis_quietly():
+    """Shut down the Redis server while suppressing any error messages."""
+    # I'd call .terminate() on the Redis subprocess
+    # but that doesn't seeem to work sometimes...
+
+    # Without the stderr redirection to /dev/null, this command sometimes
+    # seems to imply that Redis has already shut down, even when it shouldn't
+    # have ("Could not connect to Redis at 127.0.0.1:6379: Connection refused")
+    sp.run(["redis-cli", "shutdown"], stderr=sp.DEVNULL)
+
+
 def main():
     # Get the absolute filepath of the server-store directory
     server_store_dir = (Path(__file__) / "../../../server-store").resolve()
@@ -77,8 +88,7 @@ def main():
         print("Check that you don't already have another Meilisearch instance running.")
 
         # Terminate the Redis server
-        # `redis_proc.terminate()` doesn't seem to work sometimes
-        sp.run(["redis-cli", "shutdown"])
+        shut_down_redis_quietly()
         return
 
     try:
@@ -86,8 +96,7 @@ def main():
         import server
     finally:
         # Terminate the Redis and Meilisearch servers when the web server is killed
-        # `redis_proc.terminate()` doesn't seem to work sometimes
-        sp.run(["redis-cli", "shutdown"])
+        shut_down_redis_quietly()
         meilisearch_proc.terminate()
 
 
