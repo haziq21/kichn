@@ -292,7 +292,7 @@ class DatabaseClient:
         # Return True if the user is already in the kitchen
         if self.user_has_access_to_kitchen(email, kitchen_id):
             return True
-            
+
         # Return False if the email doesn't exist in the database
         if not self._r.exists(f"user:{email}"):
             return False
@@ -304,6 +304,36 @@ class DatabaseClient:
         self._rj.arrappend("kitchens", f"$.{kitchen_id}.nonAdmins", email)
 
         return True
+
+    def leave_kitchen(self, email: str, kitchen_id: str):
+        """Removes a user from a kitchen."""
+        # Get the IDs of the kitchens that the user is in
+        kitchens_list: list[str] = self._rj.get(
+            f"user:{email}",
+            "$.sharedKitchens",
+        )[0]
+
+        # Remove the kitchen to leave and update the database
+        kitchens_list.remove(kitchen_id)
+        self._rj.set(
+            f"user:{email}",
+            "$.sharedKitchens",
+            kitchens_list,
+        )
+
+        # Get the emails of the users that are in the kitchen
+        kitchen_members: list[str] = self._rj.get(
+            "kitchens",
+            f"$.{kitchen_id}.nonAdmins",
+        )[0]
+
+        # Remove the user who is leaving and update the database
+        kitchen_members.remove(email)
+        self._rj.set(
+            "kitchens",
+            f"$.{kitchen_id}.nonAdmins",
+            kitchen_members,
+        )
 
     #### PRODUCT LIST MANAGEMENT ####
 
