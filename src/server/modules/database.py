@@ -397,7 +397,7 @@ class DatabaseClient:
             amount=amount,
         )
 
-    def _set_inv_product_count(
+    def set_inv_product_count(
         self,
         kitchen_id: str,
         product_id: str,
@@ -512,7 +512,7 @@ class DatabaseClient:
             inital_inv_amt = inv_product.expiries.get(expiry_date, 0)
 
         # Add it to the inventory list
-        self._set_inv_product_count(
+        self.set_inv_product_count(
             kitchen_id,
             product_id,
             expiry_date,
