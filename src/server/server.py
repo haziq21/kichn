@@ -28,7 +28,7 @@ def htmx_redirect_response(url: str):
     return web.Response(headers={"HX-Redirect": url})
 
 
-def extract_request_owner(request: web.Request) -> Optional[str]:
+def extract_client_email(request: web.Request) -> Optional[str]:
     """
     Returns the email address of the user who submitted the request,
     or `None` if the request's session token is missing or invalid.
@@ -36,11 +36,6 @@ def extract_request_owner(request: web.Request) -> Optional[str]:
     if "auth_token" in request.cookies:
         return db.get_auth_token_owner(request.cookies["auth_token"])
     return None
-
-
-def is_htmx_request(request: web.Request) -> bool:
-    """Returns whether the request was made by HTMX."""
-    return "HX-Request" in request.headers
 
 
 #### LOGIN & SIGNUP ####
@@ -117,7 +112,7 @@ async def index(request: web.Request):
     Redirect the user to the appropriate page
     based on whether they're logged in or not.
     """
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         # Redirect user to login
@@ -132,7 +127,7 @@ async def index(request: web.Request):
 
 async def kitchens_page(request: web.Request):
     """Responds with the HTML of the kitchen list page."""
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         # Redirect the user to the login page if they're not already logged in
@@ -145,7 +140,7 @@ async def kitchens_page(request: web.Request):
 
 async def new_kitchen(request: web.Request):
     """Creates a new kitchen and redirects to it."""
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     # You can't create a kitchen if you're not logged in
     if email is None:
@@ -183,7 +178,7 @@ async def kitchen_index(request: web.Request):
 
 
 async def kitchen_settings(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         raise web.HTTPUnauthorized()
@@ -204,12 +199,12 @@ async def kitchen_settings(request: web.Request):
 
 async def static_asset(request: web.Request):
 
-    # Extract filepath id from ___?
+    # Extract filepath id from ?
     filepath = request.match_info["filepath"]
     file = db.get_static_asset(filepath, use_cache=False)
 
     if file is None:
-        raise web.HTTPUnauthorized()
+        raise web.HTTPNotFound()
 
     # Define content type
     content_types = {
@@ -224,7 +219,7 @@ async def static_asset(request: web.Request):
 
 
 async def product_image(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         # The user isn't signed in
@@ -251,7 +246,7 @@ async def product_image(request: web.Request):
 
 
 async def grocery_page(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
     kitchen_id = request.match_info["kitchen_id"]
 
     if email is None:
@@ -269,7 +264,7 @@ async def search_grocery(request: web.Request):
     body = await request.post()
     search_query = body["query"]
 
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
     kitchen_id = request.match_info["kitchen_id"]
 
     # You can't search a grocery list if you're not logged in
@@ -284,8 +279,8 @@ async def search_grocery(request: web.Request):
     return html_response(renderer.grocery_partial(page_data))
 
 
-async def grocery_scan_get(request: web.Request):
-    email = extract_request_owner(request)
+async def barcode_scanner_page(request: web.Request):
+    email = extract_client_email(request)
 
     if email is None:
         # Redirects user to login if no email is inputted
@@ -297,12 +292,8 @@ async def grocery_scan_get(request: web.Request):
     return html_response(renderer.barcode_scanner_page(page_data))
 
 
-async def grocery_scan_post(request: web.Request):
-    return web.Response(status=200)
-
-
 async def grocery_product_page(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
@@ -315,7 +306,7 @@ async def grocery_product_page(request: web.Request):
 
 
 async def set_product(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
@@ -363,7 +354,7 @@ async def buy_grocery_product(request: web.Request):
 
 
 async def inventory_page(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         # Redirects user to login if no email is inputted
@@ -378,7 +369,7 @@ async def inventory_page(request: web.Request):
 
 
 async def inventory_product_page(request: web.Request):
-    email = extract_request_owner(request)
+    email = extract_client_email(request)
 
     if email is None:
         # Redirects user to login if no email is inputted
@@ -391,22 +382,39 @@ async def inventory_product_page(request: web.Request):
     return html_response(renderer.inventory_product_page(page_data))
 
 
-async def inventory_use(request: web.Request):
-    # POST /kitchens/k_id/inventory/p_id/use
-    # POST /kitchens/k_id/inventory/p_id/use?add-to-grocery=true
-    body = await request.post()
-    used = body["use"]
-    email = extract_request_owner(request)
+async def use_inventory_product(request: web.Request):
+    email = extract_client_email(request)
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
-    if "add-to-grocery" in request.query:
-        # TODO: placeholder db stuff
+    if email is None:
+        raise web.HTTPUnauthorized()
 
-        # Redirect to inventory page
-        return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
-    else:
-        return web.Response(status=200)
+    page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
+
+    if "move-to-grocery" not in request.query:
+        return html_response(renderer.inventory_product_confirmation_partial(page_data))
+
+    body = await request.post()
+    expiry_amounts = {}
+
+    for expiry_str in body:
+        if expiry_str == "non_expirables":
+            expiry = None
+
+        else:
+            expiry = datetime.strptime(expiry_str, "%Y-%m-%d").date()
+
+        amount_str = body[expiry_str]
+        assert isinstance(amount_str, str)
+
+        amount = int(amount_str)
+        expiry_amounts[expiry] = amount
+
+    move_to_grocery = request.query["move-to-grocery"] == "true"
+    db.use_product(kitchen_id, product_id, expiry_amounts, move_to_grocery)
+
+    return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
 
 async def inventory_search(request: web.Request):
@@ -436,7 +444,7 @@ app.add_routes(
         web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
         web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
-        web.get("/kitchens/{kitchen_id}/grocery/scan", grocery_scan_get),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),
         web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
@@ -448,7 +456,9 @@ app.add_routes(
         web.get(
             "/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product_page
         ),
-        web.post("/kitchens/{kitchen_id}/inventory/{product_id}/use", inventory_use),
+        web.post(
+            "/kitchens/{kitchen_id}/inventory/{product_id}/use", use_inventory_product
+        ),
         web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
     ]
 )
