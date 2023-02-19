@@ -110,10 +110,14 @@ class Renderer:
             page_type="inventory",
         )
 
-    def inventory_product_confirmation_partial(self) -> str:
+    def inventory_product_confirmation_partial(
+        self,
+        page_data: InventoryProductPage,
+    ) -> str:
         """Returns the HTML partial of the "Move to grocery list?" UI."""
         return self._render(
             "inventory/move_to_grocery.partial.html",
+            data=page_data,
             page_type="inventory",
         )
 
