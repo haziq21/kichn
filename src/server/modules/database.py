@@ -289,6 +289,10 @@ class DatabaseClient:
         is no account with the specified email, and `True` otherwise. A return
         value of `True` can be taken to mean that the sharing was successful.
         """
+        # Return True if the user is already in the kitchen
+        if self.user_has_access_to_kitchen(email, kitchen_id):
+            return True
+            
         # Return False if the email doesn't exist in the database
         if not self._r.exists(f"user:{email}"):
             return False
