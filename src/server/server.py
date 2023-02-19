@@ -111,13 +111,17 @@ async def signup(request: web.Request):
 
 
 async def index(request: web.Request):
+    """
+    Redirect the user to the appropriate page
+    based on whether they're logged in or not.
+    """
     email = extract_request_owner(request)
 
     if email is None:
-        # Redirects user to login
+        # Redirect user to login
         raise web.HTTPFound("/login")
 
-    # Redirects user to list of kitchens
+    # Redirect user to the kitchen list page
     raise web.HTTPFound("/kitchens")
 
 
@@ -125,10 +129,11 @@ async def index(request: web.Request):
 
 
 async def kitchens_page(request: web.Request):
+    """Responds with the HTML of the kitchen list page."""
     email = extract_request_owner(request)
 
     if email is None:
-        # Redirects user to login if no email is inputted
+        # Redirect the user to the login page if they're not already logged in
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
@@ -137,21 +142,21 @@ async def kitchens_page(request: web.Request):
 
 
 async def new_kitchen(request: web.Request):
-    """
-    Creates a new kitchen with the `name` specified in the
-    request body, then redirects to the newly created kitchen.
-    """
+    """Creates a new kitchen and redirects to it."""
     email = extract_request_owner(request)
 
+    # You can't create a kitchen if you're not logged in
     if email is None:
         raise web.HTTPUnauthorized()
 
+    # Extract the kitchen name from the request body
     body = await request.post()
     kitchen_name = body["name"]
 
     # To make the type checker happy...
     assert isinstance(kitchen_name, str)
 
+    # Render and return the HTML response
     kitchen_id = db.create_kitchen(email, kitchen_name)
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
@@ -236,7 +241,7 @@ async def product_image(request: web.Request):
         # If image does not exist
         raise web.HTTPNotFound()
 
-    # Returns image in jpeg form.
+    # Return the JPEG
     return web.Response(body=product_img, content_type="image/jpeg")
 
 
@@ -257,13 +262,19 @@ async def grocery_page(request: web.Request):
 
 
 async def search_grocery(request: web.Request):
+    """Filters the grocery list based on a search query."""
+    # Extract the search query from the request body
     body = await request.post()
     search_query = body["query"]
+
     email = extract_request_owner(request)
     kitchen_id = request.match_info["kitchen_id"]
 
+    # You can't search a grocery list if you're not logged in
+    if email is None:
+        raise web.HTTPUnauthorized()
+
     # To make the checker happy...
-    assert isinstance(email, str)
     assert isinstance(search_query, str)
 
     # Render and return the HTML response
