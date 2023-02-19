@@ -1,7 +1,7 @@
 <span m="r-8" text="lg gray-800" font="medium">Move to grocery list?</span>
 
 <button
-  hx-post="remove?move-to-grocery=true"
+  hx-post="{{data.product.id}}/remove?move-to-grocery=true"
   type="submit"
   text="light-50 hover:gray-800"
   font="medium"
@@ -17,7 +17,7 @@
 </button>
 
 <button
-  hx-post="remove?move-to-grocery=false"
+  hx-post="{{data.product.id}}/remove?move-to-grocery=false"
   type="submit"
   text="gray-800"
   font="medium"
