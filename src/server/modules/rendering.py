@@ -9,6 +9,7 @@ from .models import (
     GenericKitchenPage,
     KitchenListPage,
     InventoryPage,
+    SortedInventoryPage,
     InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
@@ -64,9 +65,39 @@ class Renderer:
     #### INVENTORY LIST ####
 
     def inventory_page(self, page_data: InventoryPage) -> str:
-        """Returns the HTML of the inventory page."""
+        """
+        Returns the HTML of the inventory page,
+        with the inventory list sorted by category.
+        """
         return self._render(
             "inventory/index.html",
+            data=page_data,
+            page_type="inventory",
+        )
+
+    def inventory_partial(self, page_data: InventoryProductPage) -> str:
+        """Returns the HTML partial of the inventory list, sorted by category."""
+        return self._render(
+            "inventory/list.partial.html",
+            data=page_data,
+            page_type="inventory",
+        )
+
+    def sorted_inventory_page(self, page_data: SortedInventoryPage) -> str:
+        """
+        Returns the HTML of the inventory page, with
+        the inventory list being sorted by expiry date.
+        """
+        return self._render(
+            "inventory/index_sorted.html",
+            data=page_data,
+            page_type="inventory",
+        )
+
+    def sorted_inventory_partial(self, page_data: SortedInventoryPage) -> str:
+        """Returns the HTML partial of the inventory list, sorted by expiry date."""
+        return self._render(
+            "inventory/index_sorted.html",
             data=page_data,
             page_type="inventory",
         )

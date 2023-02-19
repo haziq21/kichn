@@ -22,6 +22,7 @@ from .models import (
     GenericKitchenPage,
     KitchenListPage,
     InventoryPage,
+    SortedInventoryPage,
     InventoryProductPage,
     GroceryPage,
     GroceryProductPage,
@@ -566,7 +567,10 @@ class DatabaseClient:
         kitchen_id: str,
         search_query="",
     ) -> InventoryPage:
-        """Returns the data necessary to render the inventory list page."""
+        """
+        Returns the data necessary to render the inventory list
+        page, with the list being sorted by product category.
+        """
         # Get the IDs of all the products on the
         # inventory page that match the search query
         product_ids = self._search.search_inventory_products(kitchen_id, search_query)
@@ -600,6 +604,46 @@ class DatabaseClient:
 
         return InventoryPage(
             products=products,
+            user=self._user(email),
+            kitchen=self._kitchen(kitchen_id),
+        )
+
+    def sorted_inventory_page_model(
+        self,
+        email: str,
+        kitchen_id: str,
+        search_query="",
+    ) -> SortedInventoryPage:
+        """
+        Returns the data necessary to render the inventory list
+        page, with the list being sorted by expiry date.
+        """
+        # Get the IDs of all the products on the
+        # inventory page that match the search query
+        product_ids = self._search.search_inventory_products(kitchen_id, search_query)
+
+        # Separate the inventory products that have and don't have expiry dates
+        expirables: list[InventoryProduct] = []
+        non_expirables: list[InventoryProduct] = []
+
+        for p_id in product_ids:
+            # Get the inventory product data
+            p = self._inv_product(kitchen_id, p_id)
+
+            # Add the product to its corresponding list
+            if p.expiries:
+                expirables.append(p)
+            else:
+                non_expirables.append(p)
+
+        # Sort the products by their earliest expiry date
+        expirables.sort(key=lambda p: min(p.expiries.keys()))
+        # Sort the products alphabetically
+        non_expirables.sort(key=lambda p: p.name)
+
+        return SortedInventoryPage(
+            # Display the expiring products before those that don't expire
+            products=expirables + non_expirables,
             user=self._user(email),
             kitchen=self._kitchen(kitchen_id),
         )

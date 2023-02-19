@@ -22,7 +22,7 @@
       <div flex="grow" h="0.25" bg="gray-300"></div>
       <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
         <button
-          @click="count -= count == 0 ? 0 : 1"
+          @click.prevent="count -= count == 0 ? 0 : 1"
           p="1"
           rounded="full"
           bg="gray-100 hover:gray-200"
@@ -47,7 +47,7 @@
           <input type="hidden" name="non_expirables" :value="count" />
         </div>
         <button
-          @click="count += count == {{data.product.non_expirables}} ? 0 : 1 "
+          @click.prevent="count += count == {{data.product.non_expirables}} ? 0 : 1 "
           p="1"
           rounded="full"
           bg="gray-100 hover:gray-200"
@@ -71,7 +71,7 @@
       <div flex="grow" h="0.25" bg="gray-300"></div>
       <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
         <button
-          @click="count -= count == 0 ? 0 : 1"
+          @click.prevent="count -= count == 0 ? 0 : 1"
           p="1"
           rounded="full"
           bg="gray-100 hover:gray-200"
@@ -96,7 +96,7 @@
           <input type="hidden" name="{{exp}}" :value="count" />
         </div>
         <button
-          @click="count += count == {{data.product.expiries[exp]}} ? 0 : 1 "
+          @click.prevent="count += count == {{data.product.expiries[exp]}} ? 0 : 1 "
           p="1"
           rounded="full"
           bg="gray-100 hover:gray-200"

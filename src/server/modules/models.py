@@ -64,12 +64,20 @@ class GenericKitchenPage:
 
 @dataclass
 class SortedInventoryPage(GenericKitchenPage):
+    """
+    Page model for `/kitchens/{kitchen_id}/inventory`,
+    with the inventory list sorted by expiry date.
+    """
+
     products: list[InventoryProduct]
 
 
 @dataclass
 class InventoryPage(GenericKitchenPage):
-    """Page model for `/kitchens/{kitchen_id}/inventory`."""
+    """
+    Page model for `/kitchens/{kitchen_id}/inventory`,
+    with the inventory list sorted by product category.
+    """
 
     products: dict[str, list[InventoryProduct]]
 

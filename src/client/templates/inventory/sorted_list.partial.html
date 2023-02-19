@@ -1,0 +1,18 @@
+{% for product in data.products %}
+<a
+  href="inventory/{{product.id}}"
+  text="lg"
+  m="b-2"
+  p="x-4 y-2"
+  rounded="md"
+  border="~ gray-300 hover:gray-500"
+  bg="hover:gray-50"
+  display="block"
+>
+  <div>{{product.name}}</div>
+  <div text="gray-400 xs">
+    Expiring
+    <span font="mono" tracking="wide">{{product.expiries.keys() | min}}</span>
+  </div>
+</a>
+{% endfor %}
