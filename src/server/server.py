@@ -45,15 +45,18 @@ def is_htmx_request(request: web.Request) -> bool:
 
 
 async def login_page(_):
+    """Responds with the HTML of the login page."""
     return html_response(renderer.login())
 
 
 async def signup_page(_):
+    """Responds with the HTML of the signup page."""
     return html_response(renderer.signup())
 
 
 async def login(request: web.Request):
-    """Starts a user session if the login credentials are valid."""
+    """Logs a user into their account."""
+    # Extract user data from the request body
     body = await request.post()
     email = body["email"]
     password = body["password"]
@@ -63,23 +66,26 @@ async def login(request: web.Request):
     assert isinstance(password, str)
 
     if not db.login_is_valid(email, password):
-        # Runs if the login credentials are invalid.
+        # Display an error message if the login credential's are invalid
         return html_response(body=renderer.login_failed())
-    else:
-        # Runs if returned otherwise [code is good to go]
-        ses_create = db.generate_auth_token(email)
-        res = htmx_redirect_response("/kitchens")
-        res.set_cookie("auth_token", ses_create)
 
-        return res
+    # Redirect the user to the kitchen list page
+    res = htmx_redirect_response("/kitchens")
+
+    # Set an authentication token cookie
+    auth_token = db.generate_auth_token(email)
+    res.set_cookie("auth_token", auth_token)
+
+    return res
 
 
 async def signup(request: web.Request):
-    """Creates the user account and starts a user session."""
+    """Creates a user account."""
+    # Extract user data from the request body
     body = await request.post()
+    email = body["email"]
     username = body["username"]
     password = body["password"]
-    email = body["email"]
 
     # To make the type checker happy...
     assert isinstance(username, str)
@@ -87,12 +93,15 @@ async def signup(request: web.Request):
     assert isinstance(password, str)
 
     if not db.create_user(username, email, password):
-        # Runs if the email already exists in the user database.
+        # Display an error message if an account
+        # with the supplied email already exists
         return html_response(body=renderer.signup_failed())
 
-    # Run if returned otherwise [code is good to go]
-    auth_token = db.generate_auth_token(email)
+    # Redirect the user to the kitchen list page
     res = htmx_redirect_response("/kitchens")
+
+    # Set an authentication token cookie
+    auth_token = db.generate_auth_token(email)
     res.set_cookie("auth_token", auth_token)
 
     return res
@@ -225,7 +234,6 @@ async def product_image(request: web.Request):
 
     if product_img is None:
         # If image does not exist
-        print("Img not found")
         raise web.HTTPNotFound()
 
     # Returns image in jpeg form.
