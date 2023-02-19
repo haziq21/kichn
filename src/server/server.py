@@ -329,18 +329,24 @@ async def buy_grocery_product(request: web.Request):
     amount = body["amount"]
 
     # Extract values of expiry year, month and date from the body dictionary.
-    exp_year, exp_month, exp_day = body["yyyy"], body["mm"], body["dd"]
+
+    if "include_expiry" in body:
+        exp_year, exp_month, exp_day = body["yyyy"], body["mm"], body["dd"]
+        assert isinstance(exp_year, str)
+        assert isinstance(exp_month, str)
+        assert isinstance(exp_day, str)
+        expiry = (int(exp_year), int(exp_month), int(exp_day))
+
+    else:
+        expiry = None
 
     # Assert that expiry and amount should be strings
     # and not integers, otherwise string values will be left out
     # And also to make the checker happy...
-    assert isinstance(exp_year, str)
-    assert isinstance(exp_month, str)
-    assert isinstance(exp_day, str)
+
     assert isinstance(amount, str)
 
-    # Convert expiry and amount into integers to be processed by buy_product function
-    expiry = (int(exp_year), int(exp_month), int(exp_day))
+    # Convert amount into integer to be processed by buy_product function
     amount = int(amount)
 
     # Move product from kitchen to inventory
