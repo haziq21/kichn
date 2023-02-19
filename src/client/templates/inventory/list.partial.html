@@ -13,6 +13,10 @@
   bg="hover:gray-50"
   display="block"
 >
-  {{product.name}}
+  <div>{{product.name}}</div>
+  <div text="gray-400 xs">
+    Expiring
+    <span font="mono" tracking="wide">{{product.expiries.keys() | min}}</span>
+  </div>
 </a>
 {% endfor %} {% endfor %}
