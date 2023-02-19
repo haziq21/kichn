@@ -1,13 +1,13 @@
 {% extends "_kitchen_layout.html" %} {% block main %}
 
 <form hx-post="settings/share" m="b-12">
-  <label for="name" text="xs gray-400">Share this kitchen</label>
+  <label for="email" text="xs gray-400">Share this kitchen</label>
   <div flex="~" space="x-2">
     <input
       type="text"
-      id="name"
+      id="email"
       placeholder="john@gmail.com"
-      name="name"
+      name="email"
       border="~ gray-400"
       rounded="md"
       p="y-2 x-3"
