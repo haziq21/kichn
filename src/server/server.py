@@ -159,11 +159,20 @@ async def new_kitchen(request: web.Request):
 
 
 async def kitchen_share(request: web.Request):
-    return web.Response(status=200)
+    body = await request.post()
+    email = body["email"]
+    kitchen_id = request.match_info["kitchen_id"]
 
+    assert isinstance(email, str)
+    page_data = db.admin_settings_page_model(email, kitchen_id)
 
-async def kitchen_unshare(request: web.Request):
-    return web.Response(status=200)
+    assert isinstance(email, str)
+    share_kitchen = db.share_kitchen(kitchen_id, email)
+
+    if share_kitchen:
+        return html_response(renderer.members_list_partial(page_data))
+
+    return html_response(renderer.members_list_partial(page_data, email))
 
 
 async def kitchen_leave(request: web.Request):
@@ -368,10 +377,16 @@ async def inventory_page(request: web.Request):
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
+    product_id = request.match_info["product_id"]
 
     # Render and return the HTML response
     page_data = db.inventory_page_model(email, kitchen_id)
-    return html_response(renderer.inventory_page(page_data))
+
+    if "sort-by-category" in request.query:
+        return html_response(renderer.inventory_page(page_data))
+
+    page_data = db.sorted_inventory_page_model(email, kitchen_id, product_id)
+    return html_response(renderer.sorted_inventory_page(page_data))
 
 
 async def inventory_product_page(request: web.Request):
