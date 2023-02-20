@@ -1,4 +1,4 @@
-""""
+"""
 Handles barcodes.
 
 Authored by Lohith Tanuku.
@@ -25,6 +25,7 @@ def read_barcodes(raw_image: bytes) -> Optional[int]:
     # Find the barcodes in the image and decode each of the barcodes
     barcodes = pyzbar.decode(image, symbols=[ZBarSymbol.EAN13])
 
+    # Return None if pyzbar doesn't find any barcodes
     if not barcodes:
         return None
 
