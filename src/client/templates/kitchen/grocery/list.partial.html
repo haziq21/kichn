@@ -1,18 +1,21 @@
-{% for category in data.products %}
-<li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
-  {{category}}
-</li>
-{% for product in data.products[category] %}
-<a
-  href="/kitchens/{{data.kitchen.id}}/grocery/{{product.id}}"
-  text="lg"
-  m="b-2"
-  p="x-4 y-2"
-  rounded="md"
-  border="~ gray-300 hover:gray-500"
-  bg="hover:gray-50"
-  display="block"
->
-  {{product.name}}
-</a>
-{% endfor %} {% endfor %}
+<ul id="grocery-list" p="x-2">
+  {% for category in data.products %}
+  <li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
+    {{category}}
+  </li>
+  {% for product in data.products[category] %}
+  <a
+    href="/kitchens/{{data.kitchen.id}}/grocery/{{product.id}}"
+    text="lg"
+    m="b-2"
+    p="x-4 y-2"
+    rounded="md"
+    border="~ gray-300 hover:gray-500"
+    bg="hover:gray-50"
+    display="block"
+  >
+    {{product.name}}
+    <span>{{product.amount}}</span>
+  </a>
+  {% endfor %} {% endfor %}
+</ul>
