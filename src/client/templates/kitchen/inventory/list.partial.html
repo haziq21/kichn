@@ -15,8 +15,12 @@
 >
   <div>{{product.name}}</div>
   <div text="gray-400 xs">
-    Expiring
+    {% if product.expiries %}
+    <span>Expiring</span>
     <span font="mono" tracking="wide">{{product.expiries.keys() | min}}</span>
+    {% else %}
+    <span>No expiry</span>
+    {% endif %}
   </div>
 </a>
 {% endfor %} {% endfor %}
