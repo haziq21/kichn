@@ -13,7 +13,7 @@
     <script>
       window.htmx.createWebSocket = function (url) {
         let sock = new WebSocket(url, []);
-        sock.binaryType = window.htmx.config.wsBinaryType;
+        // sock.binaryType = window.htmx.config.wsBinaryType;
 
         window.addEventListener("send-scan", (event) => {
           sock.send(event.data);
@@ -82,7 +82,7 @@
     hx-boost="true"
     hx-ext="ws"
     hx-headers='{"X-Session-Token": "{{session_token}}"}'
-    ws-connect="/ws"
+    ws-connect="/ws/{{session_token}}"
     x-data
     h="min-full"
     flex="~ col"
