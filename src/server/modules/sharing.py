@@ -16,7 +16,7 @@ class WebSocketManager:
         self._topic_based_updaters: dict[str, set[Callable[[], Awaitable[None]]]] = {}
         # Maps session tokens to functions that update
         # the UI when a WebSocket message is received
-        self._message_based_updaters: dict[str, Callable[[str], Awaitable[None]]] = {}
+        self._message_based_updaters: dict[str, Callable[[bytes], Awaitable[None]]] = {}
 
         # Maps session tokens to functions that unregister
         # all the UI updaters associated with the session
@@ -38,15 +38,17 @@ class WebSocketManager:
             if session_token in self._message_based_updaters:
                 self._message_based_updaters[session_token](msg.data)
 
+        # Cleanup: remove all the data associated with this session
         if session_token in self._unsubscribers:
             self._unsubscribers.pop(session_token)()
+
         self._connections.pop(session_token)
 
     def subscribe(
         self,
         session_token: str,
         topic_renderers: dict[str, Callable[[], str]],
-        receiving_renderer: Optional[Callable[[str], str]],
+        receiving_renderer: Optional[Callable[[bytes], str]] = None,
     ):
         """
         Subscribes the user session to the specified topics,
@@ -72,16 +74,22 @@ class WebSocketManager:
                 updated_html = topic_renderers[topic]()
                 await ws.send_str(updated_html)
 
+            # Create this topic if it doesn't already exist
+            self._topic_based_updaters[topic] = set()
+
             # Subscribe the UI updater to the topic
             self._topic_based_updaters[topic].add(update_topic_ui)
             topic_ui_updaters[topic] = update_topic_ui
 
-        async def update_message_ui(msg: str):
+        async def update_message_ui(msg: bytes):
             """Render updated HTML and send it to the client to update their UI."""
             if receiving_renderer:
                 ws = self._connections[session_token]
                 rendered_msg = receiving_renderer(msg)
                 await ws.send_str(rendered_msg)
+
+        # Register the message-based UI updater
+        self._message_based_updaters[session_token] = update_message_ui
 
         def unsubscribe():
             """Unsubscribes this session from all its newly subscribed topics."""
@@ -103,5 +111,10 @@ class WebSocketManager:
         """
         # Call all the UI updaters that are subscribed to the specified topics
         for topic in topics:
+            # Ignore this topic if haven't been any
+            # updaters that subscribed to the topic
+            if topic not in self._topic_based_updaters:
+                continue
+
             for update_ui in self._topic_based_updaters[topic]:
-                update_ui()
+                await update_ui()
