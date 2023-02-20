@@ -181,7 +181,13 @@ async def kitchen_share(request: web.Request):
 
 
 async def kitchen_leave(request: web.Request):
-    return web.Response(status=200)
+    email = extract_client_email(request)
+    if email is None:
+        raise web.HTTPUnauthorized()
+
+    kitchen_id = request.match_info["kitchen_id"]
+    db.leave_kitchen(email, kitchen_id)
+    return htmx_redirect_response("/kitchens")
 
 
 async def kitchen_index(request: web.Request):
@@ -216,10 +222,13 @@ async def kitchen_settings(request: web.Request):
     if not access:
         raise web.HTTPForbidden()
 
+    # Check if user is an admin.
+    # If so, give admin access.
     if check_admin:
         page_data = db.admin_settings_page_model(email, kitchen_id)
         return html_response(renderer.admin_settings_page(page_data))
 
+    # Otherwise, give non-admin access.
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
     return html_response(renderer.nonadmin_settings_page(page_data))
 
@@ -522,7 +531,7 @@ app.add_routes(
         #### INVENTORY PRODUCT ####
         web.get(
             "/kitchens/{kitchen_id}/inventory/{product_id}",
-            inventory_product_page,  # THIS ONE
+            inventory_product_page,
         ),
         web.post(
             "/kitchens/{kitchen_id}/inventory/{product_id}/use", use_inventory_product
