@@ -164,10 +164,15 @@ async def kitchen_share(request: web.Request):
     kitchen_id = request.match_info["kitchen_id"]
 
     assert isinstance(email, str)
-    page_data = db.admin_settings_page_model(email, kitchen_id)
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if access:
+        return web.HTTPForbidden()
+
+    share_kitchen = db.share_kitchen(kitchen_id, email)
 
     assert isinstance(email, str)
-    share_kitchen = db.share_kitchen(kitchen_id, email)
+    page_data = db.admin_settings_page_model(email, kitchen_id)
 
     if share_kitchen:
         return html_response(renderer.members_list_partial(page_data))
@@ -182,7 +187,18 @@ async def kitchen_leave(request: web.Request):
 async def kitchen_index(request: web.Request):
     """Redirects the user to the kitchen's inventory page."""
     # Extract the kitchen ID from the URL
+    email = extract_client_email(request)
+
+    if email is None:
+        raise web.HTTPUnauthorized()
+
     kitchen_id = request.match_info["kitchen_id"]
+
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
+
     # Redirect any /kitchens/{kitchen_id} request to /kitchens/{kitchen_id}/inventory
     raise web.HTTPFound(f"/kitchens/{kitchen_id}/inventory")
 
@@ -195,6 +211,10 @@ async def kitchen_settings(request: web.Request):
 
     kitchen_id = request.match_info["kitchen_id"]
     check_admin = db.user_owns_kitchen(email, kitchen_id)
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
 
     if check_admin:
         page_data = db.admin_settings_page_model(email, kitchen_id)
@@ -263,6 +283,11 @@ async def grocery_page(request: web.Request):
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
+
     # Render and return the HTML response
     page_data = db.grocery_page_model(email, kitchen_id)
     return html_response(renderer.grocery_page(page_data))
@@ -298,6 +323,11 @@ async def barcode_scanner_page(request: web.Request):
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
+
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
     return html_response(renderer.barcode_scanner_page(page_data))
 
@@ -378,7 +408,11 @@ async def inventory_page(request: web.Request):
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
-    product_id = request.match_info["product_id"]
+
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
 
     # Render and return the HTML response
     page_data = db.inventory_page_model(email, kitchen_id)
@@ -386,7 +420,7 @@ async def inventory_page(request: web.Request):
     if "sort-by-category" in request.query:
         return html_response(renderer.inventory_page(page_data))
 
-    page_data = db.sorted_inventory_page_model(email, kitchen_id, product_id)
+    page_data = db.sorted_inventory_page_model(email, kitchen_id)
     return html_response(renderer.sorted_inventory_page(page_data))
 
 
@@ -399,6 +433,10 @@ async def inventory_product_page(request: web.Request):
 
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
+
+    if not access:
+        raise web.HTTPForbidden()
 
     page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
     return html_response(renderer.inventory_product_page(page_data))
@@ -451,10 +489,10 @@ app.add_routes(
     [
         #### REDIRECTS ####
         web.get("/", index),
-        web.get("/kitchens/{kitchen_id}", kitchen_index),
+        web.get("/kitchens/{kitchen_id}", kitchen_index),  #
         #### MISC ####
         web.get("/static/{filepath}", static_asset),
-        web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),
+        web.get("/kitchens/{kitchen_id}/images/{product_id}", product_image),  #
         #### LOGIN & SIGNUP ####
         web.get("/login", login_page),
         web.post("/login", login),
@@ -464,26 +502,27 @@ app.add_routes(
         web.get("/kitchens", kitchens_page),
         web.post("/kitchens", new_kitchen),
         #### KITCHEN SETTINGS ####
-        web.get("/kitchens/{kitchen_id}/settings", kitchen_settings),
+        web.get("/kitchens/{kitchen_id}/settings", kitchen_settings),  #
         web.post("/kitchens/{kitchen_id}/settings/share", kitchen_share),
         web.post("/kitchens/{kitchen_id}/settings/leave", kitchen_leave),
         #### GROCERY LIST ####
-        web.get("/kitchens/{kitchen_id}/grocery", grocery_page),
+        web.get("/kitchens/{kitchen_id}/grocery", grocery_page),  #
         web.post("/kitchens/{kitchen_id}/grocery/search", search_grocery),
-        web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),
+        web.get("/kitchens/{kitchen_id}/grocery/scan", barcode_scanner_page),  #
         #### GROCERY PRODUCT ####
-        web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),
+        web.get("/kitchens/{kitchen_id}/grocery/{product_id}", grocery_product_page),  #
         web.post("/kitchens/{kitchen_id}/grocery/{product_id}/set", set_product),
         web.post(
             "/kitchens/{kitchen_id}/grocery/{product_id}/buy",
             buy_grocery_product,
         ),
         #### INVENTORY LIST ####
-        web.get("/kitchens/{kitchen_id}/inventory", inventory_page),
+        web.get("/kitchens/{kitchen_id}/inventory", inventory_page),  #
         web.post("/kitchens/{kitchen_id}/inventory/search", inventory_search),
         #### INVENTORY PRODUCT ####
         web.get(
-            "/kitchens/{kitchen_id}/inventory/{product_id}", inventory_product_page
+            "/kitchens/{kitchen_id}/inventory/{product_id}",
+            inventory_product_page,  # THIS ONE
         ),
         web.post(
             "/kitchens/{kitchen_id}/inventory/{product_id}/use", use_inventory_product
