@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Optional
 from modules.database import DatabaseClient
 from modules.rendering import Renderer
+from modules.sharing import WebSocketManager
 
 
 #### HELPER FUNCTIONS ####
@@ -38,17 +39,30 @@ def extract_client_email(request: web.Request) -> Optional[str]:
     return None
 
 
+def get_new_session_token(request: web.Request) -> Optional[str]:
+    """
+    Returns a new session token if the request
+    doesn't include one, and `None` otherwise.
+    """
+    if "X-Session-Token" in request.headers:
+        return None
+
+    return db.gen_session_token()
+
+
 #### LOGIN & SIGNUP ####
 
 
-async def login_page(_):
+async def login_page(request: web.Request):
     """Responds with the HTML of the login page."""
-    return html_response(renderer.login())
+    new_session = get_new_session_token(request)
+    return html_response(renderer.login_page(new_session))
 
 
-async def signup_page(_):
+async def signup_page(request: web.Request):
     """Responds with the HTML of the signup page."""
-    return html_response(renderer.signup())
+    new_session = get_new_session_token(request)
+    return html_response(renderer.signup_page(new_session))
 
 
 async def login(request: web.Request):
@@ -64,7 +78,7 @@ async def login(request: web.Request):
 
     if not db.login_is_valid(email, password):
         # Display an error message if the login credential's are invalid
-        return html_response(body=renderer.login_failed())
+        return html_response(body=renderer.login_failed_partial())
 
     # Redirect the user to the kitchen list page
     res = htmx_redirect_response("/kitchens")
@@ -92,7 +106,7 @@ async def signup(request: web.Request):
     if not db.create_user(username, email, password):
         # Display an error message if an account
         # with the supplied email already exists
-        return html_response(body=renderer.signup_failed())
+        return html_response(body=renderer.signup_failed_partial())
 
     # Redirect the user to the kitchen list page
     res = htmx_redirect_response("/kitchens")
@@ -134,8 +148,9 @@ async def kitchens_page(request: web.Request):
         raise web.HTTPFound("/login")
 
     # Render and return the HTML response
+    new_session = get_new_session_token(request)
     page_data = db.kitchens_page_model(email)
-    return html_response(renderer.kitchens_page(page_data))
+    return html_response(renderer.kitchens_page(page_data, new_session))
 
 
 async def new_kitchen(request: web.Request):
@@ -210,27 +225,42 @@ async def kitchen_index(request: web.Request):
 
 
 async def kitchen_settings(request: web.Request):
+    """Responds with the HTML of the kitchen settings page."""
     email = extract_client_email(request)
 
     if email is None:
-        raise web.HTTPUnauthorized()
+        # Redirect the user to the login page if they're not already logged in
+        raise web.HTTPFound("/login")
 
     kitchen_id = request.match_info["kitchen_id"]
-    check_admin = db.user_owns_kitchen(email, kitchen_id)
+
     access = db.user_has_access_to_kitchen(email, kitchen_id)
 
     if not access:
         raise web.HTTPForbidden()
 
+    user_is_admin = db.user_owns_kitchen(email, kitchen_id)
+    new_session = get_new_session_token(request)
+
     # Check if user is an admin.
     # If so, give admin access.
-    if check_admin:
+    if user_is_admin:
         page_data = db.admin_settings_page_model(email, kitchen_id)
-        return html_response(renderer.admin_settings_page(page_data))
+        return html_response(
+            renderer.admin_settings_page(
+                page_data,
+                new_session,
+            )
+        )
 
     # Otherwise, give non-admin access.
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
-    return html_response(renderer.nonadmin_settings_page(page_data))
+    return html_response(
+        renderer.nonadmin_settings_page(
+            page_data,
+            new_session,
+        )
+    )
 
 
 #### MISC ####
@@ -298,8 +328,9 @@ async def grocery_page(request: web.Request):
         raise web.HTTPForbidden()
 
     # Render and return the HTML response
+    new_session = get_new_session_token(request)
     page_data = db.grocery_page_model(email, kitchen_id)
-    return html_response(renderer.grocery_page(page_data))
+    return html_response(renderer.grocery_page(page_data, new_session))
 
 
 async def search_grocery(request: web.Request):
@@ -327,18 +358,26 @@ async def barcode_scanner_page(request: web.Request):
     email = extract_client_email(request)
 
     if email is None:
-        # Redirects user to login if no email is inputted
+        # Redirect the user to the login page if they're not already logged in
         raise web.HTTPFound("/login")
 
     # Extract kitchen id from URL
     kitchen_id = request.match_info["kitchen_id"]
+
     access = db.user_has_access_to_kitchen(email, kitchen_id)
 
     if not access:
         raise web.HTTPForbidden()
 
+    # Render and return the response
+    new_session = get_new_session_token(request)
     page_data = db.generic_kitchen_page_model(email, kitchen_id)
-    return html_response(renderer.barcode_scanner_page(page_data))
+    return html_response(
+        renderer.barcode_scanner_page(
+            page_data,
+            new_session,
+        )
+    )
 
 
 async def grocery_product_page(request: web.Request):
@@ -350,8 +389,15 @@ async def grocery_product_page(request: web.Request):
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
+    # Render and return the response
+    new_session = get_new_session_token(request)
     page_data = db.grocery_product_page_model(email, kitchen_id, product_id)
-    return html_response(renderer.grocery_product_page(page_data))
+    return html_response(
+        renderer.grocery_product_page(
+            page_data,
+            new_session,
+        )
+    )
 
 
 async def set_product(request: web.Request):
@@ -415,7 +461,7 @@ async def inventory_page(request: web.Request):
         # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
-    # Extract kitchen id from URL
+    # Extract kitchen ID from URL
     kitchen_id = request.match_info["kitchen_id"]
 
     access = db.user_has_access_to_kitchen(email, kitchen_id)
@@ -423,14 +469,28 @@ async def inventory_page(request: web.Request):
     if not access:
         raise web.HTTPForbidden()
 
-    # Render and return the HTML response
+    # Render the HTML response
     page_data = db.inventory_page_model(email, kitchen_id)
+    new_session = get_new_session_token(request)
 
+    # Sort the inventory list by product category
+    # if the URL has a "sort-by-category" parameter
     if "sort-by-category" in request.query:
-        return html_response(renderer.inventory_page(page_data))
+        return html_response(
+            renderer.inventory_page(
+                page_data,
+                new_session,
+            )
+        )
 
+    # Otherwise, sort by expiry date
     page_data = db.sorted_inventory_page_model(email, kitchen_id)
-    return html_response(renderer.sorted_inventory_page(page_data))
+    return html_response(
+        renderer.sorted_inventory_page(
+            page_data,
+            new_session,
+        )
+    )
 
 
 async def inventory_product_page(request: web.Request):
@@ -447,8 +507,15 @@ async def inventory_product_page(request: web.Request):
     if not access:
         raise web.HTTPForbidden()
 
+    # Render and return the response
+    new_session = get_new_session_token(request)
     page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
-    return html_response(renderer.inventory_product_page(page_data))
+    return html_response(
+        renderer.inventory_product_page(
+            page_data,
+            new_session,
+        )
+    )
 
 
 async def use_inventory_product(request: web.Request):
@@ -490,8 +557,11 @@ async def inventory_search(request: web.Request):
     return web.Response(status=200)
 
 
+# async def websocket(request: web.Req)
+
 db = DatabaseClient("src/client/static", "server-store")
 renderer = Renderer("src/client/templates")
+ws_manager = WebSocketManager()
 
 app = web.Application()
 app.add_routes(

@@ -1,4 +1,4 @@
-{% extends "_kitchen_layout.html" %} {% block main %}
+{% extends "kitchen/_layout.html" %} {% block main %}
 <div m="b-12" flex="~" space="x-2">
   <input
     hx-post="inventory/search"
@@ -14,7 +14,7 @@
     w="full"
   />
   <a
-    href="inventory?sort-by-category=true"
+    href="inventory"
     display="block"
     text="light-50 hover:gray-800"
     font="medium"
@@ -25,10 +25,10 @@
     whitespace="nowrap"
     transition="duration-75"
   >
-    Sorting by expiry
+    Sorting by category
   </a>
 </div>
 <ul id="inventory-list" p="x-2">
-  {% include "inventory/sorted_list.partial.html" %}
+  {% include "kitchen/inventory/list.partial.html" %}
 </ul>
 {% endblock %}

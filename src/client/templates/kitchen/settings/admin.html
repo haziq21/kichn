@@ -1,4 +1,4 @@
-{% extends "_kitchen_layout.html" %} {% block main %}
+{% extends "kitchen/_layout.html" %} {% block main %}
 
 <form hx-post="settings/share" hx-target="#members-list" m="b-12">
   <label for="email" text="xs gray-400">Share this kitchen</label>
@@ -29,5 +29,5 @@
   </div>
 </form>
 
-<div id="members-list">{% include "settings/admin.partial.html" %}</div>
+<div id="members-list">{% include "kitchen/settings/admin.partial.html" %}</div>
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "_kitchen_layout.html" %} {% block main %}
+{% extends "kitchen/_layout.html" %} {% block main %}
 <div m="b-12" flex="~" space="x-2">
   <input
     hx-post="/kitchens/{{data.kitchen.id}}/grocery/search"
@@ -43,6 +43,6 @@
   </a>
 </div>
 <ul id="grocery-list" p="x-2">
-  {% include "grocery/list.partial.html" %}
+  {% include "kitchen/grocery/list.partial.html" %}
 </ul>
 {% endblock %}

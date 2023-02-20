@@ -1,0 +1,61 @@
+{% extends "_layout.html" %} {% block title %} Sign up for Kichn {% endblock %}
+{% block body %}
+<div m="y-auto">
+  <h1 text="4xl center" font="semibold" m="b-14">Sign up to Kichn</h1>
+  <form
+    hx-post="/signup"
+    hx-target="#signup-error"
+    flex="~ col"
+    w="full max-80"
+    m="b-4"
+  >
+    <input
+      type="text"
+      name="username"
+      id="username"
+      placeholder="Username"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      m="b-2"
+    />
+    <input
+      type="text"
+      name="email"
+      id="email"
+      placeholder="Email address"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+    />
+    <span id="signup-error" text="xs red-700" m="b-2" p="l-2">
+      <!-- An account with this email address already exists. -->
+    </span>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      placeholder="Password"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      m="b-8"
+    />
+    <button
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="y-2"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      transition="duration-100"
+    >
+      Sign up
+    </button>
+  </form>
+  <a href="/login" text="sm blue-800" underline="hover:~">
+    Already have an account? Log in instead.
+  </a>
+</div>
+{% endblock %}

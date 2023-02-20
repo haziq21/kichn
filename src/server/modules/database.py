@@ -551,8 +551,7 @@ class DatabaseClient:
         inv_product = self._inv_product(kitchen_id, product_id)
 
         if expiry_date is None:
-            # TODO: Set this to inv_product.non_expirables
-            inital_inv_amt = 0
+            inital_inv_amt = inv_product.non_expirables
         else:
             inital_inv_amt = inv_product.expiries.get(expiry_date, 0)
 

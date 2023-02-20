@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" h="screen">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title or "Kichn"}}</title>
+    <link rel="stylesheet" href="/static/global.min.css" />
+    <script src="/static/htmx.min.js"></script>
+    <script src="/static/htmx-ws.min.js"></script>
+    <script src="/static/alpine.min.js" defer></script>
+  </head>
+  <body
+    hx-boost="true"
+    hx-ext="ws"
+    hx-headers='{"X-Session-Token": "{{session_token}}"}'
+    ws-connect="/ws"
+    x-data
+    h="min-full"
+    flex="~ col"
+    align="items-center"
+    bg="light-50"
+  >
+    {% block body %} {% endblock %}
+  </body>
+  <script>
+    window.htmx.createWebSocket = function (url) {
+      let sock = new WebSocket(url, []);
+      sock.binaryType = window.htmx.config.wsBinaryType;
+
+      window.addEventListener("send-scan", (event) => {
+        sock.send(event.data);
+      });
+
+      return sock;
+    };
+
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("date_input", (max) => ({
+        newValue(currVal, newChar) {
+          if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
+            newNum = parseFloat(currVal.slice(1) + newChar);
+            return newNum == 0 || (newNum > max && newChar == "0")
+              ? // Don't change the value
+                currVal
+              : newNum > max && newChar != "0"
+              ? // Set the new character to be the single digit
+                "0".repeat(max.toString().length - 1) + newChar
+              : // Shift everything left
+                currVal.slice(1) + newChar;
+          }
+          return newChar == "Tab" ? null : currVal;
+        },
+      }));
+
+      Alpine.data("scanner", () => ({
+        stream: null,
+        width: 0,
+        height: 0,
+        canvasDrawInterval: null,
+        init() {
+          navigator.mediaDevices
+            .getUserMedia({ video: true, audio: false })
+            .then((stream) => {
+              this.$refs.video.srcObject = stream;
+              this.$refs.video.play();
+              this.stream = stream;
+            });
+
+          this.canvasDrawInterval = setInterval(() => {
+            this.$refs.canvas
+              .getContext("2d")
+              .drawImage(this.$refs.video, 0, 0, this.width, this.height);
+
+            this.$refs.canvas.toBlob((blob) => {
+              window.dispatchEvent(
+                new CustomEvent("send-scan", { detail: blob })
+              );
+            }, "image/jpeg");
+          }, 40);
+        },
+        setDimensions() {
+          this.width = this.$refs.video.videoWidth;
+          this.height = this.$refs.video.videoHeight;
+        },
+        stopStream() {
+          clearInterval(this.canvasDrawInterval);
+          this.stream.getTracks().forEach((track) => track.stop());
+        },
+      }));
+    });
+  </script>
+</html>

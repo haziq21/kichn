@@ -32,46 +32,70 @@ class Renderer:
             autoescape=jinja2.select_autoescape(),
         )
 
-    def _render(self, filepath: str, **kwargs) -> str:
+    def _render(self, filepath: str, session_token: Optional[str], **kwargs) -> str:
         """
         Returns the rendered Jinja template from the specified filepath.
-        Passes keyword arguments as Jinja variables.
+        Returns a HTML partial of the main page content if `session_token`
+        is `None`, and the full HTML document otherwise. Passes keyword
+        arguments as Jinja variables.
         """
-        return self._env.get_template(filepath).render(**kwargs)
+        # Use the partial layout to return a HTML partial if session_token
+        # is unspecified, and use the full document layout otherwise
+        wrapper = self._env.get_template(
+            "_wrapper_full.html" if session_token else "_wrapper_partial.html"
+        )
+        return self._env.get_template(filepath).render(
+            wrapper=wrapper,
+            session_token=session_token,
+            **kwargs,
+        )
 
     #### AUTHENTICATION ####
 
-    def login(self) -> str:
+    def login_page(self, session_token: Optional[str]) -> str:
         """Returns the full HTML document for the login page."""
-        return self._render("login.html")
+        return self._render("auth/login.html", session_token)
 
-    def login_failed(self) -> str:
+    def login_failed_partial(self) -> str:
         """Returns the HTML fragment for when a login request fails."""
+        # No need to include the session token on partials
         return "Incorrect password or email address."
 
-    def signup(self) -> str:
+    def signup_page(self, session_token: Optional[str]) -> str:
         """Returns the full HTML document for the signup page."""
-        return self._render("signup.html")
+        return self._render("auth/signup.html", session_token)
 
-    def signup_failed(self) -> str:
+    def signup_failed_partial(self) -> str:
         """Returns the HTML fragment for when a signup request fails."""
+        # No need to include the session token on partials
         return "An account with this email address already exists."
 
     #### KITCHENS LIST ####
 
-    def kitchens_page(self, page_data: KitchenListPage) -> str:
+    def kitchens_page(
+        self,
+        page_data: KitchenListPage,
+        session_token: Optional[str],
+    ) -> str:
         """Returns the HTML of the kitchen list page."""
-        return self._render("kitchens.html", data=page_data)
+        return self._render(
+            "kitchens.html",
+            session_token,
+            data=page_data,
+        )
 
     #### INVENTORY LIST ####
 
-    def inventory_page(self, page_data: InventoryPage) -> str:
+    def inventory_page(
+        self, page_data: InventoryPage, session_token: Optional[str]
+    ) -> str:
         """
         Returns the HTML of the inventory page,
         with the inventory list sorted by category.
         """
         return self._render(
-            "inventory/index.html",
+            "/kitchen/inventory/index.html",
+            session_token,
             data=page_data,
             page_type="inventory",
         )
@@ -79,18 +103,22 @@ class Renderer:
     def inventory_partial(self, page_data: InventoryProductPage) -> str:
         """Returns the HTML partial of the inventory list, sorted by category."""
         return self._render(
-            "inventory/list.partial.html",
+            "kitchen/inventory/list.partial.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
 
-    def sorted_inventory_page(self, page_data: SortedInventoryPage) -> str:
+    def sorted_inventory_page(
+        self, page_data: SortedInventoryPage, session_token: Optional[str]
+    ) -> str:
         """
         Returns the HTML of the inventory page, with
         the inventory list being sorted by expiry date.
         """
         return self._render(
-            "inventory/index_sorted.html",
+            "kitchen/inventory/index_sorted.html",
+            session_token,
             data=page_data,
             page_type="inventory",
         )
@@ -98,15 +126,21 @@ class Renderer:
     def sorted_inventory_partial(self, page_data: SortedInventoryPage) -> str:
         """Returns the HTML partial of the inventory list, sorted by expiry date."""
         return self._render(
-            "inventory/index_sorted.html",
+            "kitchen/inventory/index_sorted.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
 
-    def inventory_product_page(self, page_data: InventoryProductPage) -> str:
+    def inventory_product_page(
+        self,
+        page_data: InventoryProductPage,
+        session_token: Optional[str],
+    ) -> str:
         """Returns the HTML of an inventory product's page."""
         return self._render(
-            "inventory/product.html",
+            "kitchen/inventory/product.html",
+            session_token,
             data=page_data,
             page_type="inventory",
         )
@@ -117,17 +151,19 @@ class Renderer:
     ) -> str:
         """Returns the HTML partial of the "Move to grocery list?" UI."""
         return self._render(
-            "inventory/move_to_grocery.partial.html",
+            "kitchen/inventory/move_to_grocery.partial.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
 
     #### GROCERY LIST ####
 
-    def grocery_page(self, page_data: GroceryPage) -> str:
+    def grocery_page(self, page_data: GroceryPage, session_token: Optional[str]) -> str:
         """Returns the HTML of the grocery page."""
         return self._render(
-            "grocery/index.html",
+            "kitchen/grocery/index.html",
+            session_token,
             data=page_data,
             page_type="grocery",
         )
@@ -135,15 +171,21 @@ class Renderer:
     def grocery_partial(self, page_data: GroceryPage) -> str:
         """Returns the HTML partial of the grocery list."""
         return self._render(
-            "grocery/list.partial.html",
+            "kitchen/grocery/list.partial.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             page_type="grocery",
         )
 
-    def grocery_product_page(self, page_data: GroceryProductPage) -> str:
+    def grocery_product_page(
+        self,
+        page_data: GroceryProductPage,
+        session_token: Optional[str],
+    ) -> str:
         """Returns the HTML of a grocery product's page."""
         return self._render(
-            "grocery/product.html",
+            "kitchen/grocery/product.html",
+            session_token,
             data=page_data,
             page_type="grocery",
         )
@@ -151,25 +193,34 @@ class Renderer:
     def grocery_product_amount_partial(self, page_data: GroceryProductPage) -> str:
         """Returns the HTML partial of a grocery product's amount adjuster"""
         return self._render(
-            "grocery/amount.partial.html",
+            "kitchen/grocery/amount.partial.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             page_type="grocery",
         )
 
-    def barcode_scanner_page(self, page_data: GenericKitchenPage) -> str:
+    def barcode_scanner_page(
+        self, page_data: GenericKitchenPage, session_token: Optional[str]
+    ) -> str:
         """Returns the HTML of the barcode scanner page."""
         return self._render(
-            "grocery/scan.html",
+            "kitchen/grocery/scan.html",
+            session_token,
             data=page_data,
             page_type="grocery",
         )
 
     #### KITCHEN SETTINGS ####
 
-    def admin_settings_page(self, page_data: AdminSettingsPage) -> str:
+    def admin_settings_page(
+        self,
+        page_data: AdminSettingsPage,
+        session_token: Optional[str],
+    ) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
-            "settings/admin.html",
+            "kitchen/settings/admin.html",
+            session_token,
             data=page_data,
             page_type="settings",
         )
@@ -184,15 +235,21 @@ class Renderer:
         `failed_share_email` is used to display the sharing error message.
         """
         return self._render(
-            "settings/admin.partial.html",
+            "kitchen/settings/admin.partial.html",
+            None,  # No need to include the session token on partials
             data=page_data,
             failed_share=failed_share_email,
         )
 
-    def nonadmin_settings_page(self, page_data: GenericKitchenPage) -> str:
+    def nonadmin_settings_page(
+        self,
+        page_data: GenericKitchenPage,
+        session_token: Optional[str],
+    ) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
-            "settings/nonadmin.html",
+            "kitchen/settings/nonadmin.html",
+            session_token,
             data=page_data,
             page_type="settings",
         )

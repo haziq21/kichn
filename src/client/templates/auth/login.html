@@ -1,0 +1,52 @@
+{% extends "_layout.html" %} {% block title %} Log in to Kichn {% endblock %} {%
+block body %}
+<div m="y-auto">
+  <h1 text="4xl center" font="semibold" m="b-14">Log in to Kichn</h1>
+  <form
+    hx-post="/login"
+    hx-target="#login-error"
+    flex="~ col"
+    w="full max-80"
+    m="b-4"
+  >
+    <input
+      type="email"
+      name="email"
+      id="email"
+      placeholder="Email address"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      m="b-2"
+    />
+    <input
+      type="password"
+      name="password"
+      id="password"
+      placeholder="Password"
+      border="~ gray-400"
+      rounded="md"
+      p="y-2 x-3"
+      m="b-8"
+    />
+    <span id="login-error" text="xs red-700" m="b-2" p="l-2">
+      <!-- Incorrect password or email address. -->
+    </span>
+    <button
+      type="submit"
+      text="light-50 hover:gray-800"
+      font="medium"
+      rounded="md"
+      p="y-2"
+      border="2 gray-800"
+      bg="gray-800 hover:light-50"
+      transition="duration-100"
+    >
+      Log in
+    </button>
+  </form>
+  <a href="/signup" text="sm blue-800" underline="hover:~">
+    Don't have an account? Sign up instead.
+  </a>
+</div>
+{% endblock %}
