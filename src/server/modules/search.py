@@ -5,6 +5,7 @@ with the Meilisearch full-text search engine.
 Authored by Lohith Tanuku
 """
 
+import time
 import meilisearch
 import meilisearch.errors
 
@@ -31,9 +32,19 @@ class SearchClient:
             }
             documents.append(doc)
 
-        # Ensures that
+        # Meilisearch returns an error if you try adding an empty list of 
+        # documents to an index, so we avoid adding the list if it's empty
         if documents:
-            self._client.index(index_name).add_documents(documents)
+            task = self._client.index(index_name).add_documents(documents)
+            task_uid = task.task_uid
+            task_status = task.status
+
+            # This is hacky but not waiting for Meilisearch to
+            # finish this operation causes minor bugs sometimes...
+            while task_status != "succeeded":
+                # It usually has to wait 4 to 5 ms in total
+                time.sleep(0.001)
+                task_status = self._client.get_task(task_uid)["status"]
 
     def index_default_products(self, product_names: dict[str, str]):
         """
