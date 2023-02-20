@@ -63,32 +63,18 @@ class Scraper:
         # Gets current page to show progress
         curr_page = 0
         curr_page = body["data"]["pagination"]["page"]
-        """
-        try:
-            curr_page = body["data"]["pagination"]["page"]
-        except:
-            print("curr_page", category_slug, "/", page)"""
 
         # Get total pages in the category
         total_pages = 0
         total_pages = body["data"]["pagination"]["total_pages"]
-        """
-        try:
-            total_pages = body["data"]["pagination"]["total_pages"]
-        except:
-            print("total_page", category_slug, "/", page)
-        """
 
         # Print current progress
         print(f"Scraped page {curr_page} / {total_pages} of category {category_slug}")
 
         # Gets product information from the response
         tasks = []
-        try:
-            for p in body["data"]["product"]:
-                tasks.append(self.extract_product(session, p, category_slug))
-        except KeyError:
-            print("no product", category_slug, "/", page)
+        for p in body["data"]["product"]:
+            tasks.append(self.extract_product(session, p, category_slug))
         await asyncio.gather(*tasks)
 
         return total_pages
