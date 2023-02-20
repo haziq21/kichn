@@ -26,7 +26,7 @@ def htmx_redirect_response(url: str):
     Returns a `web.Response` that instructs
     HTMX to redirect to the specified URL.
     """
-    return web.Response(headers={"HX-Redirect": url})
+    return web.Response(headers={"HX-Location": url})
 
 
 def extract_client_email(request: web.Request) -> Optional[str]:
