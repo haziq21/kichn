@@ -1,4 +1,8 @@
-"""Implements real-time sharing."""
+"""
+Implements real-time sharing.
+
+Authored by Lohith Tanuku
+"""
 import aiohttp
 from aiohttp import web
 from typing import Awaitable, Callable, Optional
