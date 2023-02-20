@@ -32,17 +32,19 @@ class Renderer:
             autoescape=jinja2.select_autoescape(),
         )
 
-    def _render(self, filepath: str, session_token: Optional[str], **kwargs) -> str:
+    def _render(self, filepath: str, session_token="", full_doc=False, **kwargs) -> str:
         """
         Returns the rendered Jinja template from the specified filepath.
-        Returns a HTML partial of the main page content if `session_token`
-        is `None`, and the full HTML document otherwise. Passes keyword
-        arguments as Jinja variables.
+        Returns a HTML partial of the page body if `full_doc=False`, and
+        the full HTML document otherwise. Passes additional keyword arguments
+        as Jinja variables.
+
+        If `full_doc=True`, `session_token` must be specified (because
+        the session token is included in the full HTML document).
         """
-        # Use the partial layout to return a HTML partial if session_token
-        # is unspecified, and use the full document layout otherwise
+        # Use either the full HTML wrapper or the partial one, depending on full_doc
         wrapper = self._env.get_template(
-            "_wrapper_full.html" if session_token else "_wrapper_partial.html"
+            "_wrapper_full.html" if full_doc else "_wrapper_partial.html"
         )
         return self._env.get_template(filepath).render(
             wrapper=wrapper,
@@ -52,22 +54,26 @@ class Renderer:
 
     #### AUTHENTICATION ####
 
-    def login_page(self, session_token: Optional[str]) -> str:
-        """Returns the full HTML document for the login page."""
-        return self._render("auth/login.html", session_token)
+    def login_page(self, session_token: str, full_doc: bool) -> str:
+        """
+        Returns the HTML for the login page. Gets the full HTML
+        document if `full_doc=True`, and the body HTML otherwise.
+        """
+        return self._render("auth/login.html", session_token, full_doc)
 
     def login_failed_partial(self) -> str:
-        """Returns the HTML fragment for when a login request fails."""
-        # No need to include the session token on partials
+        """Returns the HTML partial for when a login request fails."""
         return "Incorrect password or email address."
 
-    def signup_page(self, session_token: Optional[str]) -> str:
-        """Returns the full HTML document for the signup page."""
-        return self._render("auth/signup.html", session_token)
+    def signup_page(self, session_token: str, full_doc: bool) -> str:
+        """
+        Returns the HTML for the signup page. Gets the full HTML
+        document if `full_doc=True`, and the body HTML otherwise.
+        """
+        return self._render("auth/signup.html", session_token, full_doc)
 
     def signup_failed_partial(self) -> str:
         """Returns the HTML fragment for when a signup request fails."""
-        # No need to include the session token on partials
         return "An account with this email address already exists."
 
     #### KITCHENS LIST ####
@@ -75,19 +81,27 @@ class Renderer:
     def kitchens_page(
         self,
         page_data: KitchenListPage,
-        session_token: Optional[str],
+        session_token: str,
+        full_doc: bool,
     ) -> str:
-        """Returns the HTML of the kitchen list page."""
+        """
+        Returns the HTML for the kitchen list page. Gets the full HTML
+        document if `full_doc=True`, and the body HTML otherwise.
+        """
         return self._render(
             "kitchens.html",
             session_token,
+            full_doc,
             data=page_data,
         )
 
     #### INVENTORY LIST ####
 
     def inventory_page(
-        self, page_data: InventoryPage, session_token: Optional[str]
+        self,
+        page_data: InventoryPage,
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """
         Returns the HTML of the inventory page,
@@ -96,6 +110,7 @@ class Renderer:
         return self._render(
             "/kitchen/inventory/index.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="inventory",
         )
@@ -104,13 +119,15 @@ class Renderer:
         """Returns the HTML partial of the inventory list, sorted by category."""
         return self._render(
             "kitchen/inventory/list.partial.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
 
     def sorted_inventory_page(
-        self, page_data: SortedInventoryPage, session_token: Optional[str]
+        self,
+        page_data: SortedInventoryPage,
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """
         Returns the HTML of the inventory page, with
@@ -119,6 +136,7 @@ class Renderer:
         return self._render(
             "kitchen/inventory/index_sorted.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="inventory",
         )
@@ -127,7 +145,6 @@ class Renderer:
         """Returns the HTML partial of the inventory list, sorted by expiry date."""
         return self._render(
             "kitchen/inventory/index_sorted.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
@@ -135,12 +152,14 @@ class Renderer:
     def inventory_product_page(
         self,
         page_data: InventoryProductPage,
-        session_token: Optional[str],
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """Returns the HTML of an inventory product's page."""
         return self._render(
             "kitchen/inventory/product.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="inventory",
         )
@@ -152,18 +171,23 @@ class Renderer:
         """Returns the HTML partial of the "Move to grocery list?" UI."""
         return self._render(
             "kitchen/inventory/move_to_grocery.partial.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             page_type="inventory",
         )
 
     #### GROCERY LIST ####
 
-    def grocery_page(self, page_data: GroceryPage, session_token: Optional[str]) -> str:
+    def grocery_page(
+        self,
+        page_data: GroceryPage,
+        session_token: str,
+        full_doc: bool,
+    ) -> str:
         """Returns the HTML of the grocery page."""
         return self._render(
             "kitchen/grocery/index.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="grocery",
         )
@@ -172,7 +196,6 @@ class Renderer:
         """Returns the HTML partial of the grocery list."""
         return self._render(
             "kitchen/grocery/list.partial.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             page_type="grocery",
         )
@@ -180,12 +203,14 @@ class Renderer:
     def grocery_product_page(
         self,
         page_data: GroceryProductPage,
-        session_token: Optional[str],
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """Returns the HTML of a grocery product's page."""
         return self._render(
             "kitchen/grocery/product.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="grocery",
         )
@@ -194,20 +219,33 @@ class Renderer:
         """Returns the HTML partial of a grocery product's amount adjuster"""
         return self._render(
             "kitchen/grocery/amount.partial.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             page_type="grocery",
         )
 
     def barcode_scanner_page(
-        self, page_data: GenericKitchenPage, session_token: Optional[str]
+        self,
+        page_data: GenericKitchenPage,
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """Returns the HTML of the barcode scanner page."""
         return self._render(
             "kitchen/grocery/scan.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="grocery",
+        )
+
+    def barcode_found_partial(self, page_data: GroceryProductPage) -> str:
+        """
+        Returns the HTML partial that redirects the
+        user to the barcode's corresponding product page.
+        """
+        return self._render(
+            "kitchen/grocery/barcode_found.partial.html",
+            data=page_data,
         )
 
     #### KITCHEN SETTINGS ####
@@ -215,12 +253,14 @@ class Renderer:
     def admin_settings_page(
         self,
         page_data: AdminSettingsPage,
-        session_token: Optional[str],
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
             "kitchen/settings/admin.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="settings",
         )
@@ -236,7 +276,6 @@ class Renderer:
         """
         return self._render(
             "kitchen/settings/admin.partial.html",
-            None,  # No need to include the session token on partials
             data=page_data,
             failed_share=failed_share_email,
         )
@@ -244,12 +283,14 @@ class Renderer:
     def nonadmin_settings_page(
         self,
         page_data: GenericKitchenPage,
-        session_token: Optional[str],
+        session_token: str,
+        full_doc: bool,
     ) -> str:
         """Returns the HTML of the kitchen settings page for kitchen admins."""
         return self._render(
             "kitchen/settings/nonadmin.html",
             session_token,
+            full_doc,
             data=page_data,
             page_type="settings",
         )
