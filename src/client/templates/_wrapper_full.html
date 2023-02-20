@@ -9,6 +9,74 @@
     <script src="/static/htmx.min.js"></script>
     <script src="/static/htmx-ws.min.js"></script>
     <script src="/static/alpine.min.js" defer></script>
+
+    <script>
+      window.htmx.createWebSocket = function (url) {
+        let sock = new WebSocket(url, []);
+        sock.binaryType = window.htmx.config.wsBinaryType;
+
+        window.addEventListener("send-scan", (event) => {
+          sock.send(event.data);
+        });
+
+        return sock;
+      };
+
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("date_input", (max) => ({
+          newValue(currVal, newChar) {
+            if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
+              newNum = parseFloat(currVal.slice(1) + newChar);
+              return newNum == 0 || (newNum > max && newChar == "0")
+                ? // Don't change the value
+                  currVal
+                : newNum > max && newChar != "0"
+                ? // Set the new character to be the single digit
+                  "0".repeat(max.toString().length - 1) + newChar
+                : // Shift everything left
+                  currVal.slice(1) + newChar;
+            }
+            return newChar == "Tab" ? null : currVal;
+          },
+        }));
+
+        Alpine.data("scanner", () => ({
+          stream: null,
+          width: 0,
+          height: 0,
+          canvasDrawInterval: null,
+          init() {
+            navigator.mediaDevices
+              .getUserMedia({ video: true, audio: false })
+              .then((stream) => {
+                this.$refs.video.srcObject = stream;
+                this.$refs.video.play();
+                this.stream = stream;
+              });
+
+            this.canvasDrawInterval = setInterval(() => {
+              this.$refs.canvas
+                .getContext("2d")
+                .drawImage(this.$refs.video, 0, 0, this.width, this.height);
+
+              this.$refs.canvas.toBlob((blob) => {
+                window.dispatchEvent(
+                  new CustomEvent("send-scan", { detail: blob })
+                );
+              }, "image/jpeg");
+            }, 40);
+          },
+          setDimensions() {
+            this.width = this.$refs.video.videoWidth;
+            this.height = this.$refs.video.videoHeight;
+          },
+          stopStream() {
+            clearInterval(this.canvasDrawInterval);
+            this.stream.getTracks().forEach((track) => track.stop());
+          },
+        }));
+      });
+    </script>
   </head>
   <body
     hx-boost="true"
@@ -23,71 +91,4 @@
   >
     {% block body %} {% endblock %}
   </body>
-  <script>
-    window.htmx.createWebSocket = function (url) {
-      let sock = new WebSocket(url, []);
-      sock.binaryType = window.htmx.config.wsBinaryType;
-
-      window.addEventListener("send-scan", (event) => {
-        sock.send(event.data);
-      });
-
-      return sock;
-    };
-
-    document.addEventListener("alpine:init", () => {
-      Alpine.data("date_input", (max) => ({
-        newValue(currVal, newChar) {
-          if (!isNaN(newChar) && !isNaN(parseFloat(newChar))) {
-            newNum = parseFloat(currVal.slice(1) + newChar);
-            return newNum == 0 || (newNum > max && newChar == "0")
-              ? // Don't change the value
-                currVal
-              : newNum > max && newChar != "0"
-              ? // Set the new character to be the single digit
-                "0".repeat(max.toString().length - 1) + newChar
-              : // Shift everything left
-                currVal.slice(1) + newChar;
-          }
-          return newChar == "Tab" ? null : currVal;
-        },
-      }));
-
-      Alpine.data("scanner", () => ({
-        stream: null,
-        width: 0,
-        height: 0,
-        canvasDrawInterval: null,
-        init() {
-          navigator.mediaDevices
-            .getUserMedia({ video: true, audio: false })
-            .then((stream) => {
-              this.$refs.video.srcObject = stream;
-              this.$refs.video.play();
-              this.stream = stream;
-            });
-
-          this.canvasDrawInterval = setInterval(() => {
-            this.$refs.canvas
-              .getContext("2d")
-              .drawImage(this.$refs.video, 0, 0, this.width, this.height);
-
-            this.$refs.canvas.toBlob((blob) => {
-              window.dispatchEvent(
-                new CustomEvent("send-scan", { detail: blob })
-              );
-            }, "image/jpeg");
-          }, 40);
-        },
-        setDimensions() {
-          this.width = this.$refs.video.videoWidth;
-          this.height = this.$refs.video.videoHeight;
-        },
-        stopStream() {
-          clearInterval(this.canvasDrawInterval);
-          this.stream.getTracks().forEach((track) => track.stop());
-        },
-      }));
-    });
-  </script>
 </html>
