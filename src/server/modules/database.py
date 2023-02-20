@@ -610,6 +610,21 @@ class DatabaseClient:
                 groc_prod.amount + total_amount_used,
             )
 
+    def get_product_id_from_barcode(self, barcode: int) -> Optional[str]:
+        """
+        Given a barcode, returns the ID of the product with that
+        barcode, or `None` if no product with that barcode exists.
+        """
+        # Attempt to get the product ID from the database
+        product_id = self._r.hget("barcodes", str(barcode))
+
+        # There is no product with the specified barcode
+        if product_id is None:
+            return None
+
+        # Decode the bytes into a string
+        return product_id.decode()
+
     #### PAGE MODEL GETTERS ####
 
     def _user(self, email: str) -> User:
