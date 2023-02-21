@@ -10,17 +10,7 @@
   </div>
 
   <!-- Grocery amount adjuster -->
-  <div
-    hx-target="#amount-adjuster"
-    id="amount-adjuster"
-    p="t-2 b-4 x-4"
-    rounded="md"
-    bg="gray-900"
-    h="min-content"
-    m="x-auto"
-  >
-    {% include "kitchen/grocery/amount.partial.html" %}
-  </div>
+  {% include "kitchen/grocery/amount.partial.html" %}
 </div>
 
 <h2 text="2xl" font="medium" m="b-12">{{data.product.name}}</h2>
