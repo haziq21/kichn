@@ -30,4 +30,4 @@ def read_barcodes(raw_image: bytes) -> Optional[int]:
         return None
 
     # Converts barcode data from a bytes object to an integer
-    return int(barcodes[0])
+    return int(barcodes[0].data)
