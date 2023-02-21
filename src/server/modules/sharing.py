@@ -36,7 +36,7 @@ class WebSocketManager:
         async for msg in ws:
             # Call the session's message-based UI updater (if it has one)
             if session_token in self._message_based_updaters:
-                self._message_based_updaters[session_token](msg.data)
+                await self._message_based_updaters[session_token](msg.data)
 
         # Cleanup: remove all the data associated with this session
         if session_token in self._unsubscribers:
@@ -75,9 +75,11 @@ class WebSocketManager:
                 await ws.send_str(updated_html)
 
             # Create this topic if it doesn't already exist
-            self._topic_based_updaters[topic] = set()
+            if topic not in self._topic_based_updaters:
+                self._topic_based_updaters[topic] = set()
 
             # Subscribe the UI updater to the topic
+            print(f"subbed {session_token} to {topic}: {hash(update_topic_ui)}")
             self._topic_based_updaters[topic].add(update_topic_ui)
             topic_ui_updaters[topic] = update_topic_ui
 
@@ -95,7 +97,10 @@ class WebSocketManager:
             """Unsubscribes this session from all its newly subscribed topics."""
             # Unsubscribe each topic UI updater from their corresponding topic
             for topic in topic_ui_updaters:
+                hashes = [hash(x) for x in self._topic_based_updaters[topic]]
+                print(f"old: {hashes}")
                 self._topic_based_updaters[topic].remove(topic_ui_updaters[topic])
+                print(f"new: {self._topic_based_updaters[topic]}")
 
             # Remove the message UI updater if it exists
             if receiving_renderer is not None:

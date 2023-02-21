@@ -16,7 +16,7 @@
         // sock.binaryType = window.htmx.config.wsBinaryType;
 
         window.addEventListener("send-scan", (event) => {
-          sock.send(event.data);
+          sock.send(event.detail);
         });
 
         return sock;

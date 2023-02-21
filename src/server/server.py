@@ -2,7 +2,7 @@
 This module contains the web server that communicates 
 with the application running on the client.
 
-Authored by Haziq. Typed by Evan. 
+Authored by Evan. 
 """
 
 from aiohttp import web
@@ -350,10 +350,9 @@ async def grocery_page(request: web.Request):
     # Redirect the user to the login page if they're not logged in
     if email is None:
         raise web.HTTPFound("/login")
-    
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
 
-    if not access:
+    # Check if the user is allowed to access this kitchen
+    if not db.user_has_access_to_kitchen(email, kitchen_id):
         raise web.HTTPForbidden()
 
     # Get the data needed to render the page
@@ -408,17 +407,28 @@ async def search_grocery(request: web.Request):
     # To make the checker happy...
     assert isinstance(search_query, str)
 
-    session_token, _ = get_usable_session_token(request)
-
     # Get the data required to render the page
     page_data = db.grocery_page_model(email, kitchen_id, search_query)
+    session_token, _ = get_usable_session_token(request)
+
+    def render_grocery_list_partial():
+        """Renders the HTML partial of the grocery list."""
+        # Get the updated page data
+        page_data = db.grocery_page_model(
+            email,
+            kitchen_id,
+            search_query,
+        )
+
+        # Render the HTML
+        return renderer.grocery_partial(page_data)
 
     # Allow the user to receive WebSocket updates to this page
     ws_manager.subscribe(
         session_token,
         {
             # "grocery.{kitchen_id}" is the HTML partial ID for the grocery list
-            f"grocery.{kitchen_id}": lambda: renderer.grocery_partial(page_data),
+            f"grocery.{kitchen_id}": render_grocery_list_partial,
         },
     )
 
@@ -430,16 +440,15 @@ async def barcode_scanner_page(request: web.Request):
     """Returns the HTML for the barcode scanner page."""
     email = extract_client_email(request)
 
+    # Redirect the user to the login page if they're not logged in
     if email is None:
-        # Redirect the user to the login page if they're not logged in
         raise web.HTTPFound("/login")
 
     # Extract the kitchen ID from the URL
     kitchen_id = request.match_info["kitchen_id"]
 
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
-
-    if not access:
+    # Check if the user is allowed to access this kitchen
+    if not db.user_has_access_to_kitchen(email, kitchen_id):
         raise web.HTTPForbidden()
 
     # Get the data required to render the page
@@ -449,6 +458,7 @@ async def barcode_scanner_page(request: web.Request):
     def render_barcode_redirector(image: bytes) -> str:
         # Scan for a barcode in the image sent by the client
         barcode = barcodes.read_barcodes(image)
+        print(barcode)
 
         # No barcode found in this image
         if barcode is None:
@@ -496,9 +506,31 @@ async def grocery_product_page(request: web.Request):
     if email is None:
         raise web.HTTPFound("/login")
 
-    # Render and return the response
+    # Get the data required to render the response
     session_token, request_had_session = get_usable_session_token(request)
     page_data = db.grocery_product_page_model(email, kitchen_id, product_id)
+
+    def render_grocery_amount_partial():
+        """Renders the HTML partial of the amount widget."""
+        # Get the updated page data
+        page_data = db.grocery_product_page_model(
+            email,
+            kitchen_id,
+            product_id,
+        )
+
+        # Render the updated HTML
+        return renderer.grocery_product_amount_partial(page_data)
+
+    # Allow the user to receive WebSocket updates to this page
+    ws_manager.subscribe(
+        session_token,
+        {
+            # "{kitchen_id}.grocery" is the HTML partial ID for the grocery list
+            f"{kitchen_id}.grocery.{product_id}": render_grocery_amount_partial,
+        },
+    )
+
     return html_response(
         renderer.grocery_product_page(
             page_data,
