@@ -196,24 +196,26 @@ async def create_kitchen(request: web.Request):
 
 async def kitchen_share(request: web.Request):
     body = await request.post()
-    email = body["email"]
+    email_owner = extract_client_email(request)
+    email_other_user = body["email"]
     kitchen_id = request.match_info["kitchen_id"]
 
-    assert isinstance(email, str)
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
+    if email_owner is None:
+        raise web.HTTPUnauthorized()
 
-    if access:
-        return web.HTTPForbidden()
+    assert isinstance(email_other_user, str)
+    access = db.user_has_access_to_kitchen(email_owner, kitchen_id)
 
-    share_kitchen = db.share_kitchen(kitchen_id, email)
+    if not access:
+        raise web.HTTPForbidden()
 
-    assert isinstance(email, str)
-    page_data = db.admin_settings_page_model(email, kitchen_id)
+    share_kitchen = db.share_kitchen(kitchen_id, email_other_user)
+    page_data = db.admin_settings_page_model(email_owner, kitchen_id)
 
     if share_kitchen:
         return html_response(renderer.members_list_partial(page_data))
 
-    return html_response(renderer.members_list_partial(page_data, email))
+    return html_response(renderer.members_list_partial(page_data, email_other_user))
 
 
 async def kitchen_leave(request: web.Request):
@@ -350,6 +352,8 @@ async def grocery_page(request: web.Request):
     # Redirect the user to the login page if they're not logged in
     if email is None:
         raise web.HTTPFound("/login")
+
+    access = db.user_has_access_to_kitchen(email, kitchen_id)
 
     # Check if the user is allowed to access this kitchen
     if not db.user_has_access_to_kitchen(email, kitchen_id):

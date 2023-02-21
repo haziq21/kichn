@@ -204,6 +204,10 @@ class DatabaseClient:
 
     def user_has_access_to_kitchen(self, email: str, kitchen_id: str) -> bool:
         """Returns whether the user has access to the specified kitchen."""
+        # Check if the user even exists
+        if not self._r.exists(f"user:{email}"):
+            return False
+
         # Get the IDs of the kitchens that the user isn't an admin of
         shared_kitchens = self._rj.get(
             f"user:{email}",
