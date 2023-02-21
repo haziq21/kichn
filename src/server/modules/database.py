@@ -460,22 +460,27 @@ class DatabaseClient:
             # Store non-expirables as products with a -1 expiry date
             expiry_timestamp = -1
 
+        # Get the inventory product's initial data
+        initial_product = self._inv_product(kitchen_id, product_id)
+
         # Delete the product from the inventory
         # list if we're setting the amount <= 0
         if amount <= 0:
+            if initial_product.amount == 0:
+                return
+
             self._rj.delete(
                 "kitchens",
                 f"$.{kitchen_id}.inventory.{product_id}.{expiry_timestamp}",
             )
-            # Remove the product from the search index too
-            self._search.delete_inventory_product(kitchen_id, product_id)
-            return
 
-        # Get the inventory product's data
-        product = self._inv_product(kitchen_id, product_id)
+            new_product = self._inv_product(kitchen_id, product_id)
 
-        # Check if the product is not already in the inventory list
-        if product.amount == 0:
+            if new_product.amount == 0:
+                # Delete it from the seatch index too
+                self._search.delete_inventory_product(kitchen_id, product_id)
+
+        if initial_product.amount == 0:
             # Create an empty entry for the product in the inventory list
             self._rj.set(
                 "kitchens",
@@ -486,13 +491,13 @@ class DatabaseClient:
             # Add the product to the corresponding search index
             self._search.index_inventory_products(
                 kitchen_id,
-                {product.id: product.name},
+                {initial_product.id: initial_product.name},
             )
 
         # Set the amount
         self._rj.set(
             "kitchens",
-            f"$.{kitchen_id}.inventory.{product.id}.{expiry_timestamp}",
+            f"$.{kitchen_id}.inventory.{initial_product.id}.{expiry_timestamp}",
             amount,
         )
 

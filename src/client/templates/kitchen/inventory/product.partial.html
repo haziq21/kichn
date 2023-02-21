@@ -1,0 +1,101 @@
+<ul id="selected-amounts" m="b-8" w="max-90" m="x-auto">
+    {% if data.product.non_expirables %}
+    <li flex="~" justify="between" align="items-center" space="x-4" m="b-3">
+      <span text="gray-700">No expiry</span>
+      <div flex="grow" h="0.25" bg="gray-300"></div>
+      <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
+        <button
+          @click.prevent="count -= count == 0 ? 0 : 1"
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M242 605.999q-12.75 0-22.374-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.374-9.615h476q12.75 0 22.375 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.375 9.615H242Z"
+            />
+          </svg>
+        </button>
+        <div w="min-10" flex="~" space="x-1" justify="center">
+          <span x-text="count">0</span>
+          <span text="gray-400">/</span>
+          <span text="gray-400" font="semibold">
+            {{data.product.non_expirables}}
+          </span>
+          <input type="hidden" name="non_expirables" :value="count" />
+        </div>
+        <button
+          @click.prevent="count += count == {{data.product.non_expirables}} ? 0 : 1 "
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M479.987 845.999q-12.756 0-22.371-9.624-9.615-9.625-9.615-22.062V607.999H241.687q-12.437 0-22.061-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.061-9.615h206.314V337.687q0-12.437 9.628-22.062 9.629-9.624 22.384-9.624 12.756 0 22.371 9.624 9.615 9.625 9.615 22.062v206.314h206.314q12.437 0 22.062 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.062 9.615H511.999v206.314q0 12.437-9.628 22.062-9.629 9.624-22.384 9.624Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </li>
+    {% endif %} {% for exp in data.product.expiries %}
+    <li flex="~" justify="between" align="items-center" space="x-4" m="b-3">
+      <span font="mono" text="gray-700">{{exp}}</span>
+      <div flex="grow" h="0.25" bg="gray-300"></div>
+      <div x-data="{ count: 0 }" flex="~" space="x-4" align="content-center">
+        <button
+          @click.prevent="count -= count == 0 ? 0 : 1"
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M242 605.999q-12.75 0-22.374-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.374-9.615h476q12.75 0 22.375 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.375 9.615H242Z"
+            />
+          </svg>
+        </button>
+        <div w="min-10" flex="~" space="x-1" justify="center">
+          <span x-text="count">0</span>
+          <span text="gray-400">/</span>
+          <span text="gray-400" font="semibold">
+            {{data.product.expiries[exp]}}
+          </span>
+          <input type="hidden" name="{{exp}}" :value="count" />
+        </div>
+        <button
+          @click.prevent="count += count == {{data.product.expiries[exp]}} ? 0 : 1 "
+          p="1"
+          rounded="full"
+          bg="gray-100 hover:gray-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            viewBox="0 96 960 960"
+            width="20"
+          >
+            <path
+              d="M479.987 845.999q-12.756 0-22.371-9.624-9.615-9.625-9.615-22.062V607.999H241.687q-12.437 0-22.061-9.628-9.625-9.629-9.625-22.384 0-12.756 9.625-22.371 9.624-9.615 22.061-9.615h206.314V337.687q0-12.437 9.628-22.062 9.629-9.624 22.384-9.624 12.756 0 22.371 9.624 9.615 9.625 9.615 22.062v206.314h206.314q12.437 0 22.062 9.628 9.624 9.629 9.624 22.384 0 12.756-9.624 22.371-9.625 9.615-22.062 9.615H511.999v206.314q0 12.437-9.628 22.062-9.629 9.624-22.384 9.624Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>

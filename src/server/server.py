@@ -353,8 +353,6 @@ async def grocery_page(request: web.Request):
     if email is None:
         raise web.HTTPFound("/login")
 
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
-
     # Check if the user is allowed to access this kitchen
     if not db.user_has_access_to_kitchen(email, kitchen_id):
         raise web.HTTPForbidden()
@@ -431,8 +429,8 @@ async def search_grocery(request: web.Request):
     ws_manager.subscribe(
         session_token,
         {
-            # "grocery.{kitchen_id}" is the HTML partial ID for the grocery list
-            f"grocery.{kitchen_id}": render_grocery_list_partial,
+            # "{kitchen_id}.grocery" is the HTML partial ID for the grocery list
+            f"{kitchen_id}.grocery": render_grocery_list_partial,
         },
     )
 
@@ -462,7 +460,6 @@ async def barcode_scanner_page(request: web.Request):
     def render_barcode_redirector(image: bytes) -> str:
         # Scan for a barcode in the image sent by the client
         barcode = barcodes.read_barcodes(image)
-        print(barcode)
 
         # No barcode found in this image
         if barcode is None:
@@ -572,44 +569,47 @@ async def set_product(request: web.Request):
         ]
     )
 
-    # TODO: Technically we don't need this response
-    # if it's already going through the websocket?
-    # Render and return the response
-    page_data = db.grocery_product_page_model(email, kitchen_id, product_id)
-    return html_response(renderer.grocery_product_amount_partial(page_data))
+    return web.Response()
 
 
 async def buy_grocery_product(request: web.Request):
+    # Extract kitchen and product IDs from the URL
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
+
+    # Extract the purchase data from the request body
     body = await request.post()
-
-    # Extract amount of [item] from body dictionary.
     amount = body["amount"]
-
-    # Extract values of expiry year, month and date from the body dictionary.
+    # To make the checker happy...
+    assert isinstance(amount, str)
 
     if "include_expiry" in body:
+        # Extract expiry date from request body
         exp_year, exp_month, exp_day = body["yyyy"], body["mm"], body["dd"]
         assert isinstance(exp_year, str)
         assert isinstance(exp_month, str)
         assert isinstance(exp_day, str)
         expiry = (int(exp_year), int(exp_month), int(exp_day))
-
     else:
+        # No expiry date was specified
         expiry = None
 
-    # Assert that expiry and amount should be strings
-    # and not integers, otherwise string values will be left out
-    # And also to make the checker happy...
-
-    assert isinstance(amount, str)
-
-    # Convert amount into integer to be processed by buy_product function
-    amount = int(amount)
-
     # Move product from kitchen to inventory
-    db.buy_product(kitchen_id, product_id, expiry, amount)
+    db.buy_product(kitchen_id, product_id, expiry, int(amount))
+
+    # Update the UI on every relevant client
+    await ws_manager.publish_update(
+        [
+            # Update the clients on this kitchen's grocery list page
+            f"{kitchen_id}.grocery",
+            # Update the clients on this product's grocery page
+            f"{kitchen_id}.grocery.{product_id}",
+            # Update the clients on the inventory page
+            f"{kitchen_id}.inventory",
+            # Update the clients on this product's inventory page
+            f"{kitchen_id}.inventory.{product_id}",
+        ]
+    )
 
     # Redirect the user to the grocery page
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/grocery")
@@ -621,28 +621,41 @@ async def buy_grocery_product(request: web.Request):
 async def inventory_page(request: web.Request):
     email = extract_client_email(request)
 
+    # Redirect the user to the login page if they're not logged in
     if email is None:
-        # Redirects user to login if no email is inputted
         raise web.HTTPFound("/login")
 
     # Extract kitchen ID from URL
     kitchen_id = request.match_info["kitchen_id"]
 
-    access = db.user_has_access_to_kitchen(email, kitchen_id)
-
-    if not access:
+    # Check if the user is supposed to have access to this kitchen
+    if not db.user_has_access_to_kitchen(email, kitchen_id):
         raise web.HTTPForbidden()
 
-    # Render the HTML response
-    page_data = db.inventory_page_model(email, kitchen_id)
     session_token, request_had_session = get_usable_session_token(request)
 
     # Sort the inventory list by product category
     # if the URL has a "sort-by-category" parameter
     if "sort-by-category" in request.query:
-        # Get the data required to render the HTML response
-        page_data = db.inventory_page_model(email, kitchen_id)
 
+        def render_inventory_list_partial() -> str:
+            """Returns the updated HTML of the inventory list, sorted by category."""
+            # Get the data required to render the inventory list
+            page_data = db.inventory_page_model(email, kitchen_id)
+            # Render the inventory list
+            return renderer.inventory_partial(page_data)
+
+        # Allow the user to receive WebSocket updates to this page
+        ws_manager.subscribe(
+            session_token,
+            {
+                # "{kitchen_id}.inventory" is the HTML partial ID for the inventory list
+                f"{kitchen_id}.inventory": render_inventory_list_partial,
+            },
+        )
+
+        # Render and return the response
+        page_data = db.inventory_page_model(email, kitchen_id)
         return html_response(
             renderer.inventory_page(
                 page_data,
@@ -651,9 +664,26 @@ async def inventory_page(request: web.Request):
             )
         )
 
-    # Otherwise, sort by expiry date
-    page_data = db.sorted_inventory_page_model(email, kitchen_id)
+    # Sort the inventory list by expiry date
+    # if the "sort-by-category" parameter isn't there
+    def render_sorted_inventory_list_partial() -> str:
+        """Returns the updated HTML of the inventory list, sorted by expiry date."""
+        # Get the data required to render the inventory list
+        page_data = db.sorted_inventory_page_model(email, kitchen_id)
+        # Render the inventory list
+        return renderer.sorted_inventory_partial(page_data)
 
+    # Allow the user to receive WebSocket updates to this page
+    ws_manager.subscribe(
+        session_token,
+        {
+            # "{kitchen_id}.inventory" is the HTML partial ID for the inventory list
+            f"{kitchen_id}.inventory": render_sorted_inventory_list_partial,
+        },
+    )
+
+    # Render and return the response
+    page_data = db.sorted_inventory_page_model(email, kitchen_id)
     return html_response(
         renderer.sorted_inventory_page(
             page_data,
@@ -676,6 +706,7 @@ async def inventory_product_page(request: web.Request):
     product_id = request.match_info["product_id"]
     access = db.user_has_access_to_kitchen(email, kitchen_id)
 
+    # Check if the user has access to this kitchen
     if not access:
         raise web.HTTPForbidden()
 
@@ -683,6 +714,28 @@ async def inventory_product_page(request: web.Request):
     page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
     session_token, request_had_session = get_usable_session_token(request)
 
+    def render_inventory_product_partial():
+        """Renders the HTML partial of the amount selector."""
+        # Get the updated page data
+        page_data = db.inventory_product_page_model(
+            email,
+            kitchen_id,
+            product_id,
+        )
+
+        # Render the updated HTML
+        return renderer.inventory_product_partial(page_data)
+
+    # Allow the user to receive WebSocket updates to this page
+    ws_manager.subscribe(
+        session_token,
+        {
+            # "{kitchen_id}.grocery" is the HTML partial ID for the grocery list
+            f"{kitchen_id}.inventory.{product_id}": render_inventory_product_partial,
+        },
+    )
+
+    # Render and return the response
     return html_response(
         renderer.inventory_product_page(
             page_data,
@@ -694,24 +747,30 @@ async def inventory_product_page(request: web.Request):
 
 async def use_inventory_product(request: web.Request):
     email = extract_client_email(request)
+
+    # Extract the kitchen and product IDs from the URL
     kitchen_id = request.match_info["kitchen_id"]
     product_id = request.match_info["product_id"]
 
+    # You can't remove inventory products if you're not logged in
     if email is None:
         raise web.HTTPUnauthorized()
 
+    # Get the data required to render the page
     page_data = db.inventory_product_page_model(email, kitchen_id, product_id)
 
+    # Return a confirmation dialogue asking the user if
+    # they want to add the product to the grocery list
     if "move-to-grocery" not in request.query:
         return html_response(renderer.inventory_product_confirmation_partial(page_data))
 
     body = await request.post()
     expiry_amounts = {}
 
+    # Extract the expiry data from the request body
     for expiry_str in body:
         if expiry_str == "non_expirables":
             expiry = None
-
         else:
             expiry = datetime.strptime(expiry_str, "%Y-%m-%d").date()
 
@@ -722,12 +781,35 @@ async def use_inventory_product(request: web.Request):
         expiry_amounts[expiry] = amount
 
     move_to_grocery = request.query["move-to-grocery"] == "true"
+
+    # Update the database
     db.use_product(kitchen_id, product_id, expiry_amounts, move_to_grocery)
+
+    # Update the UI on every relevant client
+    await ws_manager.publish_update(
+        [
+            # Update the clients on the inventory page
+            f"{kitchen_id}.inventory",
+            # Update the clients on this product's inventory page
+            f"{kitchen_id}.inventory.{product_id}",
+        ]
+    )
+
+    if move_to_grocery:
+        await ws_manager.publish_update(
+            [
+                # Update the clients on the grocery page
+                f"{kitchen_id}.grocery",
+                # Update the clients on this product's grocery page
+                f"{kitchen_id}.grocery.{product_id}",
+            ]
+        )
 
     return htmx_redirect_response(f"/kitchens/{kitchen_id}/inventory")
 
 
 async def inventory_search(request: web.Request):
+    # TODO: Whoops not implemented
     return web.Response(status=200)
 
 

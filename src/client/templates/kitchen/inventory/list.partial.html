@@ -1,26 +1,28 @@
-{% for category in data.products %}
-<li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
-  {{category}}
-</li>
-{% for product in data.products[category] %}
-<a
-  href="inventory/{{product.id}}"
-  text="lg"
-  m="b-2"
-  p="x-4 y-2"
-  rounded="md"
-  border="~ gray-300 hover:gray-500"
-  bg="hover:gray-50"
-  display="block"
->
-  <div>{{product.name}}</div>
-  <div text="gray-400 xs">
-    {% if product.expiries %}
-    <span>Expiring</span>
-    <span font="mono" tracking="wide">{{product.expiries.keys() | min}}</span>
-    {% else %}
-    <span>No expiry</span>
-    {% endif %}
-  </div>
-</a>
-{% endfor %} {% endfor %}
+<ul id="inventory-list" p="x-2">
+  {% for category in data.products %}
+  <li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
+    {{category}}
+  </li>
+  {% for product in data.products[category] %}
+  <a
+    href="inventory/{{product.id}}"
+    text="lg"
+    m="b-2"
+    p="x-4 y-2"
+    rounded="md"
+    border="~ gray-300 hover:gray-500"
+    bg="hover:gray-50"
+    display="block"
+  >
+    <div>{{product.name}}</div>
+    <div text="gray-400 xs">
+      {% if product.expiries %}
+      <span>Expiring</span>
+      <span font="mono" tracking="wide">{{product.expiries.keys() | min}}</span>
+      {% else %}
+      <span>No expiry</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %} {% endfor %}
+</ul>

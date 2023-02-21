@@ -115,7 +115,7 @@ class Renderer:
             page_type="inventory",
         )
 
-    def inventory_partial(self, page_data: InventoryProductPage) -> str:
+    def inventory_partial(self, page_data: InventoryPage) -> str:
         """Returns the HTML partial of the inventory list, sorted by category."""
         return self._render(
             "kitchen/inventory/list.partial.html",
@@ -144,7 +144,7 @@ class Renderer:
     def sorted_inventory_partial(self, page_data: SortedInventoryPage) -> str:
         """Returns the HTML partial of the inventory list, sorted by expiry date."""
         return self._render(
-            "kitchen/inventory/index_sorted.html",
+            "kitchen/inventory/sorted_list.partial.html",
             data=page_data,
             page_type="inventory",
         )
@@ -160,6 +160,14 @@ class Renderer:
             "kitchen/inventory/product.html",
             session_token,
             full_doc,
+            data=page_data,
+            page_type="inventory",
+        )
+
+    def inventory_product_partial(self, page_data: InventoryProductPage) -> str:
+        """Returns the HTML partial of an inventory product's amount selector."""
+        return self._render(
+            "kitchen/inventory/product.partial.html",
             data=page_data,
             page_type="inventory",
         )
