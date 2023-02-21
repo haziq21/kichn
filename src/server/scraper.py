@@ -145,9 +145,12 @@ async def main():
 
     # Prevents aiohttp from timing out
     session_timout = aiohttp.ClientTimeout(total=None)
+    connector = aiohttp.TCPConnector(force_close=True)
     db = DatabaseClient("src/client/static", "server-store")
     scraper = Scraper(categories, db)
-    async with aiohttp.ClientSession(timeout=session_timout) as session:
+    async with aiohttp.ClientSession(
+        timeout=session_timout, connector=connector
+    ) as session:
         await scraper.scrape(session)
 
 
