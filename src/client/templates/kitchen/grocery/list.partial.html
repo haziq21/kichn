@@ -1,21 +1,44 @@
-<ul id="grocery-list" p="x-2">
-  {% for category in data.products %}
-  <li font="bold" text="sm uppercase" tracking="wider" m="t-4 b-2" p="l-2">
-    {{category}}
-  </li>
-  {% for product in data.products[category] %}
-  <a
-    href="/kitchens/{{data.kitchen.id}}/grocery/{{product.id}}"
-    text="lg"
-    m="b-2"
-    p="x-4 y-2"
-    rounded="md"
-    border="~ gray-300 hover:gray-500"
-    bg="hover:gray-50"
-    display="block"
-  >
-    {{product.name}}
-    <span text="gray-400">[{{product.amount}}]</span>
-  </a>
-  {% endfor %} {% endfor %}
-</ul>
+{% for category in data.products %}
+<li font="bold" text="sm uppercase" tracking="wider" m="b-2" p="t-4 l-2">
+  {{category}}
+</li>
+{% for product in data.products[category] %}
+<a
+  href="/kitchens/{{data.kitchen.id}}/grocery/{{product.id}}"
+  text="lg"
+  m="b-4"
+  rounded="md"
+  border="~ gray-300 hover:gray-500"
+  bg="hover:gray-50"
+  flex="~"
+  align="items-center"
+  class="group"
+>
+  <div pos="relative">
+    <img
+      rounded="md"
+      overflow="hidden"
+      src="/kitchens/{{data.kitchen.id}}/images/{{product.id}}"
+      alt=""
+      w="max-16"
+    />
+    <span
+      rounded="full"
+      bg="gray-100 group-hover:gray-200"
+      border="~ gray-300 group-hover:gray-500"
+      text="sm gray-700 center"
+      font="semibold"
+      w="7"
+      h="7"
+      flex="~"
+      align="items-center"
+      justify="center"
+      pos="absolute -right-2 -bottom-2"
+    >
+      {{product.amount}}
+    </span>
+  </div>
+
+  <span p="x-4 y-2" text="truncate">{{product.name}}</span>
+</a>
+{% endfor %} {% endfor %}
