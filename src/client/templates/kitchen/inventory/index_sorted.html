@@ -4,6 +4,7 @@
     hx-post="inventory/search"
     hx-trigger="keyup changed delay:200ms"
     hx-target="#inventory-list"
+    hx-swap="outerHTML"
     type="text"
     id="name"
     placeholder="Search for a product..."
@@ -29,6 +30,4 @@
   </a>
 </div>
 
-<ul id="inventory-list" p="x-2">
-  {% include "kitchen/inventory/sorted_list.partial.html" %} {% endblock %}
-</ul>
+{% include "kitchen/inventory/sorted_list.partial.html" %} {% endblock %}

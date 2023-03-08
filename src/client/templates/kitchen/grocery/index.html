@@ -4,6 +4,7 @@
     hx-post="/kitchens/{{data.kitchen.id}}/grocery/search"
     hx-trigger="keyup changed delay:200ms"
     hx-target="#grocery-list"
+    hx-swap="outerHTML"
     type="text"
     id="name"
     placeholder="Search for a product..."
@@ -43,6 +44,4 @@
   </a>
 </div>
 
-<ul id="grocery-list" p="x-2">
-  {% include "kitchen/grocery/list.partial.html" %} {% endblock %}
-</ul>
+{% include "kitchen/grocery/list.partial.html" %} {% endblock %}
