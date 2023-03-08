@@ -36,6 +36,12 @@
             "url": "/category/rice,-noodles--cooking-ingredients-1"
           },
           {
+            "name": "Frozen",
+            "id": 14591,
+            "image": "https://media.nedigital.sg/fairprice/images/ea7237e4-ca64-45e7-a2d5-9dd2e5fa7f8d/L3_IndiaFrozen_240222.jpg",
+            "url": "/category/frozen-28"
+          },
+          {
             "name": "Drinks",
             "id": 14589,
             "image": "https://media.nedigital.sg/fairprice/images/d1680adb-1d97-415c-aac4-1b437ab0b181/L3_InternationalSelectionsIndiaDrinks_130422.jpg",
@@ -106,12 +112,6 @@
             "url": "/category/rice,-noodles--cooking-ingredients-3"
           },
           {
-            "name": "Household",
-            "id": 14623,
-            "image": "https://media.nedigital.sg/fairprice/images/c91ebfdd-d4c9-46b3-98b5-254fefd2bf2e/L3_TaiwanHousehold_250222.jpg",
-            "url": "/category/household-4"
-          },
-          {
             "name": "Drinks",
             "id": 14617,
             "image": "https://media.nedigital.sg/fairprice/images/68907072-8f87-4851-8af6-f68bc365fbaf/L3_TaiwanDrinks_250222.jpg",
@@ -170,12 +170,6 @@
         "url": "/category/japan-18",
         "menu": [
           {
-            "name": "Snacks \u0026 Confectionery",
-            "id": 15401,
-            "image": "https://media.nedigital.sg/fairprice/images/c0cd386c-2b45-4b0b-9ab6-26ee6c280cc8/L3_JapanSnacks\u0026Confectionery_270622.jpg",
-            "url": "/category/snacks--confectionery-3"
-          },
-          {
             "name": "Drinks",
             "id": 15382,
             "image": "https://media.nedigital.sg/fairprice/images/77568afc-2e41-431d-b7fd-1a26ceb04992/L3_JapanDrinks_270622.jpg",
@@ -220,6 +214,12 @@
             "id": 15364,
             "image": "https://media.nedigital.sg/fairprice/images/ac2e4168-ae87-4063-acc0-9c54ea4f99ae/L3_ChinaBeerWine\u0026Spirits_060622.jpg",
             "url": "/category/beer,-wine--spirits-5"
+          },
+          {
+            "name": "Rice, Noodles \u0026 Cooking Ingredients",
+            "id": 15362,
+            "image": "https://media.nedigital.sg/fairprice/images/ff23f2bc-5d5f-4be9-a19f-82fc7877288b/L3_ChinaRiceNoodles\u0026CookingIngredients_060622.jpg",
+            "url": "/category/rice,-noodles--cooking-ingredients-5"
           }
         ]
       },
@@ -252,92 +252,6 @@
             "id": 15384,
             "image": "https://media.nedigital.sg/fairprice/images/6203c6a5-2b6f-4da1-927d-a517c5d0b29e/L3_SouthKoreaDairyChilledEggs_030822.jpg",
             "url": "/category/dairy,-chilled--eggs-5"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Chinese New Year",
-    "id": 14380,
-    "image": "https://media.nedigital.sg/fairprice/images/1bbe95c6-e280-40f7-86bd-5c0b387fa3cc/L1_ChineseNewYear_281221.jpg",
-    "url": "/category/chinese-new-year-1",
-    "menu": [
-      {
-        "name": "Mandarin Oranges",
-        "id": 17653,
-        "image": "https://media.nedigital.sg/fairprice/images/011e7079-f2ac-4e74-8d22-af39f75eb41d/L2_MandarinOranges_170123.jpg",
-        "url": "/category/mandarin-oranges-1"
-      },
-      {
-        "name": "Yu Sheng",
-        "id": 14384,
-        "image": "https://media.nedigital.sg/fairprice/images/3a5bf97b-e667-452c-8dd6-d24ab16cbd81/L3_YuSheng_281221.jpg",
-        "url": "/category/yusheng"
-      },
-      {
-        "name": "Chinese New Year Feast",
-        "id": 17378,
-        "image": "https://media.nedigital.sg/fairprice/images/fcb22d58-639d-4ca0-9894-01bc7cc8108e/L2_ChineseNewYearFeast_281222.jpg",
-        "url": "/category/chinese-new-year-feast-1",
-        "menu": [
-          {
-            "name": "Abalone \u0026 Gift Sets",
-            "id": 14387,
-            "image": "https://media.nedigital.sg/fairprice/images/3b2e6d90-4a77-46c3-a380-3498d16f6cca/L3_AbaloneGiftSets_281221.jpg",
-            "url": "/category/abalone--gift-sets"
-          },
-          {
-            "name": "Chinese New Year Drinks",
-            "id": 17406,
-            "image": "https://media.nedigital.sg/fairprice/images/8297c316-00d2-44b3-8070-5a7d82b05f1b/L3_ChineseNewYearDrinks_281222.jpg",
-            "url": "/category/chinese-new-year-drinks"
-          }
-        ]
-      },
-      {
-        "name": "Chinese New Year Cookies \u0026 Snacks",
-        "id": 17359,
-        "image": "https://media.nedigital.sg/fairprice/images/f9dfa56f-af87-4b29-9c9b-671532a89e1e/L2_ChineseNewYearCookiesSnacks_281222.jpg",
-        "url": "/category/chinese-new-year-cookies--snacks-1",
-        "menu": [
-          {
-            "name": "Bak Kwa",
-            "id": 14405,
-            "image": "https://media.nedigital.sg/fairprice/images/a7ef2f77-55af-4cfd-9b82-51cabdb633d5/L3_BakKwa_040122.jpg",
-            "url": "/category/bak-kwa"
-          },
-          {
-            "name": "Chinese New Year Snacks",
-            "id": 17381,
-            "image": "https://media.nedigital.sg/fairprice/images/53d901eb-76a8-46aa-839d-acacdd88691e/L3_ChineseNewYearSnacks_281222.jpg",
-            "url": "/category/chinese-new-year-snacks"
-          },
-          {
-            "name": "Chinese New Year Cookies",
-            "id": 17377,
-            "image": "https://media.nedigital.sg/fairprice/images/b4d90f07-912c-4332-b9f1-85f944b88402/L3_ChineseNewYearCookies_281222.jpg",
-            "url": "/category/chinese-new-year-cookies-2"
-          }
-        ]
-      },
-      {
-        "name": "Chinese New Year Costumes \u0026 Decorations",
-        "id": 14389,
-        "image": "https://media.nedigital.sg/fairprice/images/d815aca2-92bb-4017-b444-0fc5cfa54d56/L2_ChineseNewYearCostumesDecorations_281221.jpg",
-        "url": "/category/chinese-new-year-costumes--decorations",
-        "menu": [
-          {
-            "name": "Chinese New Year Costumes",
-            "id": 14391,
-            "image": "https://media.nedigital.sg/fairprice/images/733e25af-7346-42fd-8ee6-61b776ada67e/L3_ChineseNewYearCostumes_281221.jpg",
-            "url": "/category/chinese-new-year-costumes-1"
-          },
-          {
-            "name": "Chinese New Year Decorations",
-            "id": 14390,
-            "image": "https://media.nedigital.sg/fairprice/images/b4862b19-e353-4e42-8a93-8a4f10e57e60/L3_ChineseNewYearDecorations_281221.jpg",
-            "url": "/category/chinese-new-year-decorations"
           }
         ]
       }
@@ -1858,6 +1772,12 @@
             "id": 1653,
             "image": "https://media.nedigital.sg/fairprice/images/68bfdcaf-e047-41be-b44b-1eaf0e632cb2/L3_InstantCoffee_011121.jpg",
             "url": "/category/instant-coffee"
+          },
+          {
+            "name": "Drip Coffee",
+            "id": 17499,
+            "image": "https://media.nedigital.sg/fairprice/images/18ff3d17-8cfd-4791-b708-5095194e904f/L3_DripCoffee_090123.jpg",
+            "url": "/category/drip-coffee"
           }
         ]
       },
@@ -3424,6 +3344,12 @@
         "url": "/category/housebrand-dairy-chilled-eggs",
         "menu": [
           {
+            "name": "Butter, Margarine \u0026 Spreads",
+            "id": 4315,
+            "image": "https://media.nedigital.sg/fairprice/images/6a67dfa3-655f-4d44-ab46-6508abd400cc/L3_ButterMargarineSpreads_181121.jpg",
+            "url": "/category/butter--margarine---spreads--1"
+          },
+          {
             "name": "Cheese",
             "id": 2309,
             "image": "https://media.nedigital.sg/fairprice/images/50c150ac-e051-4131-bfa8-ba4808c463c5/L3_Cheese_181121.jpg",
@@ -3668,6 +3594,12 @@
         "url": "/category/electrical--lifestyle-1",
         "menu": [
           {
+            "name": "Outdoor",
+            "id": 2106,
+            "image": "https://media.nedigital.sg/fairprice/images/36b61654-93ca-4f61-8fa4-c3ec52b322b2/L3_HousebrandOutdoor_170322.jpg",
+            "url": "/category/housebrand-outdoors"
+          },
+          {
             "name": "Partyware",
             "id": 14803,
             "image": "https://media.nedigital.sg/fairprice/images/c0acb1dd-e85c-4991-bb13-033b7514ff5c/L3_HousebrandPartyware_170322.jpg",
@@ -3764,12 +3696,6 @@
             "id": 2530,
             "image": "https://media.nedigital.sg/fairprice/images/11d5c617-d8fe-443e-a9a5-14cc288a2116/L3_Biscuits_181121.jpg",
             "url": "/category/housebrand-biscuits"
-          },
-          {
-            "name": "Snacks",
-            "id": 2403,
-            "image": "https://media.nedigital.sg/fairprice/images/97f3e569-a67c-4fb1-8403-6c87d1eecd79/L3_Snacks_181121.jpg",
-            "url": "/category/housebrand-snacks"
           },
           {
             "name": "Dried Fruits \u0026 Nuts",
