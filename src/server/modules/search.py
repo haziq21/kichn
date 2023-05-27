@@ -5,7 +5,6 @@ with the Meilisearch full-text search engine.
 Authored by Lohith Tanuku
 """
 
-import time
 import meilisearch
 import meilisearch.errors
 
@@ -15,6 +14,7 @@ class SearchClient:
 
     def __init__(self):
         self._client = meilisearch.Client("http://localhost:7700")
+        self._default_index_buffer: dict[str, str] = {}
 
     #### PRODUCT INDEXING ####
 
@@ -32,26 +32,41 @@ class SearchClient:
             }
             documents.append(doc)
 
-        # Meilisearch returns an error if you try adding an empty list of 
+        # Meilisearch returns an error if you try adding an empty list of
         # documents to an index, so we avoid adding the list if it's empty
         if documents:
             task = self._client.index(index_name).add_documents(documents)
-            task_uid = task.task_uid
-            task_status = task.status
+            # task_uid = task.task_uid
+            # task_status = task.status
 
-            # This is hacky but not waiting for Meilisearch to
-            # finish this operation causes minor bugs sometimes...
-            while task_status != "succeeded":
-                # It usually has to wait 4 to 5 ms in total
-                time.sleep(0.001)
-                task_status = self._client.get_task(task_uid)["status"]
+            # # This is hacky but not waiting for Meilisearch to
+            # # finish this operation causes minor bugs sometimes...
+            # while task_status != "succeeded":
+            #     # It usually has to wait 4 to 5 ms in total
+            #     time.sleep(0.001)
+            #     task_status = self._client.get_task(task_uid)["status"]
 
     def index_default_products(self, product_names: dict[str, str]):
         """
         Indexes the given products as default products.
         `product_names` maps product IDs to product names.
         """
-        self._add_products_to_index("default", product_names)
+        self._default_index_buffer.update(product_names)
+
+        # Flush the queue when it gets to 1000 in length
+        if len(self._default_index_buffer) >= 1000:
+            self.flush_default_index_queue()
+
+    def flush_default_index_queue(self):
+        """
+        Indexes all the products queued to be indexed as
+        default products, regardless of the queue length.
+        """
+        self._add_products_to_index(
+            "default",
+            self._default_index_buffer,
+        )
+        self._default_index_buffer = {}
 
     def index_inventory_products(self, kitchen_id: str, product_names: dict[str, str]):
         """
