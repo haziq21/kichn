@@ -61,7 +61,7 @@ def main():
             "--db-path",
             server_store_dir / "data.ms",
             # Config: write Meilisearch dump to server-store
-            "--dumps-dir",
+            "--dump-dir",
             server_store_dir / "dumps.ms",
         ],
         # Meilisearch outputs normal info text to stderr instead of stdout
