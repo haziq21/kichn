@@ -5,9 +5,10 @@ Kichn is a kitchen inventory tracker and grocery list webapp. This is a school p
 ## Usage & features
 
 - Users can have multiple *kitchens*, and each kitchen has a *inventory list* (the stuff you have in your kitchen) and a *grocery list* (the stuff you need to buy).
-- Add items to the grocery list by searching for it by name or barcode.
+- Add items to the grocery list by searching its name or by scanning its barcode.
 - *Buy* a grocery list item (and optionally set an expiry date) to move it to the inventory list.
 - *Use* an inventory list item to remove it from the inventory list (or move it to the grocery list).
+- *Share* a kitchen to allow others users to make real-time modifications.
 
 >  All the products available on Kichn are scraped from FairPrice's (reverse-engineered / not publicly documented) API.
 
