@@ -129,7 +129,7 @@ class Scraper:
             name,
             category,
             [int(b) for b in barcodes],
-            None,
+            image,
         )
 
         self.products_scraped += 1
