@@ -1,3 +1,6 @@
+# Parse FairPrice HTML page
+beautifulsoup4~=4.12.2
+
 # Provides HTML template rendering
 Jinja2~=3.1.2
 
